@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2 } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2, CheckCircle, Clock, XCircle } from "lucide-react"
 import BusinessFormModal from "./business-form-modal"
 
 interface AdminUser {
@@ -52,6 +52,8 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "active">("all")
+  const [pendingCount, setPendingCount] = useState(0)
   const [showFormModal, setShowFormModal] = useState(false)
   const [editingBusiness, setEditingBusiness] = useState<any>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Business | null>(null)
@@ -65,6 +67,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         limit: "20",
       })
       if (search) params.set("search", search)
+      if (statusFilter !== "all") params.set("status", statusFilter)
 
       const res = await fetch(`/api/admin/businesses?${params}`, {
         credentials: "include",
@@ -75,6 +78,9 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       if (res.ok && data.businesses) {
         setBusinesses(Array.isArray(data.businesses) ? data.businesses : [])
         setTotalPages(data.pagination?.totalPages || 1)
+        if (data.pendingCount !== undefined) {
+          setPendingCount(data.pendingCount)
+        }
       } else {
         setBusinesses([])
         setTotalPages(1)
@@ -90,7 +96,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   useEffect(() => {
     fetchBusinesses()
-  }, [page])
+  }, [page, statusFilter])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -163,6 +169,23 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     }
   }
 
+  const handleToggleVerification = async (business: Business) => {
+    try {
+      const res = await fetch(`/api/admin/businesses/${business.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ is_active: !business.is_active }),
+      })
+
+      if (res.ok) {
+        fetchBusinesses()
+      }
+    } catch (error) {
+      console.error("Error toggling verification:", error)
+    }
+  }
+
   const handleFormClose = () => {
     setShowFormModal(false)
     setEditingBusiness(null)
@@ -203,7 +226,15 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       <main className="container mx-auto px-4 py-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <h1 className="text-2xl font-bold">Daftar Mitra Bisnis</h1>
+            <div>
+              <h1 className="text-2xl font-bold">Daftar Mitra Bisnis</h1>
+              {pendingCount > 0 && (
+                <p className="text-sm text-orange-600 mt-1">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {pendingCount} mitra menunggu verifikasi
+                </p>
+              )}
+            </div>
             <div className="flex items-center gap-4">
               <form onSubmit={handleSearch} className="flex gap-2">
                 <Input
@@ -221,6 +252,40 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 Tambah Mitra
               </Button>
             </div>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={statusFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setStatusFilter("all"); setPage(1) }}
+            >
+              Semua
+            </Button>
+            <Button
+              variant={statusFilter === "pending" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setStatusFilter("pending"); setPage(1) }}
+              className={statusFilter === "pending" ? "" : "text-orange-600 border-orange-300 hover:bg-orange-50"}
+            >
+              <Clock className="h-4 w-4 mr-1" />
+              Menunggu Verifikasi
+              {pendingCount > 0 && (
+                <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-700">
+                  {pendingCount}
+                </Badge>
+              )}
+            </Button>
+            <Button
+              variant={statusFilter === "active" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setStatusFilter("active"); setPage(1) }}
+              className={statusFilter === "active" ? "" : "text-green-600 border-green-300 hover:bg-green-50"}
+            >
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Terverifikasi
+            </Button>
           </div>
 
           {/* Table */}
@@ -281,9 +346,24 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                             </Button>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={business.is_active ? "default" : "secondary"}>
-                              {business.is_active ? "Aktif" : "Nonaktif"}
-                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleVerification(business)}
+                              className={business.is_active ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
+                            >
+                              {business.is_active ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Terverifikasi
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="h-4 w-4 mr-1" />
+                                  Pending
+                                </>
+                              )}
+                            </Button>
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -301,6 +381,18 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                                   <Pencil className="h-4 w-4 mr-2" />
                                   Edit
                                 </DropdownMenuItem>
+                                {!business.is_active && (
+                                  <DropdownMenuItem onClick={() => handleToggleVerification(business)} className="text-green-600">
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Verifikasi
+                                  </DropdownMenuItem>
+                                )}
+                                {business.is_active && (
+                                  <DropdownMenuItem onClick={() => handleToggleVerification(business)} className="text-orange-600">
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Batalkan Verifikasi
+                                  </DropdownMenuItem>
+                                )}
                                 {user.role === "superadmin" && (
                                   <DropdownMenuItem onClick={() => setDeleteConfirm(business)} className="text-red-600">
                                     <Trash2 className="h-4 w-4 mr-2" />

@@ -31,6 +31,12 @@ export function Header() {
           <Link href="#tentang" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Tentang Kami
           </Link>
+          <Link 
+            href="/daftar-mitra" 
+            className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Daftar Mitra
+          </Link>
         </nav>
 
         <button
@@ -65,6 +71,13 @@ export function Header() {
               onClick={() => setIsMenuOpen(false)}
             >
               Tentang Kami
+            </Link>
+            <Link
+              href="/daftar-mitra"
+              className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-center"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Daftar Mitra
             </Link>
           </div>
         </nav>

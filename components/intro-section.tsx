@@ -79,9 +79,7 @@ export function IntroSection() {
                 Bagi Anda yang memiliki peluang kemitraan tersebut, yuk segera daftarkan bisnis Anda:
               </p>
               <Link
-                href="https://forms.gle/KhmHJQG3WLrqJ1Si8"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/daftar-mitra"
                 className="inline-flex items-center gap-2 bg-primary hover:bg-accent text-white font-semibold px-8 py-4 rounded-xl transition-colors shadow-lg hover:shadow-xl"
               >
                 Daftarkan Bisnis Anda
