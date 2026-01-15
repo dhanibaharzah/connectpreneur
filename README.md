@@ -1,8 +1,44 @@
 # ConnectPreneur
 
-Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai peluang kemitraan bisnis di Jawa Barat.
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=for-the-badge&logo=tailwind-css)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?style=for-the-badge&logo=postgresql)
+![Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=for-the-badge&logo=vercel)
 
-## Tentang Project
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-connectpreneur.id-green?style=for-the-badge)](https://connectpreneur.id)
+
+---
+
+> Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai peluang kemitraan bisnis di Jawa Barat.
+
+<p align="center">
+  <a href="#-tentang-project">Tentang</a> •
+  <a href="#-tech-stack">Tech Stack</a> •
+  <a href="#-fitur-utama">Fitur</a> •
+  <a href="#-local-development">Setup</a> •
+  <a href="#-deployment">Deploy</a> •
+  <a href="#-api-endpoints">API</a>
+</p>
+
+---
+
+## 📸 Screenshots
+
+<details>
+<summary>Klik untuk melihat screenshots</summary>
+
+| Homepage | Katalog | Detail Bisnis |
+|----------|---------|---------------|
+| ![Homepage](https://via.placeholder.com/300x200?text=Homepage) | ![Katalog](https://via.placeholder.com/300x200?text=Katalog) | ![Detail](https://via.placeholder.com/300x200?text=Detail) |
+
+| Admin Dashboard | Form Mitra | Daftar Mitra |
+|-----------------|------------|--------------|
+| ![Admin](https://via.placeholder.com/300x200?text=Admin) | ![Form](https://via.placeholder.com/300x200?text=Form) | ![Daftar](https://via.placeholder.com/300x200?text=Daftar+Mitra) |
+
+</details>
+
+## 📖 Tentang Project
 
 **ConnectPreneur** adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Bidang Pemberdayaan UMKM, Ekonomi Kreatif & Korporasi) DPW PKS Jawa Barat. Platform ini bertujuan untuk:
 
@@ -10,14 +46,14 @@ Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai p
 - Menghubungkan pelaku UMKM dengan calon mitra (reseller, agen, dropshipper, franchise, dll)
 - Memperluas jangkauan bisnis anggota melalui program Business Matching internal
 
-## Masalah yang Diselesaikan
+## 🎯 Masalah yang Diselesaikan
 
 1. **Fragmentasi Informasi** - Menyatukan informasi peluang kemitraan dalam satu platform terpusat
 2. **Akses Terbatas** - Membuka akses informasi kemitraan ke puluhan ribu anggota BOEMKraf
 3. **Proses Manual** - Digitalisasi proses pendaftaran dan verifikasi mitra bisnis
 4. **Keterhubungan** - Memfasilitasi koneksi langsung antara pemilik bisnis dan calon mitra
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -31,11 +67,11 @@ Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai p
 | Authentication | JWT (jose) |
 | Deployment | [Vercel](https://vercel.com/) |
 
-## Production URL
+## 🌐 Production URL
 
-🌐 **Live:** [https://connectpreneur.vercel.app](https://connectpreneur.vercel.app)
+**Live:** [https://connectpreneur.id](https://connectpreneur.id)
 
-## Fitur Utama
+## ✨ Fitur Utama
 
 ### Public
 - 📋 Katalog bisnis dengan filter kategori
@@ -52,7 +88,7 @@ Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai p
 - 🖼️ Auto-compress gambar (max 1MB → ~100KB)
 - ⭐ Featured business management
 
-## Local Development
+## 🚀 Local Development
 
 ### Prerequisites
 
@@ -123,7 +159,7 @@ pnpm dev
 
 Buka [http://localhost:3000](http://localhost:3000)
 
-## Deployment
+## 🚢 Deployment
 
 ### Deploy ke Vercel (Recommended)
 
@@ -144,7 +180,7 @@ pnpm build
 pnpm start
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 connectpreneur/
@@ -171,7 +207,7 @@ connectpreneur/
 └── types/                # TypeScript types
 ```
 
-## API Endpoints
+## 🔌 API Endpoints
 
 ### Public
 | Method | Endpoint | Description |
@@ -194,7 +230,7 @@ connectpreneur/
 | DELETE | `/api/admin/businesses/[id]` | Delete business |
 | POST | `/api/admin/upload` | Upload image (admin) |
 
-## Storage Limits
+## 💾 Storage Limits
 
 Free tier considerations:
 - **Vercel Blob:** 1GB/month
@@ -202,7 +238,7 @@ Free tier considerations:
 - **Max upload:** 1MB per image
 - **Estimated capacity:** ~50 mitra/day × 6 images × 30 days
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/amazing-feature`)
@@ -210,7 +246,7 @@ Free tier considerations:
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
 
-## License
+## 📄 License
 
 Private project for BOEMKraf DPW PKS Jawa Barat.
 
