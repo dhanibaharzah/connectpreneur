@@ -63,6 +63,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       alamat,
       kota_provinsi,
       category_id,
+      jenis_peluang,
       deskripsi_kemitraan,
       link_kemitraan,
       link_galeri,
@@ -104,6 +105,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const updatedKotaProvinsi = kota_provinsi !== undefined ? kota_provinsi : currentBusiness.kota_provinsi
     const updatedCategoryId =
       category_id !== undefined ? (category_id ? Number(category_id) : null) : currentBusiness.category_id
+    const updatedJenisPeluang = jenis_peluang !== undefined ? jenis_peluang : currentBusiness.jenis_peluang
     const updatedDeskripsiKemitraan =
       deskripsi_kemitraan !== undefined ? deskripsi_kemitraan : currentBusiness.deskripsi_kemitraan
     const updatedLinkKemitraan = link_kemitraan !== undefined ? link_kemitraan : currentBusiness.link_kemitraan
@@ -136,6 +138,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         alamat = ${updatedAlamat},
         kota_provinsi = ${updatedKotaProvinsi},
         category_id = ${updatedCategoryId},
+        jenis_peluang = ${updatedJenisPeluang},
         deskripsi_kemitraan = ${updatedDeskripsiKemitraan},
         link_kemitraan = ${updatedLinkKemitraan},
         link_galeri = ${updatedLinkGaleri},

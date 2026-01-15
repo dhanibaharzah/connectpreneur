@@ -91,9 +91,10 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
         jenis_peluang: business.jenis_peluang || "",
         deskripsi_kemitraan: business.deskripsi_kemitraan || "",
         website: business.website || "",
-        instagram: business.instagram || "",
-        facebook: business.facebook || "",
-        tiktok: business.tiktok || "",
+        // Extract usernames from URLs for display in form
+        instagram: extractUsername(business.instagram || "", "instagram"),
+        facebook: extractUsername(business.facebook || "", "facebook"),
+        tiktok: extractUsername(business.tiktok || "", "tiktok"),
         nama_pic: business.nama_pic || "",
         jabatan_pic: business.jabatan_pic || "",
         kontak_pic: business.kontak_pic || "",
@@ -136,6 +137,57 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-")
       .trim()
+  }
+
+  // Helper function to extract username from social media URL or return as-is if already a username
+  const extractUsername = (url: string, platform: "instagram" | "facebook" | "tiktok"): string => {
+    if (!url) return ""
+    
+    // If it's already just a username (no URL format), return it
+    if (!url.includes("http") && !url.includes(".com")) {
+      return url.replace(/^@/, "") // Remove @ prefix if present
+    }
+    
+    try {
+      const urlObj = new URL(url.startsWith("http") ? url : `https://${url}`)
+      let pathname = urlObj.pathname.replace(/\/$/, "") // Remove trailing slash
+      
+      // Handle different URL formats
+      if (platform === "tiktok") {
+        // TikTok URLs are like tiktok.com/@username
+        return pathname.replace(/^\/@?/, "")
+      }
+      // Instagram/Facebook URLs are like instagram.com/username or facebook.com/username
+      return pathname.replace(/^\//, "")
+    } catch {
+      // If URL parsing fails, return the original value
+      return url.replace(/^@/, "")
+    }
+  }
+
+  // Helper function to convert username to full social media URL
+  const usernameToUrl = (username: string, platform: "instagram" | "facebook" | "tiktok"): string => {
+    if (!username) return ""
+    
+    // If it's already a full URL, return as-is
+    if (username.includes("http")) {
+      return username
+    }
+    
+    // Remove @ prefix if present
+    const cleanUsername = username.replace(/^@/, "").trim()
+    if (!cleanUsername) return ""
+    
+    switch (platform) {
+      case "instagram":
+        return `https://instagram.com/${cleanUsername}`
+      case "facebook":
+        return `https://facebook.com/${cleanUsername}`
+      case "tiktok":
+        return `https://tiktok.com/@${cleanUsername}`
+      default:
+        return username
+    }
   }
 
   const handleNameChange = (value: string) => {
@@ -227,6 +279,10 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
         ...form,
         category_id: form.category_id ? Number.parseInt(form.category_id) : null,
         product_images: productImages,
+        // Convert usernames to full URLs
+        instagram: usernameToUrl(form.instagram, "instagram"),
+        facebook: usernameToUrl(form.facebook, "facebook"),
+        tiktok: usernameToUrl(form.tiktok, "tiktok"),
       }
 
       const url = business ? `/api/admin/businesses/${business.id}` : "/api/admin/businesses"
@@ -441,30 +497,42 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    value={form.instagram}
-                    onChange={(e) => setForm({ ...form, instagram: e.target.value })}
-                    placeholder="https://instagram.com/..."
-                  />
+                  <div className="flex items-center">
+                    <span className="text-sm text-muted-foreground mr-2">@</span>
+                    <Input
+                      id="instagram"
+                      value={form.instagram}
+                      onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+                      placeholder="username"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Masukkan username saja, contoh: rasakoe</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="facebook">Facebook</Label>
-                  <Input
-                    id="facebook"
-                    value={form.facebook}
-                    onChange={(e) => setForm({ ...form, facebook: e.target.value })}
-                    placeholder="https://facebook.com/..."
-                  />
+                  <div className="flex items-center">
+                    <span className="text-sm text-muted-foreground mr-2">@</span>
+                    <Input
+                      id="facebook"
+                      value={form.facebook}
+                      onChange={(e) => setForm({ ...form, facebook: e.target.value })}
+                      placeholder="username"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Masukkan username saja, contoh: rasakoe.id</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tiktok">TikTok</Label>
-                  <Input
-                    id="tiktok"
-                    value={form.tiktok}
-                    onChange={(e) => setForm({ ...form, tiktok: e.target.value })}
-                    placeholder="https://tiktok.com/..."
-                  />
+                  <div className="flex items-center">
+                    <span className="text-sm text-muted-foreground mr-2">@</span>
+                    <Input
+                      id="tiktok"
+                      value={form.tiktok}
+                      onChange={(e) => setForm({ ...form, tiktok: e.target.value })}
+                      placeholder="username"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Masukkan username saja, contoh: rasakoe</p>
                 </div>
               </div>
             </TabsContent>
