@@ -1,0 +1,185 @@
+import { type NextRequest, NextResponse } from "next/server"
+import { neon } from "@neondatabase/serverless"
+import { getSessionFromRequest } from "@/lib/auth"
+
+const sql = neon(process.env.DATABASE_URL!)
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getSessionFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const page = Number.parseInt(searchParams.get("page") || "1")
+    const limit = Number.parseInt(searchParams.get("limit") || "20")
+    const search = searchParams.get("search") || ""
+    const offset = (page - 1) * limit
+
+    let businesses
+    let total
+
+    if (search) {
+      businesses = await sql`
+        SELECT b.*, c.name as category_name
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.nama ILIKE ${"%" + search + "%"}
+        ORDER BY b.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      const countResult = await sql`
+        SELECT COUNT(*) as count FROM businesses
+        WHERE nama ILIKE ${"%" + search + "%"}
+      `
+      total = Number.parseInt(countResult[0].count)
+    } else {
+      businesses = await sql`
+        SELECT b.*, c.name as category_name
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        ORDER BY b.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+      const countResult = await sql`SELECT COUNT(*) as count FROM businesses`
+      total = Number.parseInt(countResult[0].count)
+    }
+
+    // Get product images for each business
+    const businessesWithImages = await Promise.all(
+      businesses.map(async (b: any) => {
+        const productImages = await sql`
+          SELECT * FROM product_images 
+          WHERE business_id = ${b.id}
+          ORDER BY sort_order
+        `
+        return {
+          ...b,
+          product_images: productImages,
+        }
+      }),
+    )
+
+    return NextResponse.json({
+      businesses: businessesWithImages,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    })
+  } catch (error) {
+    console.error("Get businesses error:", error)
+    return NextResponse.json({ error: "Gagal mengambil data bisnis" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getSessionFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    console.log("[v0] POST body received:", JSON.stringify(body, null, 2))
+
+    const {
+      nama,
+      slug,
+      deskripsi,
+      lama_usaha,
+      alamat,
+      kota_provinsi,
+      category_id,
+      deskripsi_kemitraan,
+      link_kemitraan,
+      link_galeri,
+      website,
+      instagram,
+      facebook,
+      tiktok,
+      nama_pic,
+      jabatan_pic,
+      kontak_pic,
+      logo_url,
+      jumlah_cabang,
+      is_featured,
+      product_images,
+    } = body
+
+    if (!nama || !slug) {
+      return NextResponse.json({ error: "Nama dan slug harus diisi" }, { status: 400 })
+    }
+
+    // Check slug uniqueness
+    const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug}`
+    if (existingSlug.length > 0) {
+      return NextResponse.json({ error: "Slug sudah digunakan" }, { status: 400 })
+    }
+
+    const result = await sql`
+      INSERT INTO businesses (
+        nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi,
+        category_id, deskripsi_kemitraan, link_kemitraan, link_galeri, website,
+        instagram, facebook, tiktok, nama_pic, jabatan_pic, kontak_pic,
+        logo_url, jumlah_cabang, is_featured, is_active
+      ) VALUES (
+        ${nama}, 
+        ${slug}, 
+        ${deskripsi ?? null}, 
+        ${lama_usaha ?? null},
+        ${alamat ?? null}, 
+        ${kota_provinsi ?? null}, 
+        ${category_id ? Number(category_id) : null},
+        ${deskripsi_kemitraan ?? null}, 
+        ${link_kemitraan ?? null},
+        ${link_galeri ?? null},
+        ${website ?? null},
+        ${instagram ?? null}, 
+        ${facebook ?? null}, 
+        ${tiktok ?? null},
+        ${nama_pic ?? null}, 
+        ${jabatan_pic ?? null}, 
+        ${kontak_pic ?? null},
+        ${logo_url ?? null}, 
+        ${jumlah_cabang ?? "0"}, 
+        ${is_featured ?? false}, 
+        true
+      )
+      RETURNING *
+    `
+
+    console.log("[v0] Business created:", result[0])
+
+    const business = result[0]
+
+    // Insert product images
+    if (product_images && product_images.length > 0) {
+      console.log("[v0] Inserting product images:", product_images)
+      for (let i = 0; i < product_images.length; i++) {
+        const img = product_images[i]
+        const imageUrl = img.url || img.image_url
+        if (imageUrl) {
+          await sql`
+            INSERT INTO product_images (business_id, image_url, sort_order)
+            VALUES (${business.id}, ${imageUrl}, ${i + 1})
+          `
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, business }, { status: 201 })
+  } catch (error) {
+    console.error("[v0] Create business error:", error)
+    return NextResponse.json(
+      {
+        error: "Gagal membuat bisnis baru",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
+  }
+}
