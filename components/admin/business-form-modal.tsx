@@ -266,8 +266,42 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
     }
   }
 
-  const handleRemoveProductImage = (index: number) => {
+  const handleRemoveProductImage = async (index: number) => {
+    const imageToRemove = productImages[index]
+    
+    // Delete from blob storage if it's a blob URL
+    if (imageToRemove && (imageToRemove.url || imageToRemove.image_url)) {
+      const url = imageToRemove.url || imageToRemove.image_url
+      if (url && url.includes("blob.vercel-storage.com")) {
+        try {
+          await fetch("/api/admin/upload", {
+            method: "DELETE",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ url }),
+          })
+        } catch (error) {
+          console.error("Failed to delete blob:", error)
+        }
+      }
+    }
+    
     setProductImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleRemoveLogo = async () => {
+    // Delete from blob storage if it's a blob URL
+    if (form.logo_url && form.logo_url.includes("blob.vercel-storage.com")) {
+      try {
+        await fetch("/api/admin/upload", {
+          method: "DELETE",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ url: form.logo_url }),
+        })
+      } catch (error) {
+        console.error("Failed to delete logo blob:", error)
+      }
+    }
+    setForm({ ...form, logo_url: "" })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -553,7 +587,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
                       />
                       <button
                         type="button"
-                        onClick={() => setForm({ ...form, logo_url: "" })}
+                        onClick={handleRemoveLogo}
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
                       >
                         <X className="h-4 w-4" />
@@ -631,7 +665,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
                     className="hidden"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Maksimal 5MB per gambar. Format: JPG, PNG, WebP, GIF</p>
+                <p className="text-xs text-muted-foreground">Maksimal 1MB per gambar. Format: JPG, PNG, WebP, GIF (otomatis dikompres)</p>
               </div>
             </TabsContent>
           </Tabs>

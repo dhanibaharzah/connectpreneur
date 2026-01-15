@@ -143,25 +143,6 @@ export function BusinessDetailModal({ business, isOpen, onClose }: BusinessDetai
 
           <Separator />
 
-          {((business.produkUrls && business.produkUrls.length > 0) || business.linkGaleri) && (
-            <div>
-              <Button
-                asChild
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-white bg-transparent"
-              >
-                <a
-                  href={business.linkGaleri || (business.produkUrls && business.produkUrls[0]) || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  Lihat Produk Lengkap
-                </a>
-              </Button>
-            </div>
-          )}
-
           <Separator />
 
           {/* Social Media & Website */}

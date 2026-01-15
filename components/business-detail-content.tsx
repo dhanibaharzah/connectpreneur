@@ -307,22 +307,6 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
             </Card>
           )}
 
-          {/* Product Gallery Link */}
-          {(business.linkGaleri || business.produkUrls.length > 0) && (
-            <Card>
-              <CardContent className="p-6">
-                <a
-                  href={business.linkGaleri || business.produkUrls[0]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary hover:text-secondary font-semibold transition-colors"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                  Lihat Produk Lengkap
-                </a>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
