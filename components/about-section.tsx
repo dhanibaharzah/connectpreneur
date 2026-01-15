@@ -55,8 +55,8 @@ export function AboutSection() {
               <div>
                 <h3 className="text-xl font-bold text-foreground mb-3">Apa itu ConnectPreneur?</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  ConnectPreneur adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Badan Otonom Ekonomi
-                  Mikro Kecil Rakyat dan Kreatif) DPW PKS Jawa Barat. Program ini bertujuan untuk menghubungkan para
+                  ConnectPreneur adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Bidang Pemberdayaan 
+                  UMKM, Ekonomi Kreatif & Korporasi) DPW PKS Jawa Barat. Program ini bertujuan untuk menghubungkan para
                   pelaku UMKM dengan berbagai peluang kemitraan bisnis.
                 </p>
               </div>
