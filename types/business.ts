@@ -15,6 +15,7 @@ export interface Business {
   facebook: string
   tiktok: string
   jenisUsaha: string
+  jenisPeluang: string
   deskripsiKemitraan: string
   linkKemitraan: string
   namaPIC: string

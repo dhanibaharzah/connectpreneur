@@ -171,7 +171,12 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
         {/* Right Column - Business Info */}
         <div className="space-y-6">
           <div>
-            <Badge className="bg-primary text-white mb-3">{business.jenisUsaha}</Badge>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Badge className="bg-primary text-white">{business.jenisUsaha}</Badge>
+              {business.jenisPeluang && (
+                <Badge variant="outline" className="border-primary text-primary">{business.jenisPeluang}</Badge>
+              )}
+            </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{business.nama}</h1>
             <p className="text-muted-foreground text-lg">{business.deskripsi}</p>
           </div>

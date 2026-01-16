@@ -23,6 +23,7 @@ export interface DbBusiness {
   category_id: number | null
   category_name: string | null
   category_slug: string | null
+  jenis_peluang: string | null
   deskripsi_kemitraan: string | null
   link_kemitraan: string | null
   nama_pic: string | null
@@ -59,6 +60,7 @@ export function transformDbToBusiness(dbBusiness: DbBusiness, productImages: { i
     kotaProvinsi: dbBusiness.kota_provinsi || "",
     jumlahCabang: dbBusiness.jumlah_cabang || "0",
     jenisUsaha: dbBusiness.category_name || "Lainnya",
+    jenisPeluang: dbBusiness.jenis_peluang || "",
     deskripsiKemitraan: dbBusiness.deskripsi_kemitraan || "",
     linkKemitraan: dbBusiness.link_kemitraan || "",
     logoUrl: dbBusiness.logo_url || "",

@@ -40,7 +40,7 @@ export function HeroSection() {
         >
           <path
             d="M0,60 C300,120 600,0 900,60 C1050,90 1150,75 1200,60 L1200,120 L0,120 Z"
-            className="fill-[#f4f4f5]"
+            className="fill-background"
           />
         </svg>
       </div>

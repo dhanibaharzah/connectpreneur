@@ -4,7 +4,7 @@ import type { Business } from "@/types/business"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Clock, Building2, Eye } from "lucide-react"
+import { MapPin, Clock, Building2, Eye, Handshake } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -72,6 +72,12 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Building2 className="h-4 w-4 text-primary" />
               <span>{business.jumlahCabang} Cabang</span>
+            </div>
+          )}
+          {business.jenisPeluang && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Handshake className="h-4 w-4 text-primary" />
+              <span className="line-clamp-1">{business.jenisPeluang}</span>
             </div>
           )}
         </div>
