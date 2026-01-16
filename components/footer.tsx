@@ -58,8 +58,19 @@ export function Footer() {
             </a>
           </div>
         </div>
-        <div className="border-t border-background/20 mt-8 pt-8 text-center text-sm text-background/60">
-          <p>&copy; {new Date().getFullYear()} ConnectPreneur. Hak Cipta Dilindungi.</p>
+        {/* Disclaimer */}
+        <div className="border-t border-background/20 mt-8 pt-6">
+          <div className="bg-background/10 rounded-lg p-4 mb-6">
+            <p className="text-xs text-background/70 text-center leading-relaxed">
+              <strong className="text-background/90">⚠️ Disclaimer:</strong> ConnectPreneur hanya berfungsi sebagai platform penghubung antara pemilik bisnis dan calon mitra. 
+              Segala bentuk transaksi dan kerjasama yang terjadi merupakan tanggung jawab masing-masing pihak. 
+              BOEMKraf DPW PKS Jawa Barat tidak bertanggung jawab atas wanprestasi atau kerugian yang mungkin timbul dari kerjasama bisnis. 
+              <strong className="text-background/90"> Selalu berhati-hati dan lakukan verifikasi sebelum melakukan transaksi bisnis.</strong>
+            </p>
+          </div>
+          <p className="text-center text-sm text-background/60">
+            &copy; {new Date().getFullYear()} ConnectPreneur. Hak Cipta Dilindungi.
+          </p>
         </div>
       </div>
     </footer>

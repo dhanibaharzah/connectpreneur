@@ -50,7 +50,13 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
     <div className="container mx-auto px-4">
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Katalog Bisnis Kemitraan</h1>
-        <p className="text-muted-foreground">Temukan berbagai peluang usaha yang sesuai dengan minat Anda</p>
+        <p className="text-muted-foreground mb-4">Temukan berbagai peluang usaha yang sesuai dengan minat Anda</p>
+        <div className="max-w-2xl mx-auto bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+          <p className="text-xs text-amber-700">
+            ⚠️ <strong>Perhatian:</strong> Selalu lakukan verifikasi dan berhati-hati sebelum melakukan transaksi bisnis. 
+            Segala kerjasama merupakan tanggung jawab masing-masing pihak.
+          </p>
+        </div>
       </div>
 
       {/* Search Bar */}

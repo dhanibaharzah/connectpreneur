@@ -312,6 +312,14 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
             </Card>
           )}
 
+          {/* Disclaimer */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-xs text-amber-800 leading-relaxed">
+              <strong>⚠️ Peringatan:</strong> Selalu berhati-hati dalam melakukan transaksi bisnis. Lakukan verifikasi dan riset terlebih dahulu sebelum menjalin kerjasama. 
+              ConnectPreneur dan BOEMKraf tidak bertanggung jawab atas segala bentuk wanprestasi atau kerugian yang mungkin timbul dari kerjasama bisnis.
+            </p>
+          </div>
+
         </div>
       </div>
     </div>
