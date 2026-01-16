@@ -51,7 +51,9 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "active">("all")
   const [pendingCount, setPendingCount] = useState(0)
   const [showFormModal, setShowFormModal] = useState(false)
@@ -64,7 +66,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: "20",
+        limit: perPage.toString(),
       })
       if (search) params.set("search", search)
       if (statusFilter !== "all") params.set("status", statusFilter)
@@ -78,12 +80,14 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       if (res.ok && data.businesses) {
         setBusinesses(Array.isArray(data.businesses) ? data.businesses : [])
         setTotalPages(data.pagination?.totalPages || 1)
+        setTotalItems(data.pagination?.total || 0)
         if (data.pendingCount !== undefined) {
           setPendingCount(data.pendingCount)
         }
       } else {
         setBusinesses([])
         setTotalPages(1)
+        setTotalItems(0)
         console.error("Error fetching businesses:", data.error)
       }
     } catch (error) {
@@ -96,7 +100,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   useEffect(() => {
     fetchBusinesses()
-  }, [page, statusFilter])
+  }, [page, perPage, statusFilter])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -410,19 +414,38 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-4">
-                  <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-                    Sebelumnya
-                  </Button>
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Tampilkan</span>
+                  <select
+                    value={perPage}
+                    onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1) }}
+                    className="border rounded px-2 py-1 text-sm bg-background"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
                   <span className="text-sm text-muted-foreground">
-                    Halaman {page} dari {totalPages}
+                    dari {totalItems} data
                   </span>
-                  <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-                    Selanjutnya
-                  </Button>
                 </div>
-              )}
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
+                      Sebelumnya
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Halaman {page} dari {totalPages}
+                    </span>
+                    <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+                      Selanjutnya
+                    </Button>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>

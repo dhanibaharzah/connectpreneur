@@ -610,7 +610,7 @@ export default function DaftarMitraPage() {
                           className="hidden"
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground">Maksimal 1MB per gambar. Format: JPG, PNG, WebP (otomatis dikompres)</p>
+                      <p className="text-xs text-muted-foreground">Maksimal 5MB per gambar. Format: JPG, PNG, WebP (otomatis dikompres)</p>
                     </div>
                   </TabsContent>
                 </Tabs>

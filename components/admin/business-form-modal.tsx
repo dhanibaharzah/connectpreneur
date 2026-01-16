@@ -665,7 +665,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
                     className="hidden"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Maksimal 1MB per gambar. Format: JPG, PNG, WebP, GIF (otomatis dikompres)</p>
+                <p className="text-xs text-muted-foreground">Maksimal 5MB per gambar. Format: JPG, PNG, WebP, GIF (otomatis dikompres)</p>
               </div>
             </TabsContent>
           </Tabs>

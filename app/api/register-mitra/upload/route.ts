@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 import sharp from "sharp"
 
-// Max upload size 1MB, will be compressed to ~100KB
-const MAX_UPLOAD_SIZE = 1 * 1024 * 1024 // 1MB
+// Max upload size 5MB, will be compressed to ~100KB
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024 // 5MB
 const TARGET_WIDTH = 800
 const TARGET_HEIGHT = 800
 const JPEG_QUALITY = 75
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Validate file size (max 1MB)
     if (file.size > MAX_UPLOAD_SIZE) {
-      return NextResponse.json({ error: "Ukuran file maksimal 1MB" }, { status: 400 })
+      return NextResponse.json({ error: "Ukuran file maksimal 5MB" }, { status: 400 })
     }
 
     // Convert file to buffer and compress
