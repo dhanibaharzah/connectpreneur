@@ -643,15 +643,7 @@ export default function DaftarMitraPage() {
       {/* Footer */}
       <footer className="bg-foreground/5 border-t py-4 mt-auto">
         <div className="container mx-auto px-4 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} ConnectPreneur. All Rights Reserved. Developed with ❤️ by{" "}
-          <a 
-            href="https://orbitcreation.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            orbitcreation.com
-          </a>
+          © {new Date().getFullYear()} ConnectPreneur. All Rights Reserved.
         </div>
       </footer>
     </div>
