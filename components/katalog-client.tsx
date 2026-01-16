@@ -19,6 +19,16 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
   const [selectedCategory, setSelectedCategory] = useState("Semua")
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Calculate business count per category
+  const businessCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    businesses.forEach(business => {
+      const cat = business.jenisUsaha
+      counts[cat] = (counts[cat] || 0) + 1
+    })
+    return counts
+  }, [businesses])
+
   const filteredBusinesses = useMemo(() => {
     return businesses.filter((business) => {
       const matchesSearch =
@@ -76,9 +86,10 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
       {/* Category Filter */}
       <div className="mb-8">
         <CategoryFilter
-          categories={categories}
+          categories={["Semua", ...categories.filter(cat => cat !== "Semua" && businessCounts[cat] > 0)]}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
+          businessCounts={businessCounts}
         />
       </div>
 
