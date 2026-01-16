@@ -69,7 +69,15 @@ export function Footer() {
             </p>
           </div>
           <p className="text-center text-sm text-background/60">
-            &copy; {new Date().getFullYear()} ConnectPreneur. Hak Cipta Dilindungi.
+            &copy; {new Date().getFullYear()} ConnectPreneur. All Rights Reserved. Developed by{" "}
+            <a 
+              href="https://orbitcreation.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              orbitcreation.com
+            </a>
           </p>
         </div>
       </div>
