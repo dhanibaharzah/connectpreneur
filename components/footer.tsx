@@ -27,12 +27,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#katalog" className="hover:text-primary transition-colors">
+                <a href="/katalog" className="hover:text-primary transition-colors">
                   Katalog Bisnis
                 </a>
               </li>
               <li>
-                <a href="#tentang" className="hover:text-primary transition-colors">
+                <a href="/#tentang" className="hover:text-primary transition-colors">
                   Tentang Kami
                 </a>
               </li>

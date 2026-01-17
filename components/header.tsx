@@ -28,7 +28,7 @@ export function Header() {
           <Link href="/katalog" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Katalog
           </Link>
-          <Link href="#tentang" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+          <Link href="/#tentang" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Tentang Kami
           </Link>
           <Link 
@@ -66,7 +66,7 @@ export function Header() {
               Katalog
             </Link>
             <Link
-              href="#tentang"
+              href="/#tentang"
               className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
