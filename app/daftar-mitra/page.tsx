@@ -1,22 +1,17 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, X, Loader2, Plus, CheckCircle, ArrowLeft } from "lucide-react"
-
-interface Category {
-  id: number
-  name: string
-}
+import CategoryCombobox from "@/components/category-combobox"
 
 interface ProductImage {
   url: string
@@ -24,7 +19,6 @@ interface ProductImage {
 
 export default function DaftarMitraPage() {
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -53,22 +47,6 @@ export default function DaftarMitraPage() {
   })
 
   const [productImages, setProductImages] = useState<ProductImage[]>([])
-
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/categories")
-      const data = await res.json()
-      if (res.ok && data.categories) {
-        setCategories(Array.isArray(data.categories) ? data.categories : [])
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error)
-    }
-  }
 
   const generateSlug = (name: string) => {
     return name
@@ -205,12 +183,19 @@ export default function DaftarMitraPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate required fields
+    if (!form.category_id) {
+      alert("Kategori harus dipilih")
+      return
+    }
+    
     setLoading(true)
 
     try {
       const payload = {
         ...form,
-        category_id: form.category_id ? Number.parseInt(form.category_id) : null,
+        category_id: Number.parseInt(form.category_id),
         product_images: productImages,
         instagram: usernameToUrl(form.instagram, "instagram"),
         facebook: usernameToUrl(form.facebook, "facebook"),
@@ -349,18 +334,12 @@ export default function DaftarMitraPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="category_id">Kategori *</Label>
-                        <Select value={form.category_id} onValueChange={(value) => setForm({ ...form, category_id: value })}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih kategori" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id.toString()}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <CategoryCombobox
+                          value={form.category_id}
+                          onChange={(value) => setForm({ ...form, category_id: value })}
+                          allowCreate={false}
+                          apiEndpoint="/api/categories"
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="lama_usaha">Lama Usaha</Label>

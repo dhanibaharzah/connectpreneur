@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Nama PIC dan nomor WhatsApp harus diisi" }, { status: 400 })
     }
 
+    if (!category_id) {
+      return NextResponse.json({ error: "Kategori harus dipilih" }, { status: 400 })
+    }
+
     // Check slug uniqueness
     const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug}`
     if (existingSlug.length > 0) {

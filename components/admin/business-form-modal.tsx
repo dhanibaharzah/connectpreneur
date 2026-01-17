@@ -10,19 +10,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, X, Loader2, Plus } from "lucide-react"
+import CategoryCombobox from "@/components/category-combobox"
 
 interface BusinessFormModalProps {
   business?: any
   onClose: () => void
   onSuccess: () => void
-}
-
-interface Category {
-  id: number
-  name: string
 }
 
 interface ProductImage {
@@ -45,7 +40,6 @@ function getAuthHeaders(contentType = true): HeadersInit {
 
 export default function BusinessFormModal({ business, onClose, onSuccess }: BusinessFormModalProps) {
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
@@ -77,8 +71,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
   const [productImages, setProductImages] = useState<ProductImage[]>([])
 
   useEffect(() => {
-    fetchCategories()
-
     if (business) {
       setForm({
         nama: business.nama || "",
@@ -111,24 +103,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
       )
     }
   }, [business])
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/categories", {
-        credentials: "include",
-        headers: getAuthHeaders(),
-      })
-      const data = await res.json()
-      if (res.ok && data.categories) {
-        setCategories(Array.isArray(data.categories) ? data.categories : [])
-      } else {
-        setCategories([])
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error)
-      setCategories([])
-    }
-  }
 
   const generateSlug = (name: string) => {
     return name
@@ -306,6 +280,13 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate required fields
+    if (!form.category_id) {
+      alert("Kategori harus dipilih")
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -390,18 +371,13 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category_id">Kategori</Label>
-                  <Select value={form.category_id} onValueChange={(value) => setForm({ ...form, category_id: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id.toString()}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CategoryCombobox
+                    value={form.category_id}
+                    onChange={(value) => setForm({ ...form, category_id: value })}
+                    allowCreate={true}
+                    apiEndpoint="/api/admin/categories"
+                    authHeaders={getAuthHeaders()}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lama_usaha">Lama Usaha</Label>
