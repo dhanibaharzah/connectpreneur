@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2, CheckCircle, Clock, XCircle } from "lucide-react"
 import BusinessFormModal from "./business-form-modal"
+import BusinessViewModal from "./business-view-modal"
 
 interface AdminUser {
   id: number
@@ -58,6 +59,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [pendingCount, setPendingCount] = useState(0)
   const [showFormModal, setShowFormModal] = useState(false)
   const [editingBusiness, setEditingBusiness] = useState<any>(null)
+  const [viewingBusiness, setViewingBusiness] = useState<any>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Business | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
@@ -124,6 +126,21 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       if (res.ok) {
         setEditingBusiness(data.business)
         setShowFormModal(true)
+      }
+    } catch (error) {
+      console.error("Error fetching business:", error)
+    }
+  }
+
+  const handleView = async (business: Business) => {
+    try {
+      const res = await fetch(`/api/admin/businesses/${business.id}`, {
+        credentials: "include",
+        headers: getAuthHeaders(),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setViewingBusiness(data.business)
       }
     } catch (error) {
       console.error("Error fetching business:", error)
@@ -337,7 +354,14 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                               </div>
                             )}
                           </TableCell>
-                          <TableCell className="font-medium">{business.nama}</TableCell>
+                          <TableCell>
+                            <button
+                              onClick={() => handleView(business)}
+                              className="font-medium text-left hover:text-primary hover:underline transition-colors"
+                            >
+                              {business.nama}
+                            </button>
+                          </TableCell>
                           <TableCell>{business.category_name || "-"}</TableCell>
                           <TableCell>{business.kota_provinsi || "-"}</TableCell>
                           <TableCell className="text-center">
@@ -377,7 +401,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => window.open(`/bisnis/${business.slug}`, "_blank")}>
+                                <DropdownMenuItem onClick={() => handleView(business)}>
                                   <Eye className="h-4 w-4 mr-2" />
                                   Lihat
                                 </DropdownMenuItem>
@@ -454,6 +478,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       {/* Form Modal */}
       {showFormModal && (
         <BusinessFormModal business={editingBusiness} onClose={handleFormClose} onSuccess={handleFormSuccess} />
+      )}
+
+      {/* View Modal */}
+      {viewingBusiness && (
+        <BusinessViewModal business={viewingBusiness} onClose={() => setViewingBusiness(null)} />
       )}
 
       {/* Delete Confirmation */}

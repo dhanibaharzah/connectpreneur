@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
           FROM businesses b
           LEFT JOIN categories c ON b.category_id = c.id
           WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = false
-          ORDER BY b.created_at DESC
+          ORDER BY b.is_featured DESC, b.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
         const countResult = await sql`
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           FROM businesses b
           LEFT JOIN categories c ON b.category_id = c.id
           WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = true
-          ORDER BY b.created_at DESC
+          ORDER BY b.is_featured DESC, b.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
         const countResult = await sql`
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
           FROM businesses b
           LEFT JOIN categories c ON b.category_id = c.id
           WHERE b.nama ILIKE ${"%" + search + "%"}
-          ORDER BY b.created_at DESC
+          ORDER BY b.is_featured DESC, b.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
         const countResult = await sql`
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
           FROM businesses b
           LEFT JOIN categories c ON b.category_id = c.id
           WHERE b.is_active = false
-          ORDER BY b.created_at DESC
+          ORDER BY b.is_featured DESC, b.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
         const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = false`
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
           FROM businesses b
           LEFT JOIN categories c ON b.category_id = c.id
           WHERE b.is_active = true
-          ORDER BY b.created_at DESC
+          ORDER BY b.is_featured DESC, b.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
         const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = true`
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
           SELECT b.*, c.name as category_name
           FROM businesses b
           LEFT JOIN categories c ON b.category_id = c.id
-          ORDER BY b.created_at DESC
+          ORDER BY b.is_featured DESC, b.created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `
         const countResult = await sql`SELECT COUNT(*) as count FROM businesses`

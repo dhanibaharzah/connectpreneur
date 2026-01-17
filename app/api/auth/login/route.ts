@@ -23,10 +23,12 @@ export async function POST(request: NextRequest) {
       token: token,
     })
 
+    const isProduction = process.env.NODE_ENV === "production"
+    
     response.cookies.set("admin_session", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none", // Allow cross-site for preview iframe
+      secure: isProduction,
+      sameSite: isProduction ? "lax" : "lax",
       maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
     })

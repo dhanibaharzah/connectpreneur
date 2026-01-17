@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,11 +12,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 export default function AdminLoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Check if already authenticated
+  useEffect(() => {
+    async function checkExistingAuth() {
+      try {
+        const token = localStorage.getItem("admin_token")
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        })
+
+        if (res.ok) {
+          // Already logged in, redirect to admin
+          router.replace("/admin")
+          return
+        }
+      } catch (error) {
+        // Not authenticated, show login form
+        console.log("Not authenticated, showing login form")
+      } finally {
+        setCheckingAuth(false)
+      }
+    }
+
+    checkExistingAuth()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,6 +79,15 @@ export default function AdminLoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show loading while checking existing auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
