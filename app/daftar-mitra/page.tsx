@@ -307,12 +307,12 @@ export default function DaftarMitraPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="slug">Slug URL *</Label>
+                        <Label htmlFor="slug">Slug URL (otomatis)</Label>
                         <Input
                           id="slug"
                           value={form.slug}
-                          onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                          required
+                          disabled
+                          className="bg-muted"
                           placeholder="warung-makan-bu-ani"
                         />
                         <p className="text-xs text-muted-foreground">URL: connectpreneur.com/bisnis/{form.slug || "..."}</p>

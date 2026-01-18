@@ -348,12 +348,12 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
                   <Input id="nama" value={form.nama} onChange={(e) => handleNameChange(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug *</Label>
+                  <Label htmlFor="slug">Slug URL (otomatis)</Label>
                   <Input
                     id="slug"
                     value={form.slug}
-                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                    required
+                    disabled
+                    className="bg-muted"
                   />
                 </div>
               </div>
