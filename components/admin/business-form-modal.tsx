@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, X, Loader2, Plus } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
+import RichTextEditor from "@/components/rich-text-editor"
 
 interface BusinessFormModalProps {
   business?: any
@@ -360,11 +361,10 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
 
               <div className="space-y-2">
                 <Label htmlFor="deskripsi">Deskripsi</Label>
-                <Textarea
-                  id="deskripsi"
+                <RichTextEditor
                   value={form.deskripsi}
-                  onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
-                  rows={3}
+                  onChange={(value) => setForm({ ...form, deskripsi: value })}
+                  placeholder="Jelaskan tentang bisnis Anda..."
                 />
               </div>
 
@@ -454,11 +454,10 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
 
               <div className="space-y-2">
                 <Label htmlFor="deskripsi_kemitraan">Deskripsi Kemitraan</Label>
-                <Textarea
-                  id="deskripsi_kemitraan"
+                <RichTextEditor
                   value={form.deskripsi_kemitraan}
-                  onChange={(e) => setForm({ ...form, deskripsi_kemitraan: e.target.value })}
-                  rows={3}
+                  onChange={(value) => setForm({ ...form, deskripsi_kemitraan: value })}
+                  placeholder="Jelaskan peluang kemitraan yang ditawarkan..."
                 />
               </div>
 

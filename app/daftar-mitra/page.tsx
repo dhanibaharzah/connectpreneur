@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, X, Loader2, Plus, CheckCircle, ArrowLeft } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
+import RichTextEditor from "@/components/rich-text-editor"
 
 interface ProductImage {
   url: string
@@ -321,12 +322,9 @@ export default function DaftarMitraPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="deskripsi">Deskripsi Bisnis *</Label>
-                      <Textarea
-                        id="deskripsi"
+                      <RichTextEditor
                         value={form.deskripsi}
-                        onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
-                        rows={3}
-                        required
+                        onChange={(value) => setForm({ ...form, deskripsi: value })}
                         placeholder="Jelaskan tentang bisnis Anda..."
                       />
                     </div>
@@ -400,11 +398,9 @@ export default function DaftarMitraPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="deskripsi_kemitraan">Deskripsi Program Kemitraan</Label>
-                      <Textarea
-                        id="deskripsi_kemitraan"
+                      <RichTextEditor
                         value={form.deskripsi_kemitraan}
-                        onChange={(e) => setForm({ ...form, deskripsi_kemitraan: e.target.value })}
-                        rows={3}
+                        onChange={(value) => setForm({ ...form, deskripsi_kemitraan: value })}
                         placeholder="Jelaskan program kemitraan yang Anda tawarkan..."
                       />
                     </div>

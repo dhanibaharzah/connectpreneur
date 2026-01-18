@@ -9,6 +9,12 @@ import type { Business } from "@/types/business"
 
 const ITEMS_PER_PAGE = 10
 
+// Strip HTML tags for search
+function stripHtml(html: string): string {
+  if (!html) return ""
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
+}
+
 interface KatalogClientProps {
   businesses: Business[]
   categories: string[]
@@ -33,7 +39,7 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
     return businesses.filter((business) => {
       const matchesSearch =
         business.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        business.deskripsi.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stripHtml(business.deskripsi).toLowerCase().includes(searchQuery.toLowerCase()) ||
         business.kotaProvinsi.toLowerCase().includes(searchQuery.toLowerCase()) ||
         business.jenisUsaha.toLowerCase().includes(searchQuery.toLowerCase())
 

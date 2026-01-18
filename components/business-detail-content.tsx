@@ -178,7 +178,10 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               )}
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{business.nama}</h1>
-            <p className="text-muted-foreground text-lg">{business.deskripsi}</p>
+            <div 
+              className="text-muted-foreground text-lg prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: business.deskripsi || "" }}
+            />
           </div>
 
           {/* Business Details */}
@@ -221,7 +224,10 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                 <Handshake className="h-5 w-5 text-primary" />
                 <h3 className="font-semibold text-lg text-foreground">Program Kemitraan</h3>
               </div>
-              <p className="text-muted-foreground">{business.deskripsiKemitraan}</p>
+              <div 
+                className="text-muted-foreground prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: business.deskripsiKemitraan || "" }}
+              />
               {business.linkKemitraan && (
                 <a
                   href={business.linkKemitraan}

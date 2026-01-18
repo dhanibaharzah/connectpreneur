@@ -30,6 +30,12 @@ function shouldShowBranch(jumlahCabang: string | undefined): boolean {
   return true
 }
 
+// Strip HTML tags for plain text preview
+function stripHtml(html: string): string {
+  if (!html) return ""
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
+}
+
 export function BusinessCard({ business }: BusinessCardProps) {
   const logoUrl = business.logoUrl
   const hasValidLogo = isValidImageUrl(logoUrl)
@@ -58,7 +64,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
       </div>
       <CardContent className="p-4 flex-grow">
         <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-1">{business.nama}</h3>
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{business.deskripsi}</p>
+        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{stripHtml(business.deskripsi)}</p>
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 text-primary" />

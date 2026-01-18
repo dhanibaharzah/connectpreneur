@@ -74,7 +74,10 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
 
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Deskripsi</p>
-              <p className="text-foreground">{business.deskripsi || "-"}</p>
+              <div 
+                className="text-foreground prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: business.deskripsi || "-" }}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -125,7 +128,10 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
 
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Deskripsi Kemitraan</p>
-              <p className="text-foreground">{business.deskripsi_kemitraan || "-"}</p>
+              <div 
+                className="text-foreground prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: business.deskripsi_kemitraan || "-" }}
+              />
             </div>
 
             <div className="space-y-1">
