@@ -33,7 +33,7 @@ export function AboutSection() {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Tentang ConnectPreneur</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Program Business Matching dari BOEMKraf DPW PKS Jawa Barat
+              Program Business Matching dari BOEMKraf
             </p>
           </div>
 
@@ -56,7 +56,7 @@ export function AboutSection() {
                 <h3 className="text-xl font-bold text-foreground mb-3">Apa itu ConnectPreneur?</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   ConnectPreneur adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Bidang Pemberdayaan 
-                  UMKM, Ekonomi Kreatif & Korporasi) DPW PKS Jawa Barat. Program ini bertujuan untuk menghubungkan para
+                  UMKM, Ekonomi Kreatif & Korporasi). Program ini bertujuan untuk menghubungkan para
                   pelaku UMKM dengan berbagai peluang kemitraan bisnis.
                 </p>
               </div>
@@ -65,7 +65,7 @@ export function AboutSection() {
                 <h3 className="text-xl font-bold text-foreground mb-3">Tujuan Program</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Melalui program Business Matching internal, kami membantu memperluas jangkauan bisnis anggota dengan
-                  menghubungkan mereka dengan puluhan ribu anggota BOEMKraf di seluruh Jawa Barat untuk menemukan mitra
+                  menghubungkan mereka dengan puluhan ribu anggota BOEMKraf untuk menemukan mitra
                   strategis dan mempercepat pertumbuhan bisnis.
                 </p>
               </div>
@@ -90,7 +90,7 @@ export function AboutSection() {
 
           {/* Footer Info */}
           <div className="mt-12 text-center bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-2xl p-8 border border-primary/20">
-            <p className="text-foreground font-bold text-xl mb-2">BOEMKraf DPW PKS Jawa Barat</p>
+            <p className="text-foreground font-bold text-xl mb-2">BOEMKraf</p>
             <p className="text-primary font-semibold text-lg">Kreatif, Kolaboratif, Berdaya!</p>
           </div>
         </div>

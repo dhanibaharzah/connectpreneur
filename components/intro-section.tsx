@@ -17,9 +17,9 @@ export function IntroSection() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Halo Sobat Preneur Jawa Barat!</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Halo Sobat Preneur!</h2>
             <p className="text-lg text-muted-foreground">
-              BOEMKraf Jawa Barat saat ini tengah melakukan pendataan khusus bagi bisnis anggota yang membuka peluang
+              BOEMKraf saat ini tengah melakukan pendataan khusus bagi bisnis anggota yang membuka peluang
               kemitraan.
             </p>
           </div>
@@ -66,7 +66,7 @@ export function IntroSection() {
             <div className="bg-secondary/30 rounded-xl p-6 mb-8">
               <p className="text-foreground leading-relaxed">
                 Informasi peluang kemitraan ini nantinya akan kami informasikan dan sebarluaskan kepada{" "}
-                <span className="font-bold text-primary">puluhan ribu anggota BOEMKraf</span> di seluruh Jawa Barat.
+                <span className="font-bold text-primary">puluhan ribu anggota BOEMKraf</span>.
               </p>
               <p className="text-foreground mt-3 font-semibold">
                 Ini adalah kesempatan emas untuk menemukan mitra strategis dan mempercepat pertumbuhan bisnis Anda!
@@ -92,7 +92,7 @@ export function IntroSection() {
                 Mari berkolaborasi dan tumbuh bersama dalam Digital Ecosystem;{" "}
                 <span className="text-primary font-semibold">Connectpreneur</span>
               </p>
-              <p className="mt-4 text-foreground font-bold">BOEMKraf Jawa Barat</p>
+              <p className="mt-4 text-foreground font-bold">BOEMKraf</p>
               <p className="text-primary font-medium">Kreatif, Kolaboratif, Berdaya!</p>
             </div>
           </div>

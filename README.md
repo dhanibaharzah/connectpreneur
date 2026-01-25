@@ -10,7 +10,7 @@
 
 ---
 
-> Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai peluang kemitraan bisnis di Jawa Barat.
+> Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai peluang kemitraan bisnis.
 
 <p align="center">
   <a href="#-tentang-project">Tentang</a> •
@@ -40,7 +40,7 @@
 
 ## 📖 Tentang Project
 
-**ConnectPreneur** adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Bidang Pemberdayaan UMKM, Ekonomi Kreatif & Korporasi) DPW PKS Jawa Barat. Platform ini bertujuan untuk:
+**ConnectPreneur** adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Bidang Pemberdayaan UMKM, Ekonomi Kreatif & Korporasi). Platform ini bertujuan untuk:
 
 - Menampilkan katalog mitra bisnis dengan berbagai peluang kemitraan
 - Menghubungkan pelaku UMKM dengan calon mitra (reseller, agen, dropshipper, franchise, dll)
@@ -248,8 +248,8 @@ Free tier considerations:
 
 ## 📄 License
 
-Private project for BOEMKraf DPW PKS Jawa Barat.
+Private project for BOEMKraf.
 
 ---
 
-**BOEMKraf Jawa Barat** - *Kreatif, Kolaboratif, Berdaya!*
+**BOEMKraf** - *Kreatif, Kolaboratif, Berdaya!*
