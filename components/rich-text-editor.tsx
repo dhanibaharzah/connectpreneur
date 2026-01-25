@@ -93,9 +93,19 @@ export default function RichTextEditor({
   }
 
   const addLink = () => {
-    const url = window.prompt("Enter URL:")
+    const url = window.prompt("Enter URL (must start with http:// or https://):")
     if (url) {
-      editor.chain().focus().setLink({ href: url }).run()
+      // Validate URL - only allow http/https
+      try {
+        const parsed = new URL(url.startsWith("http") ? url : `https://${url}`)
+        if (!["http:", "https:"].includes(parsed.protocol)) {
+          alert("URL tidak valid. Hanya URL dengan http:// atau https:// yang diperbolehkan.")
+          return
+        }
+        editor.chain().focus().setLink({ href: parsed.href }).run()
+      } catch {
+        alert("URL tidak valid. Pastikan URL dimulai dengan http:// atau https://")
+      }
     }
   }
 

@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { sanitizeHTML } from "@/lib/sanitize"
 import { MapPin, Clock, Building2, Globe, Phone, User, Briefcase, Instagram, Facebook, Handshake } from "lucide-react"
 
 interface BusinessViewModalProps {
@@ -76,7 +77,7 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
               <p className="text-sm text-muted-foreground">Deskripsi</p>
               <div 
                 className="text-foreground prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: business.deskripsi || "-" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(business.deskripsi) || "-" }}
               />
             </div>
 
@@ -130,7 +131,7 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
               <p className="text-sm text-muted-foreground">Deskripsi Kemitraan</p>
               <div 
                 className="text-foreground prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: business.deskripsi_kemitraan || "-" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(business.deskripsi_kemitraan) || "-" }}
               />
             </div>
 

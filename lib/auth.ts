@@ -1,10 +1,41 @@
 import { neon } from "@neondatabase/serverless"
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
+import bcrypt from "bcryptjs"
 
 const sql = neon(process.env.DATABASE_URL!)
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "connectpreneur-secret-key-2024")
+// Require JWT_SECRET - fail fast if not set
+if (!process.env.JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET environment variable is required")
+  // In production, this should throw. In development, we'll use a dev-only fallback
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET environment variable is required in production")
+  }
+}
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "dev-only-secret-do-not-use-in-production"
+)
+
+// CSRF token generation and validation
+export function generateCSRFToken(): string {
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, (b) => b.toString(16).padStart(2, "0")).join("")
+}
+
+export async function verifyCSRFToken(request: Request): Promise<boolean> {
+  const csrfHeader = request.headers.get("X-CSRF-Token")
+  const cookieStore = await cookies()
+  const csrfCookie = cookieStore.get("csrf_token")?.value
+
+  if (!csrfHeader || !csrfCookie) {
+    return false
+  }
+
+  return csrfHeader === csrfCookie
+}
 
 export interface AdminUser {
   id: number
@@ -13,17 +44,26 @@ export interface AdminUser {
   role: string
 }
 
+// Use bcrypt for secure password hashing
+const BCRYPT_ROUNDS = 12
+
 export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+  return bcrypt.hash(password, BCRYPT_ROUNDS)
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password)
-  return passwordHash === hash
+  // Handle migration: if hash is 64 chars (SHA-256), it's an old hash
+  if (hash.length === 64 && /^[a-f0-9]+$/i.test(hash)) {
+    // Legacy SHA-256 verification for migration period
+    const encoder = new TextEncoder()
+    const data = encoder.encode(password)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const oldHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+    return oldHash === hash
+  }
+  // bcrypt verification
+  return bcrypt.compare(password, hash)
 }
 
 export async function createSession(user: AdminUser): Promise<string> {
@@ -63,19 +103,62 @@ export async function getSession(): Promise<AdminUser | null> {
 }
 
 export async function getSessionFromRequest(request: Request): Promise<AdminUser | null> {
-  // Try cookie first
-  let user = await getSession()
-
-  if (!user) {
-    // Try Authorization header
-    const authHeader = request.headers.get("Authorization")
-    if (authHeader?.startsWith("Bearer ")) {
-      const token = authHeader.substring(7)
-      user = await verifySession(token)
+  // Only use cookie for authentication (more secure than Authorization header for browser)
+  const cookieHeader = request.headers.get("cookie")
+  if (cookieHeader) {
+    const cookies = Object.fromEntries(
+      cookieHeader.split(";").map((c) => {
+        const [key, ...val] = c.trim().split("=")
+        return [key, val.join("=")]
+      })
+    )
+    const token = cookies["admin_session"]
+    if (token) {
+      return verifySession(token)
     }
   }
 
-  return user
+  // Fallback: Try Authorization header (for API clients)
+  const authHeader = request.headers.get("Authorization")
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.substring(7)
+    return verifySession(token)
+  }
+
+  return null
+}
+
+// Rate limiting store (in-memory, for production use Redis)
+const loginAttempts = new Map<string, { count: number; firstAttempt: number }>()
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000 // 15 minutes
+const MAX_ATTEMPTS = 5
+
+export function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now()
+  const attempts = loginAttempts.get(ip)
+
+  if (!attempts) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now })
+    return { allowed: true }
+  }
+
+  // Reset if window has passed
+  if (now - attempts.firstAttempt > RATE_LIMIT_WINDOW) {
+    loginAttempts.set(ip, { count: 1, firstAttempt: now })
+    return { allowed: true }
+  }
+
+  if (attempts.count >= MAX_ATTEMPTS) {
+    const retryAfter = Math.ceil((RATE_LIMIT_WINDOW - (now - attempts.firstAttempt)) / 1000)
+    return { allowed: false, retryAfter }
+  }
+
+  attempts.count++
+  return { allowed: true }
+}
+
+export function resetRateLimit(ip: string): void {
+  loginAttempts.delete(ip)
 }
 
 export async function login(
@@ -98,6 +181,13 @@ export async function login(
 
     if (!isValid) {
       return { success: false, error: "Email atau password salah" }
+    }
+
+    // If using old SHA-256 hash, upgrade to bcrypt
+    if (user.password_hash.length === 64 && /^[a-f0-9]+$/i.test(user.password_hash)) {
+      const newHash = await hashPassword(password)
+      await sql`UPDATE admin_users SET password_hash = ${newHash} WHERE id = ${user.id}`
+      console.log(`[Auth] Migrated password hash to bcrypt for user ${user.id}`)
     }
 
     return {

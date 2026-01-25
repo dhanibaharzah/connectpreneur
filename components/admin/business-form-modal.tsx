@@ -27,14 +27,21 @@ interface ProductImage {
   image_url?: string
 }
 
+// Get CSRF token from cookie
+function getCSRFToken(): string | null {
+  if (typeof document === "undefined") return null
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/)
+  return match ? match[1] : null
+}
+
 function getAuthHeaders(contentType = true): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+  const csrfToken = getCSRFToken()
   const headers: HeadersInit = {}
   if (contentType) {
     headers["Content-Type"] = "application/json"
   }
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+  if (csrfToken) {
+    headers["X-CSRF-Token"] = csrfToken
   }
   return headers
 }
@@ -183,11 +190,11 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
       formData.append("file", file)
       formData.append("folder", "logos")
 
-      const token = localStorage.getItem("admin_token")
+      const csrfToken = getCSRFToken()
       const res = await fetch("/api/admin/upload", {
         method: "POST",
         credentials: "include",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
         body: formData,
       })
 
@@ -212,7 +219,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
 
     setUploadingProduct(true)
     try {
-      const token = localStorage.getItem("admin_token")
+      const csrfToken = getCSRFToken()
       for (const file of Array.from(files)) {
         const formData = new FormData()
         formData.append("file", file)
@@ -221,7 +228,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
         const res = await fetch("/api/admin/upload", {
           method: "POST",
           credentials: "include",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
           body: formData,
         })
 

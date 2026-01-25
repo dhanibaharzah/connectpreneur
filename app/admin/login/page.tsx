@@ -25,12 +25,8 @@ export default function AdminLoginPage() {
   useEffect(() => {
     async function checkExistingAuth() {
       try {
-        const token = localStorage.getItem("admin_token")
         const res = await fetch("/api/auth/me", {
           credentials: "include",
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
         })
 
         if (res.ok) {
@@ -69,10 +65,7 @@ export default function AdminLoginPage() {
         return
       }
 
-      if (data.token) {
-        localStorage.setItem("admin_token", data.token)
-      }
-
+      // No localStorage needed - using httpOnly cookies only
       window.location.href = getDashboardPath()
     } catch (err) {
       console.error("Login error:", err)

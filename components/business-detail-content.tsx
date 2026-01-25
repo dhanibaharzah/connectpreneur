@@ -7,6 +7,7 @@ import type { Business } from "@/types/business"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { sanitizeHTML, sanitizeURL } from "@/lib/sanitize"
 import {
   MapPin,
   Clock,
@@ -180,7 +181,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{business.nama}</h1>
             <div 
               className="text-muted-foreground text-lg prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: business.deskripsi || "" }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHTML(business.deskripsi || "") }}
             />
           </div>
 
@@ -226,7 +227,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               </div>
               <div 
                 className="text-muted-foreground prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: business.deskripsiKemitraan || "" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(business.deskripsiKemitraan || "") }}
               />
               {business.linkKemitraan && (
                 <a
@@ -277,9 +278,9 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-semibold text-lg text-foreground">Website & Media Sosial</h3>
                 <div className="flex flex-wrap gap-3">
-                  {business.website && (
+                  {business.website && sanitizeURL(business.website) && (
                     <a
-                      href={business.website.startsWith("http") ? business.website : `https://${business.website}`}
+                      href={sanitizeURL(business.website)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

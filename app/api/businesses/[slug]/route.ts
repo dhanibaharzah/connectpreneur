@@ -1,10 +1,14 @@
 import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
+import { getSessionFromRequest } from "@/lib/auth"
 
-// GET /api/businesses/[slug] - Get single business by slug
-export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+// GET /api/businesses/[slug] - Get single business by slug (PUBLIC)
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
-    const { slug } = params
+    const { slug } = await params
 
     const businesses = await sql`
       SELECT 
@@ -42,9 +46,19 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { slug: string } }) {
+// PUT /api/businesses/[slug] - Update business (REQUIRES AUTH)
+export async function PUT(
+  request: NextRequest, 
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
-    const { slug } = params
+    // Require authentication
+    const user = await getSessionFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { slug } = await params
     const body = await request.json()
 
     // Check if business exists
@@ -130,9 +144,19 @@ export async function PUT(request: NextRequest, { params }: { params: { slug: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { slug: string } }) {
+// DELETE /api/businesses/[slug] - Delete business (REQUIRES AUTH)
+export async function DELETE(
+  request: NextRequest, 
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
-    const { slug } = params
+    // Require authentication
+    const user = await getSessionFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { slug } = await params
 
     // Check if business exists
     const existing = await sql`SELECT id FROM businesses WHERE slug = ${slug}`

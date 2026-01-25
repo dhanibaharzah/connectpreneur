@@ -39,11 +39,18 @@ interface AdminDashboardProps {
   user: AdminUser
 }
 
+// Get CSRF token from cookie
+function getCSRFToken(): string | null {
+  if (typeof document === "undefined") return null
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/)
+  return match ? match[1] : null
+}
+
 function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+  const csrfToken = getCSRFToken()
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
   }
 }
 
@@ -112,8 +119,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   }
 
   const handleLogout = async () => {
-    localStorage.removeItem("admin_token")
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
+    await fetch("/api/auth/logout", { 
+      method: "POST", 
+      credentials: "include",
+      headers: getAuthHeaders(),
+    })
     router.push(getLoginPath())
   }
 

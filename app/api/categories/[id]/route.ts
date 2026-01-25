@@ -1,10 +1,14 @@
 import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
+import { getSessionFromRequest } from "@/lib/auth"
 
-// GET /api/categories/[id] - Get single category
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// GET /api/categories/[id] - Get single category (PUBLIC for display)
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const categories = await sql`
       SELECT id, name, slug FROM categories WHERE id = ${id}
@@ -21,12 +25,29 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// PUT /api/categories/[id] - Update category
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+// PUT /api/categories/[id] - Update category (REQUIRES AUTH)
+export async function PUT(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    // Require authentication
+    const user = await getSessionFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
     const body = await request.json()
     const { name, slug } = body
+
+    // Validate input
+    if (name && typeof name !== 'string') {
+      return NextResponse.json({ error: "Invalid name" }, { status: 400 })
+    }
+    if (slug && typeof slug !== 'string') {
+      return NextResponse.json({ error: "Invalid slug" }, { status: 400 })
+    }
 
     const result = await sql`
       UPDATE categories SET
@@ -47,18 +68,33 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// DELETE /api/categories/[id] - Delete category
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+// DELETE /api/categories/[id] - Delete category (REQUIRES AUTH)
+export async function DELETE(
+  request: NextRequest, 
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params
+    // Require authentication
+    const user = await getSessionFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    // Validate ID
+    const numericId = parseInt(id, 10)
+    if (isNaN(numericId)) {
+      return NextResponse.json({ error: "Invalid category ID" }, { status: 400 })
+    }
 
     // Check if category has businesses
-    const businesses = await sql`SELECT COUNT(*) FROM businesses WHERE category_id = ${id}`
+    const businesses = await sql`SELECT COUNT(*) FROM businesses WHERE category_id = ${numericId}`
     if (Number.parseInt(businesses[0].count) > 0) {
       return NextResponse.json({ error: "Cannot delete category with existing businesses" }, { status: 400 })
     }
 
-    await sql`DELETE FROM categories WHERE id = ${id}`
+    await sql`DELETE FROM categories WHERE id = ${numericId}`
 
     return NextResponse.json({ message: "Category deleted successfully" })
   } catch (error) {

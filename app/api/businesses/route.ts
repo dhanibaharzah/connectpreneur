@@ -9,77 +9,138 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")
     const featured = searchParams.get("featured")
     const page = Number.parseInt(searchParams.get("page") || "1")
-    const limit = Number.parseInt(searchParams.get("limit") || "10")
+    const limit = Math.min(Number.parseInt(searchParams.get("limit") || "10"), 100)
     const offset = (page - 1) * limit
 
-    let query = `
-      SELECT 
-        b.*,
-        c.name as category_name,
-        c.slug as category_slug
-      FROM businesses b
-      LEFT JOIN categories c ON b.category_id = c.id
-      WHERE b.is_active = true
-    `
-    const params: (string | number | boolean)[] = []
-    let paramIndex = 1
+    // Sanitize search pattern for LIKE queries
+    const searchPattern = search ? `%${search.replace(/[%_]/g, "\\$&")}%` : null
 
-    // Filter by category
-    if (category && category !== "Semua") {
-      query += ` AND c.name = $${paramIndex}`
-      params.push(category)
-      paramIndex++
+    // Build queries based on filters
+    let businesses
+    let totalCount: number
+
+    if (category && category !== "Semua" && searchPattern) {
+      // Both category and search
+      const countResult = await sql`
+        SELECT COUNT(*) as count
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true 
+          AND c.name = ${category}
+          AND (
+            LOWER(b.nama) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.deskripsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.kota_provinsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(c.name) LIKE LOWER(${searchPattern})
+          )
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+      `
+      totalCount = Number.parseInt(countResult[0]?.count || "0")
+
+      businesses = await sql`
+        SELECT b.*, c.name as category_name, c.slug as category_slug
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true 
+          AND c.name = ${category}
+          AND (
+            LOWER(b.nama) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.deskripsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.kota_provinsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(c.name) LIKE LOWER(${searchPattern})
+          )
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+        ORDER BY b.is_featured DESC, b.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+    } else if (category && category !== "Semua") {
+      // Category only
+      const countResult = await sql`
+        SELECT COUNT(*) as count
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true AND c.name = ${category}
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+      `
+      totalCount = Number.parseInt(countResult[0]?.count || "0")
+
+      businesses = await sql`
+        SELECT b.*, c.name as category_name, c.slug as category_slug
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true AND c.name = ${category}
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+        ORDER BY b.is_featured DESC, b.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+    } else if (searchPattern) {
+      // Search only
+      const countResult = await sql`
+        SELECT COUNT(*) as count
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true 
+          AND (
+            LOWER(b.nama) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.deskripsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.kota_provinsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(c.name) LIKE LOWER(${searchPattern})
+          )
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+      `
+      totalCount = Number.parseInt(countResult[0]?.count || "0")
+
+      businesses = await sql`
+        SELECT b.*, c.name as category_name, c.slug as category_slug
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true 
+          AND (
+            LOWER(b.nama) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.deskripsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(b.kota_provinsi) LIKE LOWER(${searchPattern}) OR
+            LOWER(c.name) LIKE LOWER(${searchPattern})
+          )
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+        ORDER BY b.is_featured DESC, b.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+    } else {
+      // No filters (or only featured)
+      const countResult = await sql`
+        SELECT COUNT(*) as count
+        FROM businesses b
+        WHERE b.is_active = true
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+      `
+      totalCount = Number.parseInt(countResult[0]?.count || "0")
+
+      businesses = await sql`
+        SELECT b.*, c.name as category_name, c.slug as category_slug
+        FROM businesses b
+        LEFT JOIN categories c ON b.category_id = c.id
+        WHERE b.is_active = true
+          ${featured === "true" ? sql`AND b.is_featured = true` : sql``}
+        ORDER BY b.is_featured DESC, b.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
     }
 
-    // Filter by search term
-    if (search) {
-      query += ` AND (
-        LOWER(b.nama) LIKE LOWER($${paramIndex}) OR
-        LOWER(b.deskripsi) LIKE LOWER($${paramIndex}) OR
-        LOWER(b.kota_provinsi) LIKE LOWER($${paramIndex}) OR
-        LOWER(c.name) LIKE LOWER($${paramIndex})
-      )`
-      params.push(`%${search}%`)
-      paramIndex++
-    }
-
-    // Filter by featured
-    if (featured === "true") {
-      query += ` AND b.is_featured = true`
-    }
-
-    // Get total count for pagination
-    const countQuery = query.replace(
-      "SELECT \n        b.*,\n        c.name as category_name,\n        c.slug as category_slug",
-      "SELECT COUNT(*)",
-    )
-    const countResult = await sql(countQuery, params)
-    const totalCount = Number.parseInt(countResult[0]?.count || "0")
-
-    // Add ordering and pagination
-    query += ` ORDER BY b.is_featured DESC, b.created_at DESC`
-    query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
-    params.push(limit, offset)
-
-    const businesses = await sql(query, params)
-
-    // Get product images for each business
-    const businessIds = businesses.map((b: { id: number }) => b.id)
-    let productImages: { business_id: number; image_url: string; sort_order: number }[] = []
+    // Get product images for businesses
+    const businessIds = businesses.map((b) => b.id as number)
+    let productImages: Array<Record<string, unknown>> = []
 
     if (businessIds.length > 0) {
-      const placeholders = businessIds.map((_: number, i: number) => `$${i + 1}`).join(",")
-      productImages = await sql(
-        `SELECT business_id, image_url, sort_order 
-         FROM product_images 
-         WHERE business_id IN (${placeholders})
-         ORDER BY sort_order`,
-        businessIds,
-      )
+      productImages = await sql`
+        SELECT business_id, image_url, sort_order 
+        FROM product_images 
+        WHERE business_id = ANY(${businessIds})
+        ORDER BY sort_order
+      `
     }
 
     // Map product images to businesses
-    const businessesWithImages = businesses.map((business: { id: number }) => ({
+    const businessesWithImages = businesses.map((business) => ({
       ...business,
       product_images: productImages.filter((img) => img.business_id === business.id),
     }))
@@ -99,6 +160,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST /api/businesses - Create a new business (PUBLIC for registration)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -127,18 +189,29 @@ export async function POST(request: NextRequest) {
       product_images,
     } = body
 
-    // Insert business
+    // Basic validation
+    if (!nama || !slug) {
+      return NextResponse.json({ error: "Nama dan slug harus diisi" }, { status: 400 })
+    }
+
+    // Check slug uniqueness
+    const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug}`
+    if (existingSlug.length > 0) {
+      return NextResponse.json({ error: "Slug sudah digunakan" }, { status: 400 })
+    }
+
+    // Insert business (is_active = false for public registration, needs admin approval)
     const result = await sql`
       INSERT INTO businesses (
         nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi,
-        jumlah_cabang, jenis_peluang, deskripsi_kemitraan, link_website,
+        jumlah_cabang, jenis_peluang, deskripsi_kemitraan, website,
         link_galeri, instagram, facebook, tiktok, nama_pic, jabatan_pic,
         kontak_pic, logo_url, category_id, is_featured, is_active
       ) VALUES (
-        ${nama}, ${slug}, ${deskripsi}, ${lama_usaha}, ${alamat}, ${kota_provinsi},
-        ${jumlah_cabang || "0"}, ${jenis_peluang}, ${deskripsi_kemitraan}, ${link_website},
-        ${link_galeri}, ${instagram}, ${facebook}, ${tiktok}, ${nama_pic}, ${jabatan_pic},
-        ${kontak_pic}, ${logo_url}, ${category_id}, ${is_featured || false}, true
+        ${nama}, ${slug}, ${deskripsi || null}, ${lama_usaha || null}, ${alamat || null}, ${kota_provinsi || null},
+        ${jumlah_cabang || "0"}, ${jenis_peluang || null}, ${deskripsi_kemitraan || null}, ${link_website || null},
+        ${link_galeri || null}, ${instagram || null}, ${facebook || null}, ${tiktok || null}, ${nama_pic || null}, ${jabatan_pic || null},
+        ${kontak_pic || null}, ${logo_url || null}, ${category_id || null}, ${is_featured || false}, false
       )
       RETURNING *
     `
@@ -148,10 +221,13 @@ export async function POST(request: NextRequest) {
     // Insert product images if provided
     if (product_images && product_images.length > 0) {
       for (let i = 0; i < product_images.length; i++) {
-        await sql`
-          INSERT INTO product_images (business_id, image_url, sort_order)
-          VALUES (${business.id}, ${product_images[i]}, ${i + 1})
-        `
+        const imageUrl = typeof product_images[i] === 'string' ? product_images[i] : product_images[i].url
+        if (imageUrl) {
+          await sql`
+            INSERT INTO product_images (business_id, image_url, sort_order)
+            VALUES (${business.id}, ${imageUrl}, ${i + 1})
+          `
+        }
       }
     }
 
