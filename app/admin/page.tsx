@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import AdminDashboard from "@/components/admin/admin-dashboard"
 import { Loader2 } from "lucide-react"
+import { getLoginPath } from "@/lib/use-admin-navigation"
 
 interface AdminUser {
   id: number
@@ -33,11 +34,11 @@ export default function AdminPage() {
           setUser(data.user)
         } else {
           // Not authenticated, redirect to login
-          router.push("/admin/login")
+          router.push(getLoginPath())
         }
       } catch (error) {
         console.error("Auth check failed:", error)
-        router.push("/admin/login")
+        router.push(getLoginPath())
       } finally {
         setLoading(false)
       }

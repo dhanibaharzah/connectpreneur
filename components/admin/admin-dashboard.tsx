@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2, CheckCircle, Clock, XCircle } from "lucide-react"
 import BusinessFormModal from "./business-form-modal"
 import BusinessViewModal from "./business-view-modal"
+import { getLoginPath } from "@/lib/use-admin-navigation"
 
 interface AdminUser {
   id: number
@@ -113,7 +114,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   const handleLogout = async () => {
     localStorage.removeItem("admin_token")
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
-    router.push("/admin/login")
+    router.push(getLoginPath())
   }
 
   const handleEdit = async (business: Business) => {

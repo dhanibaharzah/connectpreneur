@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { getDashboardPath } from "@/lib/use-admin-navigation"
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -34,7 +35,7 @@ export default function AdminLoginPage() {
 
         if (res.ok) {
           // Already logged in, redirect to admin
-          router.replace("/admin")
+          router.replace(getDashboardPath())
           return
         }
       } catch (error) {
@@ -72,7 +73,7 @@ export default function AdminLoginPage() {
         localStorage.setItem("admin_token", data.token)
       }
 
-      window.location.href = "/admin"
+      window.location.href = getDashboardPath()
     } catch (err) {
       console.error("Login error:", err)
       setError("Terjadi kesalahan. Silakan coba lagi.")
