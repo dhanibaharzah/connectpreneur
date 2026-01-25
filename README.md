@@ -151,7 +151,50 @@ Atau gunakan migration script:
 pnpm tsx scripts/run-migration.ts
 ```
 
-### 5. Run Development Server
+### 5. Admin Management
+
+#### Tambah Admin Baru
+
+```bash
+# Mode interaktif (input dari terminal)
+npx tsx scripts/add-admin.ts
+
+# Dengan argumen langsung
+npx tsx scripts/add-admin.ts --email admin@example.com --name "Nama Admin" --password "Password123" --role admin
+```
+
+**Opsi:**
+- `--email` - Alamat email (wajib)
+- `--name` - Nama tampilan (opsional)
+- `--password` - Password minimal 8 karakter, harus ada huruf besar, kecil, dan angka
+- `--role` - `admin` atau `superadmin` (default: admin)
+
+#### Lihat Daftar Admin
+
+```bash
+npx tsx scripts/list-admins.ts
+```
+
+#### Kelola Admin
+
+```bash
+# Reset password
+npx tsx scripts/manage-admin.ts --email admin@example.com --reset-password "PasswordBaru123"
+
+# Ubah role
+npx tsx scripts/manage-admin.ts --email admin@example.com --role superadmin
+
+# Nonaktifkan akun
+npx tsx scripts/manage-admin.ts --email admin@example.com --deactivate
+
+# Aktifkan akun
+npx tsx scripts/manage-admin.ts --email admin@example.com --activate
+
+# Hapus akun
+npx tsx scripts/manage-admin.ts --email admin@example.com --delete
+```
+
+### 6. Run Development Server
 
 ```bash
 pnpm dev
@@ -202,7 +245,11 @@ connectpreneur/
 │   ├── auth.ts           # Authentication helpers
 │   ├── db.ts             # Database queries
 │   └── utils.ts          # General utilities
-├── scripts/              # Database scripts
+├── scripts/              # Database & admin scripts
+│   ├── add-admin.ts     # Tambah admin baru
+│   ├── list-admins.ts   # Lihat daftar admin
+│   ├── manage-admin.ts  # Kelola admin (reset password, dll)
+│   └── *.sql            # Database migrations
 ├── public/               # Static assets
 └── types/                # TypeScript types
 ```
