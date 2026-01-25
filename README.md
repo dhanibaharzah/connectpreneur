@@ -40,7 +40,7 @@
 
 ## 📖 Tentang Project
 
-**ConnectPreneur** adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf (Bidang Pemberdayaan UMKM, Ekonomi Kreatif & Korporasi). Platform ini bertujuan untuk:
+**ConnectPreneur** adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf. Platform ini bertujuan untuk:
 
 - Menampilkan katalog mitra bisnis dengan berbagai peluang kemitraan
 - Menghubungkan pelaku UMKM dengan calon mitra (reseller, agen, dropshipper, franchise, dll)
