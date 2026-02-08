@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, X, Loader2, Plus, CheckCircle, ArrowLeft } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
+import { LocationDropdown } from "@/components/location-dropdown"
 
 interface ProductImage {
   url: string
@@ -33,6 +34,7 @@ export default function DaftarMitraPage() {
     lama_usaha: "",
     alamat: "",
     kota_provinsi: "",
+    location_id: null as number | null,
     category_id: "",
     jenis_peluang: "",
     deskripsi_kemitraan: "",
@@ -197,6 +199,7 @@ export default function DaftarMitraPage() {
       const payload = {
         ...form,
         category_id: Number.parseInt(form.category_id),
+        location_id: form.location_id,
         product_images: productImages,
         instagram: usernameToUrl(form.instagram, "instagram"),
         facebook: usernameToUrl(form.facebook, "facebook"),
@@ -386,13 +389,15 @@ export default function DaftarMitraPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="kota_provinsi">Kota, Provinsi *</Label>
-                      <Input
-                        id="kota_provinsi"
-                        value={form.kota_provinsi}
-                        onChange={(e) => setForm({ ...form, kota_provinsi: e.target.value })}
+                      <LocationDropdown
+                        onLocationChange={(locationId, locationName) => {
+                          setForm({ 
+                            ...form, 
+                            location_id: locationId,
+                            kota_provinsi: locationName 
+                          })
+                        }}
                         required
-                        placeholder="Contoh: Bandung, Jawa Barat"
                       />
                     </div>
 

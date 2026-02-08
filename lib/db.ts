@@ -13,6 +13,7 @@ export interface DbBusiness {
   lama_usaha: string | null
   alamat: string | null
   kota_provinsi: string | null
+  location_id: number | null
   jumlah_cabang: string | null
   logo_url: string | null
   link_galeri: string | null
@@ -46,6 +47,14 @@ export interface DbProductImage {
   business_id: number
   image_url: string
   sort_order: number
+}
+
+export interface DbLocation {
+  id: number
+  code: string
+  name: string
+  level: "provinsi" | "kabupaten_kota" | "kecamatan"
+  parent_id: number | null
 }
 
 // Helper function to transform DB result to Business type
@@ -195,5 +204,75 @@ export async function getAllCategories(): Promise<string[]> {
   } catch (error) {
     console.error("[v0] Error fetching categories:", error)
     return ["Semua"]
+  }
+}
+
+// ==================== LOCATION FUNCTIONS ====================
+
+// Fetch all kabupaten/kota (untuk dropdown pertama)
+export async function getKabupatenKota(): Promise<{ id: number; name: string }[]> {
+  try {
+    const locations = await sql`
+      SELECT id, name 
+      FROM locations 
+      WHERE level = 'kabupaten_kota' 
+      ORDER BY name
+    `
+    return locations.map((l: DbLocation) => ({ id: l.id, name: l.name }))
+  } catch (error) {
+    console.error("[db] Error fetching kabupaten/kota:", error)
+    return []
+  }
+}
+
+// Fetch kecamatan by parent kabupaten/kota id
+export async function getKecamatanByParent(parentId: number): Promise<{ id: number; name: string }[]> {
+  try {
+    const locations = await sql`
+      SELECT id, name 
+      FROM locations 
+      WHERE parent_id = ${parentId} AND level = 'kecamatan'
+      ORDER BY name
+    `
+    return locations.map((l: DbLocation) => ({ id: l.id, name: l.name }))
+  } catch (error) {
+    console.error("[db] Error fetching kecamatan:", error)
+    return []
+  }
+}
+
+// Fetch location by id
+export async function getLocationById(id: number): Promise<DbLocation | null> {
+  try {
+    const locations = await sql`
+      SELECT id, code, name, level, parent_id 
+      FROM locations 
+      WHERE id = ${id}
+    `
+    return locations.length > 0 ? locations[0] as DbLocation : null
+  } catch (error) {
+    console.error("[db] Error fetching location:", error)
+    return null
+  }
+}
+
+// Fetch full location path (kecamatan -> kab/kota -> provinsi)
+export async function getLocationPath(locationId: number): Promise<string> {
+  try {
+    const result = await sql`
+      WITH RECURSIVE location_path AS (
+        SELECT id, name, level, parent_id, name AS path_name
+        FROM locations WHERE id = ${locationId}
+        UNION ALL
+        SELECT l.id, l.name, l.level, l.parent_id, l.name || ', ' || lp.path_name
+        FROM locations l
+        JOIN location_path lp ON l.id = lp.parent_id
+      )
+      SELECT path_name FROM location_path WHERE parent_id IS NULL
+    `
+    return result.length > 0 ? result[0].path_name : ""
+  } catch (error) {
+    console.error("[db] Error fetching location path:", error)
+    return ""
   }
 }

@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       lama_usaha,
       alamat,
       kota_provinsi,
+      location_id,
       category_id,
       jenis_peluang,
       deskripsi_kemitraan,
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Insert business with is_active = false (pending verification)
     const result = await sql`
       INSERT INTO businesses (
-        nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi,
+        nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi, location_id,
         category_id, jenis_peluang, deskripsi_kemitraan, website,
         instagram, facebook, tiktok, nama_pic, jabatan_pic, kontak_pic,
         logo_url, jumlah_cabang, is_featured, is_active
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
         ${lama_usaha ?? null},
         ${alamat ?? null}, 
         ${kota_provinsi ?? null}, 
+        ${location_id ? Number(location_id) : null},
         ${category_id ? Number(category_id) : null},
         ${jenis_peluang ?? null},
         ${deskripsi_kemitraan ?? null}, 

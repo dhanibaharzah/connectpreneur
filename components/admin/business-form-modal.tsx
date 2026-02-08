@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, X, Loader2, Plus } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
+import { LocationDropdown } from "@/components/location-dropdown"
 
 interface BusinessFormModalProps {
   business?: any
@@ -60,6 +61,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
     lama_usaha: "",
     alamat: "",
     kota_provinsi: "",
+    location_id: null as number | null,
     category_id: "",
     jenis_peluang: "",
     deskripsi_kemitraan: "",
@@ -87,6 +89,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
         lama_usaha: business.lama_usaha || "",
         alamat: business.alamat || "",
         kota_provinsi: business.kota_provinsi || "",
+        location_id: business.location_id || null,
         category_id: business.category_id?.toString() || "",
         jenis_peluang: business.jenis_peluang || "",
         deskripsi_kemitraan: business.deskripsi_kemitraan || "",
@@ -301,6 +304,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
       const payload = {
         ...form,
         category_id: form.category_id ? Number.parseInt(form.category_id) : null,
+        location_id: form.location_id,
         product_images: productImages,
         // Convert usernames to full URLs
         instagram: usernameToUrl(form.instagram, "instagram"),
@@ -450,13 +454,21 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="kota_provinsi">Kota, Provinsi</Label>
-                <Input
-                  id="kota_provinsi"
-                  value={form.kota_provinsi}
-                  onChange={(e) => setForm({ ...form, kota_provinsi: e.target.value })}
-                  placeholder="Bandung, Jawa Barat"
+                <LocationDropdown
+                  initialKecamatanId={form.location_id || undefined}
+                  onLocationChange={(locationId, locationName) => {
+                    setForm({ 
+                      ...form, 
+                      location_id: locationId,
+                      kota_provinsi: locationName 
+                    })
+                  }}
                 />
+                {form.kota_provinsi && !form.location_id && (
+                  <p className="text-xs text-muted-foreground">
+                    Data lama: {form.kota_provinsi}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
