@@ -298,7 +298,7 @@ export default function DaftarMitraPage() {
                     <TabsTrigger value="images">Gambar</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="basic" className="space-y-4 mt-6">
+                  <TabsContent value="basic" forceMount className="data-[state=inactive]:hidden space-y-4 mt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="nama">Nama Bisnis *</Label>
@@ -375,7 +375,7 @@ export default function DaftarMitraPage() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="detail" className="space-y-4 mt-6">
+                  <TabsContent value="detail" forceMount className="data-[state=inactive]:hidden space-y-4 mt-6">
                     <div className="space-y-2">
                       <Label htmlFor="alamat">Alamat Lengkap *</Label>
                       <Textarea
@@ -422,7 +422,7 @@ export default function DaftarMitraPage() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="contact" className="space-y-4 mt-6">
+                  <TabsContent value="contact" forceMount className="data-[state=inactive]:hidden space-y-4 mt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="nama_pic">Nama PIC / Pemilik *</Label>
@@ -497,7 +497,7 @@ export default function DaftarMitraPage() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="images" className="space-y-6 mt-6">
+                  <TabsContent value="images" forceMount className="data-[state=inactive]:hidden space-y-6 mt-6">
                     {/* Logo Upload */}
                     <div className="space-y-2">
                       <Label>Logo Bisnis</Label>
