@@ -16,6 +16,12 @@
  *   Activate user:
  *     npx tsx scripts/manage-admin.ts --email admin@example.com --activate
  * 
+ *   Set location scope:
+ *     npx tsx scripts/manage-admin.ts --email admin@example.com --set-location "Kota Bekasi"
+ * 
+ *   Remove location scope (grant full access):
+ *     npx tsx scripts/manage-admin.ts --email admin@example.com --remove-location
+ * 
  *   Delete user:
  *     npx tsx scripts/manage-admin.ts --email admin@example.com --delete
  * 
@@ -97,6 +103,8 @@ Usage:
 Actions:
   --reset-password <new-password>   Reset the admin's password
   --role <admin|superadmin>         Change the admin's role
+  --set-location <name>             Set location scope (e.g., "Kota Bekasi", "Mustikajaya")
+  --remove-location                 Remove location scope (grant full access)
   --deactivate                      Deactivate the admin account
   --activate                        Activate the admin account
   --delete                          Delete the admin account
@@ -104,6 +112,7 @@ Actions:
 Examples:
   npx tsx scripts/manage-admin.ts --email admin@example.com --reset-password "NewPass123"
   npx tsx scripts/manage-admin.ts --email admin@example.com --role superadmin
+  npx tsx scripts/manage-admin.ts --email dpd.bekasi@connectpreneur.id --set-location "Kota Bekasi"
   npx tsx scripts/manage-admin.ts --email admin@example.com --deactivate
 `)
 }
@@ -132,7 +141,7 @@ async function main() {
   
   // Find the admin
   const admins = await sql`
-    SELECT id, email, name, role, is_active 
+    SELECT id, email, name, role, is_active, location_id 
     FROM admin_users 
     WHERE email = ${email}
   `
@@ -143,7 +152,14 @@ async function main() {
   }
   
   const admin = admins[0]
-  console.log(`Found admin: ${admin.email} (ID: ${admin.id}, Role: ${admin.role})\n`)
+  let locationInfo = "All (no restriction)"
+  if (admin.location_id) {
+    const loc = await sql`SELECT name, level FROM locations WHERE id = ${admin.location_id}`
+    if (loc.length > 0) {
+      locationInfo = `${loc[0].name} (${loc[0].level}, ID: ${admin.location_id})`
+    }
+  }
+  console.log(`Found admin: ${admin.email} (ID: ${admin.id}, Role: ${admin.role}, Location: ${locationInfo})\n`)
   
   // Handle actions
   if (args["reset-password"]) {
@@ -216,6 +232,70 @@ async function main() {
     
     console.log("Admin account activated!")
     
+  } else if (args["set-location"]) {
+    const locationSearch = args["set-location"] as string
+    
+    // Search for location by name
+    const locations = await sql`
+      SELECT id, name, level, parent_id FROM locations 
+      WHERE name ILIKE ${locationSearch}
+      AND level IN ('kabupaten_kota', 'kecamatan')
+      ORDER BY level, name
+    `
+
+    let matchedLocations = locations
+    
+    if (matchedLocations.length === 0) {
+      // Try partial match
+      matchedLocations = await sql`
+        SELECT id, name, level, parent_id FROM locations 
+        WHERE name ILIKE ${"%" + locationSearch + "%"}
+        AND level IN ('kabupaten_kota', 'kecamatan')
+        ORDER BY level, name
+      `
+    }
+
+    if (matchedLocations.length === 0) {
+      console.error(`ERROR: Location "${locationSearch}" not found`)
+      process.exit(1)
+    }
+
+    if (matchedLocations.length > 1) {
+      console.error(`ERROR: Multiple locations match "${locationSearch}":`)
+      for (const loc of matchedLocations) {
+        let parentName = ""
+        if (loc.parent_id) {
+          const parent = await sql`SELECT name FROM locations WHERE id = ${loc.parent_id}`
+          parentName = parent.length > 0 ? ` (under ${parent[0].name})` : ""
+        }
+        console.error(`  - [${loc.level}] ${loc.name}${parentName} (ID: ${loc.id})`)
+      }
+      console.error("\nPlease use a more specific name")
+      process.exit(1)
+    }
+
+    const location = matchedLocations[0]
+    console.log(`Setting location scope to: ${location.name} (${location.level}, ID: ${location.id})...`)
+    
+    await sql`
+      UPDATE admin_users 
+      SET location_id = ${location.id}, updated_at = NOW()
+      WHERE id = ${admin.id}
+    `
+    
+    console.log("Location scope updated successfully!")
+
+  } else if (args["remove-location"]) {
+    console.log("Removing location scope (granting full access)...")
+    
+    await sql`
+      UPDATE admin_users 
+      SET location_id = NULL, updated_at = NOW()
+      WHERE id = ${admin.id}
+    `
+    
+    console.log("Location scope removed! Admin now has full access.")
+
   } else if (args.delete) {
     const confirmed = await confirm(
       `Are you sure you want to DELETE admin "${admin.email}"? This cannot be undone. (y/n): `

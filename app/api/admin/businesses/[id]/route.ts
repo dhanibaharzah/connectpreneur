@@ -1,9 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
-import { getSessionFromRequest } from "@/lib/auth"
+import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
 import { del } from "@vercel/blob"
 
 const sql = neon(process.env.DATABASE_URL!)
+
+// Check if admin has access to a specific business based on location scope
+async function checkBusinessAccess(user: any, businessLocationId: number | null): Promise<boolean> {
+  const locationScope = await getAdminLocationScope(user)
+  if (locationScope === null) return true // Superadmin
+  if (!businessLocationId) return false // Business has no location, scoped admin can't access
+  return locationScope.includes(businessLocationId)
+}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,6 +31,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (businesses.length === 0) {
       return NextResponse.json({ error: "Bisnis tidak ditemukan" }, { status: 404 })
+    }
+
+    // Check location access
+    const hasAccess = await checkBusinessAccess(user, businesses[0].location_id)
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const productImages = await sql`
@@ -86,6 +100,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const existing = await sql`SELECT * FROM businesses WHERE id = ${id}`
     if (existing.length === 0) {
       return NextResponse.json({ error: "Bisnis tidak ditemukan" }, { status: 404 })
+    }
+
+    // Check location access
+    const hasAccess = await checkBusinessAccess(user, existing[0].location_id)
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     // Check slug uniqueness if changed
@@ -205,16 +225,18 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (user.role !== "superadmin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
     const { id } = await params
 
     // Get business data to delete associated images
     const businesses = await sql`SELECT * FROM businesses WHERE id = ${id}`
     if (businesses.length === 0) {
       return NextResponse.json({ error: "Bisnis tidak ditemukan" }, { status: 404 })
+    }
+
+    // Check location access — superadmin can delete all, scoped admins can delete within their scope
+    const hasAccess = await checkBusinessAccess(user, businesses[0].location_id)
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const business = businesses[0]

@@ -42,6 +42,7 @@ export interface AdminUser {
   email: string
   name: string | null
   role: string
+  location_id: number | null
 }
 
 // Use bcrypt for secure password hashing
@@ -72,6 +73,7 @@ export async function createSession(user: AdminUser): Promise<string> {
     email: user.email,
     name: user.name,
     role: user.role,
+    location_id: user.location_id,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("24h")
@@ -167,7 +169,7 @@ export async function login(
 ): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
   try {
     const users = await sql`
-      SELECT id, email, password_hash, name, role 
+      SELECT id, email, password_hash, name, role, location_id 
       FROM admin_users 
       WHERE email = ${email} AND is_active = true
     `
@@ -197,12 +199,53 @@ export async function login(
         email: user.email,
         name: user.name,
         role: user.role,
+        location_id: user.location_id || null,
       },
     }
   } catch (error) {
     console.error("Login error:", error)
     return { success: false, error: "Terjadi kesalahan sistem" }
   }
+}
+
+/**
+ * Get the list of location IDs that an admin can access.
+ * - superadmin or no location_id: returns null (no filter, access all)
+ * - kabupaten_kota level: returns the kab/kota ID + all kecamatan IDs under it
+ * - kecamatan level: returns just that kecamatan ID
+ */
+export async function getAdminLocationScope(user: AdminUser): Promise<number[] | null> {
+  if (user.role === "superadmin" || !user.location_id) {
+    return null // No restriction
+  }
+
+  // Get the admin's location to determine its level
+  const locations = await sql`
+    SELECT id, level FROM locations WHERE id = ${user.location_id}
+  `
+
+  if (locations.length === 0) {
+    return [] // Location not found, restrict to nothing
+  }
+
+  const location = locations[0]
+
+  if (location.level === "kabupaten_kota") {
+    // Get the kab/kota itself + all kecamatans under it
+    const children = await sql`
+      SELECT id FROM locations 
+      WHERE id = ${user.location_id} OR parent_id = ${user.location_id}
+    `
+    return children.map((row: any) => row.id)
+  }
+
+  if (location.level === "kecamatan") {
+    // Just this kecamatan
+    return [user.location_id]
+  }
+
+  // provinsi level — same as superadmin (access all under this province)
+  return null
 }
 
 export async function requireAuth(): Promise<AdminUser> {

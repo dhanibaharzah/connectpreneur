@@ -20,6 +20,7 @@ interface BusinessFormModalProps {
   business?: any
   onClose: () => void
   onSuccess: () => void
+  adminLocationId?: number | null
 }
 
 interface ProductImage {
@@ -47,7 +48,7 @@ function getAuthHeaders(contentType = true): HeadersInit {
   return headers
 }
 
-export default function BusinessFormModal({ business, onClose, onSuccess }: BusinessFormModalProps) {
+export default function BusinessFormModal({ business, onClose, onSuccess, adminLocationId }: BusinessFormModalProps) {
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
@@ -456,6 +457,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess }: Busi
               <div className="space-y-2">
                 <LocationDropdown
                   initialKecamatanId={form.location_id || undefined}
+                  scopeLocationId={adminLocationId}
                   onLocationChange={(locationId, locationName) => {
                     setForm({ 
                       ...form, 

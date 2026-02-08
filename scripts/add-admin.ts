@@ -10,11 +10,16 @@
  *   With arguments:
  *     npx tsx scripts/add-admin.ts --email admin@example.com --name "Admin Name" --password "SecurePass123" --role admin
  * 
+ *   With location scope:
+ *     npx tsx scripts/add-admin.ts --email dpd.bekasi@connectpreneur.id --password "SecurePass123" --role admin --location "Kota Bekasi"
+ *     npx tsx scripts/add-admin.ts --email bekasi.mustikajaya@connectpreneur.id --password "SecurePass123" --role admin --location "Mustikajaya"
+ * 
  * Options:
  *   --email     Email address (required)
  *   --name      Display name (optional)
  *   --password  Password (required, min 8 characters)
  *   --role      Role: "admin" or "superadmin" (default: admin)
+ *   --location  Location name for scope (e.g., "Kota Bekasi", "Mustikajaya")
  * 
  * Environment:
  *   DATABASE_URL: Your Neon database connection string (required)
@@ -152,6 +157,7 @@ async function main() {
   let name: string
   let password: string
   let role: string
+  let locationSearch: string = ""
   
   // Check if running in interactive mode or with arguments
   if (args.email && args.password) {
@@ -160,6 +166,7 @@ async function main() {
     name = args.name || ""
     password = args.password
     role = args.role || "admin"
+    locationSearch = args.location || ""
   } else {
     // Interactive mode
     const rl = createReadline()
@@ -224,6 +231,9 @@ async function main() {
       }
       break
     }
+
+    // Get location scope (optional)
+    locationSearch = await prompt(rl, "Location scope (optional, e.g., 'Kota Bekasi' or 'Mustikajaya'): ")
     
     rl.close()
   }
@@ -245,10 +255,80 @@ async function main() {
     process.exit(1)
   }
   
+  // Resolve location if provided
+  let locationId: number | null = null
+  let locationName: string | null = null
+  let locationLevel: string | null = null
+
+  if (locationSearch) {
+    // Search for location by name (case-insensitive, partial match)
+    const locations = await sql`
+      SELECT id, name, level, parent_id FROM locations 
+      WHERE name ILIKE ${locationSearch}
+      AND level IN ('kabupaten_kota', 'kecamatan')
+      ORDER BY level, name
+    `
+
+    if (locations.length === 0) {
+      // Try partial match
+      const partialLocations = await sql`
+        SELECT id, name, level, parent_id FROM locations 
+        WHERE name ILIKE ${"%" + locationSearch + "%"}
+        AND level IN ('kabupaten_kota', 'kecamatan')
+        ORDER BY level, name
+      `
+
+      if (partialLocations.length === 0) {
+        console.error(`ERROR: Location "${locationSearch}" not found`)
+        console.error("Available locations can be viewed in the database 'locations' table")
+        process.exit(1)
+      }
+
+      if (partialLocations.length > 1) {
+        console.error(`ERROR: Multiple locations match "${locationSearch}":`)
+        for (const loc of partialLocations) {
+          let parentName = ""
+          if (loc.parent_id) {
+            const parent = await sql`SELECT name FROM locations WHERE id = ${loc.parent_id}`
+            parentName = parent.length > 0 ? ` (under ${parent[0].name})` : ""
+          }
+          console.error(`  - [${loc.level}] ${loc.name}${parentName} (ID: ${loc.id})`)
+        }
+        console.error("\nPlease use a more specific name or use the exact location name")
+        process.exit(1)
+      }
+
+      locationId = partialLocations[0].id
+      locationName = partialLocations[0].name
+      locationLevel = partialLocations[0].level
+    } else if (locations.length > 1) {
+      console.error(`ERROR: Multiple locations match "${locationSearch}":`)
+      for (const loc of locations) {
+        let parentName = ""
+        if (loc.parent_id) {
+          const parent = await sql`SELECT name FROM locations WHERE id = ${loc.parent_id}`
+          parentName = parent.length > 0 ? ` (under ${parent[0].name})` : ""
+        }
+        console.error(`  - [${loc.level}] ${loc.name}${parentName} (ID: ${loc.id})`)
+      }
+      console.error("\nPlease use a more specific name or use the exact location name")
+      process.exit(1)
+    } else {
+      locationId = locations[0].id
+      locationName = locations[0].name
+      locationLevel = locations[0].level
+    }
+  }
+
   console.log("\n--- Creating Admin User ---")
   console.log(`Email: ${email}`)
   console.log(`Name: ${name || "(not set)"}`)
   console.log(`Role: ${role}`)
+  if (locationId) {
+    console.log(`Location Scope: ${locationName} (${locationLevel}, ID: ${locationId})`)
+  } else {
+    console.log(`Location Scope: All (no restriction)`)
+  }
   console.log("")
   
   try {
@@ -266,9 +346,9 @@ async function main() {
     // Insert new admin
     console.log("Creating admin user...")
     const result = await sql`
-      INSERT INTO admin_users (email, password_hash, name, role, is_active, created_at)
-      VALUES (${email}, ${passwordHash}, ${name || null}, ${role}, true, NOW())
-      RETURNING id, email, name, role, created_at
+      INSERT INTO admin_users (email, password_hash, name, role, location_id, is_active, created_at)
+      VALUES (${email}, ${passwordHash}, ${name || null}, ${role}, ${locationId}, true, NOW())
+      RETURNING id, email, name, role, location_id, created_at
     `
     
     const newAdmin = result[0]
@@ -280,6 +360,11 @@ async function main() {
     console.log(`Email: ${newAdmin.email}`)
     console.log(`Name: ${newAdmin.name || "(not set)"}`)
     console.log(`Role: ${newAdmin.role}`)
+    if (newAdmin.location_id) {
+      console.log(`Location: ${locationName} (${locationLevel}, ID: ${newAdmin.location_id})`)
+    } else {
+      console.log(`Location: All (no restriction)`)
+    }
     console.log(`Created: ${newAdmin.created_at}`)
     console.log("")
     

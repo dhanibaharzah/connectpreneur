@@ -164,6 +164,9 @@ interface LocationDropdownProps {
   // Initial values (for edit mode)
   initialKabKotaId?: number
   initialKecamatanId?: number
+  // Admin location scope (restricts dropdown options)
+  // null/undefined = no restriction (superadmin or public)
+  scopeLocationId?: number | null
   // Labels
   kabKotaLabel?: string
   kecamatanLabel?: string
@@ -180,6 +183,7 @@ export function LocationDropdown({
   onLocationChange,
   initialKabKotaId,
   initialKecamatanId,
+  scopeLocationId,
   kabKotaLabel = "Kabupaten/Kota",
   kecamatanLabel = "Kecamatan",
   disabled = false,
@@ -194,15 +198,69 @@ export function LocationDropdown({
   const [loadingKabKota, setLoadingKabKota] = useState(true)
   const [loadingKecamatan, setLoadingKecamatan] = useState(false)
 
-  // Load kabupaten/kota on mount
+  // Scope state: resolved from scopeLocationId
+  const [scopeLevel, setScopeLevel] = useState<string | null>(null) // "kabupaten_kota" | "kecamatan" | null
+  const [scopeKabKotaId, setScopeKabKotaId] = useState<number | null>(null)
+  const [scopeKecamatanId, setScopeKecamatanId] = useState<number | null>(null)
+  const [scopeResolved, setScopeResolved] = useState(!scopeLocationId) // true if no scope or already resolved
+
+  // Resolve scope location details
   useEffect(() => {
+    async function resolveScope() {
+      if (!scopeLocationId) {
+        setScopeResolved(true)
+        return
+      }
+
+      try {
+        const res = await fetch(`/api/locations/detail/${scopeLocationId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setScopeLevel(data.level)
+
+          if (data.level === "kabupaten_kota") {
+            // Admin scoped to a kab/kota: lock kab/kota, show all kecamatans under it
+            setScopeKabKotaId(data.id)
+            setSelectedKabKota(data.id)
+          } else if (data.level === "kecamatan") {
+            // Admin scoped to a kecamatan: lock both dropdowns
+            setScopeKecamatanId(data.id)
+            setScopeKabKotaId(data.parent_id)
+            setSelectedKabKota(data.parent_id)
+            setSelectedKecamatan(data.id)
+          }
+        }
+      } catch (error) {
+        console.error("Error resolving scope location:", error)
+      } finally {
+        setScopeResolved(true)
+      }
+    }
+    resolveScope()
+  }, [scopeLocationId])
+
+  // Load kabupaten/kota on mount (after scope is resolved)
+  useEffect(() => {
+    if (!scopeResolved) return
+
     async function fetchKabKota() {
       try {
         setLoadingKabKota(true)
         const res = await fetch("/api/locations")
         if (res.ok) {
-          const data = await res.json()
+          let data: Location[] = await res.json()
+
+          // If scoped to kab/kota or kecamatan, filter to only the allowed kab/kota
+          if (scopeKabKotaId) {
+            data = data.filter((loc) => loc.id === scopeKabKotaId)
+          }
+
           setKabKotaList(data)
+
+          // Auto-select if only one option (scoped)
+          if (scopeKabKotaId && data.length === 1) {
+            setSelectedKabKota(data[0].id)
+          }
         }
       } catch (error) {
         console.error("Error fetching kabupaten/kota:", error)
@@ -211,12 +269,12 @@ export function LocationDropdown({
       }
     }
     fetchKabKota()
-  }, [])
+  }, [scopeResolved, scopeKabKotaId])
 
   // Resolve parent kabupaten/kota from initialKecamatanId
   useEffect(() => {
     async function resolveParent() {
-      if (!initialKecamatanId) return
+      if (!initialKecamatanId || scopeKabKotaId) return
       
       try {
         const res = await fetch(`/api/locations/detail/${initialKecamatanId}`)
@@ -231,7 +289,7 @@ export function LocationDropdown({
       }
     }
     resolveParent()
-  }, [initialKecamatanId])
+  }, [initialKecamatanId, scopeKabKotaId])
 
   // Load kecamatan when kabupaten/kota changes
   useEffect(() => {
@@ -245,8 +303,23 @@ export function LocationDropdown({
         setLoadingKecamatan(true)
         const res = await fetch(`/api/locations/${selectedKabKota}`)
         if (res.ok) {
-          const data = await res.json()
+          let data: Location[] = await res.json()
+
+          // If scoped to a specific kecamatan, filter to only that one
+          if (scopeKecamatanId) {
+            data = data.filter((loc) => loc.id === scopeKecamatanId)
+          }
+
           setKecamatanList(data)
+
+          // Auto-select if scoped to single kecamatan
+          if (scopeKecamatanId && data.length === 1) {
+            setSelectedKecamatan(data[0].id)
+            // Trigger callback
+            const kabKota = kabKotaList.find((k) => k.id === selectedKabKota)
+            const fullName = `${data[0].name}, ${kabKota?.name || ""}, Jawa Barat`
+            onLocationChange?.(data[0].id, fullName)
+          }
         }
       } catch (error) {
         console.error("Error fetching kecamatan:", error)
@@ -255,21 +328,22 @@ export function LocationDropdown({
       }
     }
     fetchKecamatan()
-  }, [selectedKabKota])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKabKota, scopeKecamatanId])
 
   // Load initial kecamatan if initialKabKotaId is provided
   useEffect(() => {
-    if (initialKabKotaId) {
+    if (initialKabKotaId && !scopeKabKotaId) {
       setSelectedKabKota(initialKabKotaId)
     }
-  }, [initialKabKotaId])
+  }, [initialKabKotaId, scopeKabKotaId])
 
   // Set initial kecamatan after list is loaded
   useEffect(() => {
-    if (initialKecamatanId && kecamatanList.length > 0) {
+    if (initialKecamatanId && kecamatanList.length > 0 && !scopeKecamatanId) {
       setSelectedKecamatan(initialKecamatanId)
     }
-  }, [initialKecamatanId, kecamatanList])
+  }, [initialKecamatanId, kecamatanList, scopeKecamatanId])
 
   // Handle kabupaten/kota selection
   const handleKabKotaChange = (value: number | null) => {
@@ -294,6 +368,10 @@ export function LocationDropdown({
     }
   }
 
+  // Determine if dropdowns should be locked
+  const isKabKotaLocked = !!scopeKabKotaId
+  const isKecamatanLocked = !!scopeKecamatanId
+
   return (
     <div className="grid gap-4">
       {/* Kabupaten/Kota Dropdown */}
@@ -309,8 +387,8 @@ export function LocationDropdown({
           onChange={handleKabKotaChange}
           placeholder="Pilih Kabupaten/Kota"
           searchPlaceholder="Cari kabupaten/kota..."
-          disabled={disabled}
-          loading={loadingKabKota}
+          disabled={disabled || isKabKotaLocked}
+          loading={loadingKabKota || !scopeResolved}
           error={kabKotaError}
         />
         {kabKotaError && (
@@ -335,7 +413,7 @@ export function LocationDropdown({
               : "Pilih Kecamatan"
           }
           searchPlaceholder="Cari kecamatan..."
-          disabled={disabled || !selectedKabKota}
+          disabled={disabled || !selectedKabKota || isKecamatanLocked}
           loading={loadingKecamatan}
           error={kecamatanError}
         />

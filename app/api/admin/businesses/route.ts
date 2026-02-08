@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
-import { getSessionFromRequest } from "@/lib/auth"
+import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -18,98 +18,204 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "all"
     const offset = (page - 1) * limit
 
-    // Get pending count for notification badge
-    const pendingCountResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = false`
-    const pendingCount = Number.parseInt(pendingCountResult[0].count)
+    // Get admin's location scope
+    const locationScope = await getAdminLocationScope(user)
+    const hasLocationFilter = locationScope !== null
+
+    // Get pending count (scoped to admin's location)
+    let pendingCount: number
+    if (hasLocationFilter) {
+      const pendingCountResult = await sql`
+        SELECT COUNT(*) as count FROM businesses 
+        WHERE is_active = false AND location_id = ANY(${locationScope})
+      `
+      pendingCount = Number.parseInt(pendingCountResult[0].count)
+    } else {
+      const pendingCountResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = false`
+      pendingCount = Number.parseInt(pendingCountResult[0].count)
+    }
 
     let businesses
     let total
 
-    // Build status filter
-    let statusCondition = ""
-    if (status === "pending") {
-      statusCondition = "AND b.is_active = false"
-    } else if (status === "active") {
-      statusCondition = "AND b.is_active = true"
-    }
-
-    if (search) {
-      if (status === "pending") {
-        businesses = await sql`
-          SELECT b.*, c.name as category_name
-          FROM businesses b
-          LEFT JOIN categories c ON b.category_id = c.id
-          WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = false
-          ORDER BY b.is_featured DESC, b.created_at DESC
-          LIMIT ${limit} OFFSET ${offset}
-        `
-        const countResult = await sql`
-          SELECT COUNT(*) as count FROM businesses
-          WHERE nama ILIKE ${"%" + search + "%"} AND is_active = false
-        `
-        total = Number.parseInt(countResult[0].count)
-      } else if (status === "active") {
-        businesses = await sql`
-          SELECT b.*, c.name as category_name
-          FROM businesses b
-          LEFT JOIN categories c ON b.category_id = c.id
-          WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = true
-          ORDER BY b.is_featured DESC, b.created_at DESC
-          LIMIT ${limit} OFFSET ${offset}
-        `
-        const countResult = await sql`
-          SELECT COUNT(*) as count FROM businesses
-          WHERE nama ILIKE ${"%" + search + "%"} AND is_active = true
-        `
-        total = Number.parseInt(countResult[0].count)
+    // Query with location scope, status filter, and search
+    if (hasLocationFilter) {
+      // Location-scoped admin
+      if (search) {
+        if (status === "pending") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = false
+              AND b.location_id = ANY(${locationScope})
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses
+            WHERE nama ILIKE ${"%" + search + "%"} AND is_active = false
+              AND location_id = ANY(${locationScope})
+          `
+          total = Number.parseInt(countResult[0].count)
+        } else if (status === "active") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = true
+              AND b.location_id = ANY(${locationScope})
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses
+            WHERE nama ILIKE ${"%" + search + "%"} AND is_active = true
+              AND location_id = ANY(${locationScope})
+          `
+          total = Number.parseInt(countResult[0].count)
+        } else {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.nama ILIKE ${"%" + search + "%"}
+              AND b.location_id = ANY(${locationScope})
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses
+            WHERE nama ILIKE ${"%" + search + "%"}
+              AND location_id = ANY(${locationScope})
+          `
+          total = Number.parseInt(countResult[0].count)
+        }
       } else {
-        businesses = await sql`
-          SELECT b.*, c.name as category_name
-          FROM businesses b
-          LEFT JOIN categories c ON b.category_id = c.id
-          WHERE b.nama ILIKE ${"%" + search + "%"}
-          ORDER BY b.is_featured DESC, b.created_at DESC
-          LIMIT ${limit} OFFSET ${offset}
-        `
-        const countResult = await sql`
-          SELECT COUNT(*) as count FROM businesses
-          WHERE nama ILIKE ${"%" + search + "%"}
-        `
-        total = Number.parseInt(countResult[0].count)
+        if (status === "pending") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.is_active = false AND b.location_id = ANY(${locationScope})
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses 
+            WHERE is_active = false AND location_id = ANY(${locationScope})
+          `
+          total = Number.parseInt(countResult[0].count)
+        } else if (status === "active") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.is_active = true AND b.location_id = ANY(${locationScope})
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses 
+            WHERE is_active = true AND location_id = ANY(${locationScope})
+          `
+          total = Number.parseInt(countResult[0].count)
+        } else {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.location_id = ANY(${locationScope})
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses 
+            WHERE location_id = ANY(${locationScope})
+          `
+          total = Number.parseInt(countResult[0].count)
+        }
       }
     } else {
-      if (status === "pending") {
-        businesses = await sql`
-          SELECT b.*, c.name as category_name
-          FROM businesses b
-          LEFT JOIN categories c ON b.category_id = c.id
-          WHERE b.is_active = false
-          ORDER BY b.is_featured DESC, b.created_at DESC
-          LIMIT ${limit} OFFSET ${offset}
-        `
-        const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = false`
-        total = Number.parseInt(countResult[0].count)
-      } else if (status === "active") {
-        businesses = await sql`
-          SELECT b.*, c.name as category_name
-          FROM businesses b
-          LEFT JOIN categories c ON b.category_id = c.id
-          WHERE b.is_active = true
-          ORDER BY b.is_featured DESC, b.created_at DESC
-          LIMIT ${limit} OFFSET ${offset}
-        `
-        const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = true`
-        total = Number.parseInt(countResult[0].count)
+      // Superadmin — no location filter
+      if (search) {
+        if (status === "pending") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = false
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses
+            WHERE nama ILIKE ${"%" + search + "%"} AND is_active = false
+          `
+          total = Number.parseInt(countResult[0].count)
+        } else if (status === "active") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = true
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses
+            WHERE nama ILIKE ${"%" + search + "%"} AND is_active = true
+          `
+          total = Number.parseInt(countResult[0].count)
+        } else {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.nama ILIKE ${"%" + search + "%"}
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`
+            SELECT COUNT(*) as count FROM businesses
+            WHERE nama ILIKE ${"%" + search + "%"}
+          `
+          total = Number.parseInt(countResult[0].count)
+        }
       } else {
-        businesses = await sql`
-          SELECT b.*, c.name as category_name
-          FROM businesses b
-          LEFT JOIN categories c ON b.category_id = c.id
-          ORDER BY b.is_featured DESC, b.created_at DESC
-          LIMIT ${limit} OFFSET ${offset}
-        `
-        const countResult = await sql`SELECT COUNT(*) as count FROM businesses`
-        total = Number.parseInt(countResult[0].count)
+        if (status === "pending") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.is_active = false
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = false`
+          total = Number.parseInt(countResult[0].count)
+        } else if (status === "active") {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            WHERE b.is_active = true
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = true`
+          total = Number.parseInt(countResult[0].count)
+        } else {
+          businesses = await sql`
+            SELECT b.*, c.name as category_name
+            FROM businesses b
+            LEFT JOIN categories c ON b.category_id = c.id
+            ORDER BY b.is_featured DESC, b.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `
+          const countResult = await sql`SELECT COUNT(*) as count FROM businesses`
+          total = Number.parseInt(countResult[0].count)
+        }
       }
     }
 

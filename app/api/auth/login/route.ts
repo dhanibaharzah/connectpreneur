@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         email: result.user.email,
         name: result.user.name,
         role: result.user.role,
+        location_id: result.user.location_id,
       },
       // Token is only in httpOnly cookie, not in response body
     })

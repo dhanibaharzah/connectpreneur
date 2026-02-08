@@ -21,6 +21,7 @@ interface AdminUser {
   email: string
   name: string | null
   role: string
+  location_id?: number | null
 }
 
 interface Business {
@@ -488,7 +489,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
       {/* Form Modal */}
       {showFormModal && (
-        <BusinessFormModal business={editingBusiness} onClose={handleFormClose} onSuccess={handleFormSuccess} />
+        <BusinessFormModal business={editingBusiness} onClose={handleFormClose} onSuccess={handleFormSuccess} adminLocationId={user.location_id} />
       )}
 
       {/* View Modal */}

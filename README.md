@@ -143,6 +143,10 @@ Jalankan migration scripts di Neon Console atau via script:
 # 003-seed-businesses.sql (optional sample data)
 # 004-seed-product-images.sql (optional)
 # 005-add-jenis-peluang.sql
+# 006-create-locations.sql
+# 007-seed-locations.sql (data lokasi Jawa Barat)
+# 008-add-location-to-businesses.sql
+# 009-add-location-to-admin-users.sql
 ```
 
 Atau gunakan migration script:
@@ -161,6 +165,11 @@ npx tsx scripts/add-admin.ts
 
 # Dengan argumen langsung
 npx tsx scripts/add-admin.ts --email admin@example.com --name "Nama Admin" --password "Password123" --role admin
+
+# Dengan location scope (akses terbatas per wilayah)
+npx tsx scripts/add-admin.ts --email dpd.bekasi@connectpreneur.id --password "Password123" --role admin --location "Kota Bekasi"
+npx tsx scripts/add-admin.ts --email dpd.kab.bekasi@connectpreneur.id --password "Password123" --role admin --location "Kab. Bekasi"
+npx tsx scripts/add-admin.ts --email bekasi.mustikajaya@connectpreneur.id --password "Password123" --role admin --location "Mustikajaya"
 ```
 
 **Opsi:**
@@ -168,6 +177,21 @@ npx tsx scripts/add-admin.ts --email admin@example.com --name "Nama Admin" --pas
 - `--name` - Nama tampilan (opsional)
 - `--password` - Password minimal 8 karakter, harus ada huruf besar, kecil, dan angka
 - `--role` - `admin` atau `superadmin` (default: admin)
+- `--location` - Nama lokasi untuk scope akses (opsional, contoh: "Kota Bekasi", "Mustikajaya")
+
+#### Role & Location-Based Access Control
+
+| Role | Location | Akses |
+|------|----------|-------|
+| `superadmin` | NULL | Semua bisnis |
+| `admin` | Kabupaten/Kota (contoh: Kota Bekasi) | Bisnis di kota tersebut + semua kecamatan di bawahnya |
+| `admin` | Kecamatan (contoh: Mustikajaya) | Hanya bisnis di kecamatan tersebut |
+
+**Contoh:**
+- `superadmin@connectpreneur.id` → akses seluruh bisnis
+- `dpd.bekasi@connectpreneur.id` (Kota Bekasi) → bisnis di Kota Bekasi + semua kecamatan di Kota Bekasi
+- `dpd.kab.bekasi@connectpreneur.id` (Kab. Bekasi) → bisnis di Kab. Bekasi + semua kecamatan di Kab. Bekasi
+- `bekasi.mustikajaya@connectpreneur.id` (Mustikajaya) → hanya bisnis di Kecamatan Mustikajaya
 
 #### Lihat Daftar Admin
 
@@ -183,6 +207,12 @@ npx tsx scripts/manage-admin.ts --email admin@example.com --reset-password "Pass
 
 # Ubah role
 npx tsx scripts/manage-admin.ts --email admin@example.com --role superadmin
+
+# Set location scope
+npx tsx scripts/manage-admin.ts --email dpd.bekasi@connectpreneur.id --set-location "Kota Bekasi"
+
+# Hapus location scope (grant full access)
+npx tsx scripts/manage-admin.ts --email admin@example.com --remove-location
 
 # Nonaktifkan akun
 npx tsx scripts/manage-admin.ts --email admin@example.com --deactivate
@@ -234,6 +264,7 @@ connectpreneur/
 │   │   ├── auth/          # Authentication APIs
 │   │   ├── businesses/    # Public business APIs
 │   │   ├── categories/    # Category APIs
+│   │   ├── locations/     # Location APIs (kabupaten/kota, kecamatan)
 │   │   └── register-mitra/# Public registration API
 │   ├── bisnis/[slug]/     # Business detail page
 │   ├── daftar-mitra/      # Public registration page
@@ -262,6 +293,9 @@ connectpreneur/
 | GET | `/api/businesses` | List all active businesses |
 | GET | `/api/businesses/[slug]` | Get business detail |
 | GET | `/api/categories` | List all categories |
+| GET | `/api/locations` | List kabupaten/kota (Jawa Barat) |
+| GET | `/api/locations/[parentId]` | List kecamatan by kabupaten/kota |
+| GET | `/api/locations/detail/[id]` | Get location detail |
 | POST | `/api/register-mitra` | Submit new mitra registration |
 | POST | `/api/register-mitra/upload` | Upload image (public) |
 
@@ -270,11 +304,11 @@ connectpreneur/
 |--------|----------|-------------|
 | POST | `/api/auth/login` | Admin login |
 | POST | `/api/auth/logout` | Admin logout |
-| GET | `/api/auth/me` | Get current user |
-| GET | `/api/admin/businesses` | List all businesses |
+| GET | `/api/auth/me` | Get current user (incl. location_id) |
+| GET | `/api/admin/businesses` | List businesses (filtered by admin location scope) |
 | POST | `/api/admin/businesses` | Create business |
-| PUT | `/api/admin/businesses/[id]` | Update business |
-| DELETE | `/api/admin/businesses/[id]` | Delete business |
+| PUT | `/api/admin/businesses/[id]` | Update business (location access check) |
+| DELETE | `/api/admin/businesses/[id]` | Delete business (location access check) |
 | POST | `/api/admin/upload` | Upload image (admin) |
 
 ## 💾 Storage Limits
