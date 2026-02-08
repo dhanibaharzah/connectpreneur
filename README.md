@@ -191,7 +191,7 @@ npx tsx scripts/add-admin.ts --email bekasi.mustikajaya@connectpreneur.id --pass
 - `superadmin@connectpreneur.id` → akses seluruh bisnis
 - `dpd.bekasi@connectpreneur.id` (Kota Bekasi) → bisnis di Kota Bekasi + semua kecamatan di Kota Bekasi
 - `dpd.kab.bekasi@connectpreneur.id` (Kab. Bekasi) → bisnis di Kab. Bekasi + semua kecamatan di Kab. Bekasi
-- `bekasi.mustikajaya@connectpreneur.id` (Mustikajaya) → hanya bisnis di Kecamatan Mustikajaya
+- `dpc.mustikajaya@connectpreneur.id` (Mustikajaya) → hanya bisnis di Kecamatan Mustikajaya
 
 #### Lihat Daftar Admin
 
