@@ -28,7 +28,7 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             {business.logo_url && (
@@ -54,14 +54,16 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="basic" className="w-full mt-4">
-          <TabsList className="w-full overflow-x-auto scrollbar-none flex">
+        <Tabs defaultValue="basic" className="w-full mt-4 overflow-hidden">
+          <div className="overflow-x-auto scrollbar-none">
+          <TabsList className="inline-flex w-max min-w-full">
             <TabsTrigger value="basic" className="flex-shrink-0">Dasar</TabsTrigger>
             <TabsTrigger value="detail" className="flex-shrink-0">Detail</TabsTrigger>
             <TabsTrigger value="contact" className="flex-shrink-0">Kontak</TabsTrigger>
             <TabsTrigger value="images" className="flex-shrink-0">Gambar</TabsTrigger>
             <TabsTrigger value="score" className="flex-shrink-0">ConnectScore</TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
