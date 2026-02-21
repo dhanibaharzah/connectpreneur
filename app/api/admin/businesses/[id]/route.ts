@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
+import { getOrUpdateScore } from "@/lib/connect-score"
 import { del } from "@vercel/blob"
 
 const sql = neon(process.env.DATABASE_URL!)
@@ -45,10 +46,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       ORDER BY sort_order
     `
 
+    // Lazy backfill ConnectScore
+    const scoreResult = await getOrUpdateScore(businesses[0].id, businesses[0] as any)
+
     return NextResponse.json({
       business: {
         ...businesses[0],
         product_images: productImages,
+        connect_score: scoreResult?.score ?? null,
+        connect_score_breakdown: scoreResult?.breakdown ?? null,
       },
     })
   } catch (error) {
@@ -94,6 +100,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       is_featured,
       is_active,
       product_images,
+      akta_pendirian_url,
+      legalitas_url,
     } = body
 
     // Check if business exists
@@ -142,6 +150,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const updatedKontakPic = kontak_pic !== undefined ? kontak_pic : currentBusiness.kontak_pic
     const updatedLogoUrl = logo_url !== undefined ? logo_url : currentBusiness.logo_url
     const updatedJumlahCabang = jumlah_cabang !== undefined ? jumlah_cabang : currentBusiness.jumlah_cabang
+    const updatedAktaPendirianUrl = akta_pendirian_url !== undefined ? akta_pendirian_url : currentBusiness.akta_pendirian_url
+    const updatedLegalitasUrl = legalitas_url !== undefined ? legalitas_url : currentBusiness.legalitas_url
     const updatedIsFeatured = is_featured !== undefined ? is_featured : currentBusiness.is_featured
     const updatedIsActive = is_active !== undefined ? is_active : currentBusiness.is_active
 
@@ -175,6 +185,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         kontak_pic = ${updatedKontakPic},
         logo_url = ${updatedLogoUrl},
         jumlah_cabang = ${updatedJumlahCabang},
+        akta_pendirian_url = ${updatedAktaPendirianUrl},
+        legalitas_url = ${updatedLegalitasUrl},
         is_featured = ${updatedIsFeatured},
         is_active = ${updatedIsActive},
         updated_at = NOW()

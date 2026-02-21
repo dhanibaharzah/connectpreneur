@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
       logo_url,
       jumlah_cabang,
       product_images,
+      akta_pendirian_url,
+      legalitas_url,
     } = body
 
     // Validation
@@ -51,6 +53,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Kategori harus dipilih" }, { status: 400 })
     }
 
+    if (!akta_pendirian_url) {
+      return NextResponse.json({ error: "Akta Pendirian harus diupload" }, { status: 400 })
+    }
+
+    if (!legalitas_url) {
+      return NextResponse.json({ error: "Legalitas Perusahaan harus diupload" }, { status: 400 })
+    }
+
     // Check slug uniqueness
     const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug}`
     if (existingSlug.length > 0) {
@@ -63,7 +73,8 @@ export async function POST(request: NextRequest) {
         nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi, location_id,
         category_id, jenis_peluang, deskripsi_kemitraan, website,
         instagram, facebook, tiktok, nama_pic, jabatan_pic, kontak_pic,
-        logo_url, jumlah_cabang, is_featured, is_active
+        logo_url, jumlah_cabang, akta_pendirian_url, legalitas_url,
+        is_featured, is_active
       ) VALUES (
         ${nama}, 
         ${slug}, 
@@ -84,6 +95,8 @@ export async function POST(request: NextRequest) {
         ${kontak_pic ?? null},
         ${logo_url ?? null}, 
         ${jumlah_cabang ?? "0"}, 
+        ${akta_pendirian_url ?? null},
+        ${legalitas_url ?? null},
         false,
         false
       )

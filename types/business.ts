@@ -21,4 +21,6 @@ export interface Business {
   namaPIC: string
   jabatanPIC: string
   kontakPIC: string
+  connectScore?: number | null
+  connectScoreBreakdown?: Record<string, number> | null
 }

@@ -15,6 +15,7 @@ import { Upload, X, Loader2, Plus } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
+import LegalitasConfirmDialog from "@/components/legalitas-confirm-dialog"
 
 interface BusinessFormModalProps {
   business?: any
@@ -52,8 +53,13 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
+  const [uploadingAkta, setUploadingAkta] = useState(false)
+  const [uploadingLegalitas, setUploadingLegalitas] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const productInputRef = useRef<HTMLInputElement>(null)
+  const aktaInputRef = useRef<HTMLInputElement>(null)
+  const legalitasInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     nama: "",
@@ -75,6 +81,8 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
     kontak_pic: "",
     logo_url: "",
     jumlah_cabang: "0",
+    akta_pendirian_url: "",
+    legalitas_url: "",
     is_featured: false,
     is_active: true,
   })
@@ -104,6 +112,8 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         kontak_pic: business.kontak_pic || "",
         logo_url: business.logo_url || "",
         jumlah_cabang: business.jumlah_cabang || "0",
+        akta_pendirian_url: business.akta_pendirian_url || "",
+        legalitas_url: business.legalitas_url || "",
         is_featured: business.is_featured || false,
         is_active: business.is_active !== false,
       })
@@ -290,15 +300,82 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
     setForm({ ...form, logo_url: "" })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleUploadPdf = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "akta_pendirian_url" | "legalitas_url",
+    setUploading: (v: boolean) => void,
+    inputRef: React.RefObject<HTMLInputElement | null>
+  ) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== "application/pdf") {
+      alert("Hanya file PDF yang diperbolehkan")
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Ukuran file maksimal 10MB")
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "documents")
+
+      const csrfToken = getCSRFToken()
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        credentials: "include",
+        headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (res.ok) {
+        setForm((prev) => ({ ...prev, [field]: data.url }))
+      } else {
+        alert(data.error || "Gagal upload file")
+      }
+    } catch (error) {
+      console.error("Error uploading PDF:", error)
+      alert("Gagal upload file")
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  const handleRemovePdf = async (field: "akta_pendirian_url" | "legalitas_url") => {
+    const url = form[field]
+    if (url && url.includes("blob.vercel-storage.com")) {
+      try {
+        await fetch("/api/admin/upload", {
+          method: "DELETE",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ url }),
+        })
+      } catch (error) {
+        console.error("Failed to delete PDF blob:", error)
+      }
+    }
+    setForm((prev) => ({ ...prev, [field]: "" }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate required fields
     if (!form.category_id) {
       alert("Kategori harus dipilih")
       return
     }
-    
+
+    setShowConfirmDialog(true)
+  }
+
+  const doSubmit = async () => {
     setLoading(true)
 
     try {
@@ -307,7 +384,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         category_id: form.category_id ? Number.parseInt(form.category_id) : null,
         location_id: form.location_id,
         product_images: productImages,
-        // Convert usernames to full URLs
         instagram: usernameToUrl(form.instagram, "instagram"),
         facebook: usernameToUrl(form.facebook, "facebook"),
         tiktok: usernameToUrl(form.tiktok, "tiktok"),
@@ -326,6 +402,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       const data = await res.json()
 
       if (res.ok) {
+        setShowConfirmDialog(false)
         onSuccess()
       } else {
         alert(data.error || "Gagal menyimpan bisnis")
@@ -347,10 +424,11 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic">Dasar</TabsTrigger>
               <TabsTrigger value="detail">Detail</TabsTrigger>
               <TabsTrigger value="contact">Kontak</TabsTrigger>
+              <TabsTrigger value="legalitas">Legalitas</TabsTrigger>
               <TabsTrigger value="images">Gambar</TabsTrigger>
             </TabsList>
 
@@ -567,6 +645,105 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
               </div>
             </TabsContent>
 
+            <TabsContent value="legalitas" forceMount className="data-[state=inactive]:hidden space-y-6 mt-4">
+              {/* Akta Pendirian */}
+              <div className="space-y-2">
+                <Label>Akta Pendirian Perusahaan beserta Perubahannya</Label>
+                {form.akta_pendirian_url ? (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">Akta Pendirian.pdf</p>
+                        <a href={form.akta_pendirian_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                          Lihat file
+                        </a>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePdf("akta_pendirian_url")}
+                      className="shrink-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => aktaInputRef.current?.click()}
+                    className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    {uploadingAkta ? (
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground mt-2">Klik untuk upload PDF</span>
+                        <span className="text-xs text-muted-foreground mt-1">Maksimal 10MB</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={aktaInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={(e) => handleUploadPdf(e, "akta_pendirian_url", setUploadingAkta, aktaInputRef)}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Legalitas Perusahaan */}
+              <div className="space-y-2">
+                <Label>Legalitas Perusahaan</Label>
+                <p className="text-xs text-muted-foreground">
+                  SIUP, TDP, NIB, Domisili Perusahaan, SKT, NPWP Perusahaan, HAKI — <strong>Jadikan dalam 1 file PDF</strong>
+                </p>
+                {form.legalitas_url ? (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">Legalitas Perusahaan.pdf</p>
+                        <a href={form.legalitas_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                          Lihat file
+                        </a>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePdf("legalitas_url")}
+                      className="shrink-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => legalitasInputRef.current?.click()}
+                    className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    {uploadingLegalitas ? (
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground mt-2">Klik untuk upload PDF</span>
+                        <span className="text-xs text-muted-foreground mt-1">Maksimal 10MB</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={legalitasInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={(e) => handleUploadPdf(e, "legalitas_url", setUploadingLegalitas, legalitasInputRef)}
+                  className="hidden"
+                />
+              </div>
+            </TabsContent>
+
             <TabsContent value="images" forceMount className="data-[state=inactive]:hidden space-y-6 mt-4">
               {/* Logo Upload */}
               <div className="space-y-2">
@@ -685,6 +862,13 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <LegalitasConfirmDialog
+        open={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={doSubmit}
+        loading={loading}
+      />
     </Dialog>
   )
 }

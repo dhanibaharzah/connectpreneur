@@ -11,10 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2, CheckCircle, Clock, XCircle } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2, CheckCircle, Clock, XCircle, Info } from "lucide-react"
 import BusinessFormModal from "./business-form-modal"
 import BusinessViewModal from "./business-view-modal"
 import { getLoginPath } from "@/lib/use-admin-navigation"
+import { ConnectScoreBadge } from "@/components/connect-score-badge"
 
 interface AdminUser {
   id: number
@@ -34,6 +35,7 @@ interface Business {
   is_featured: boolean
   is_active: boolean
   created_at: string
+  connect_score: number | null
 }
 
 interface AdminDashboardProps {
@@ -336,6 +338,18 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                       <TableHead>Nama Bisnis</TableHead>
                       <TableHead>Kategori</TableHead>
                       <TableHead>Lokasi</TableHead>
+                      <TableHead className="text-center overflow-visible">
+                        <div className="flex items-center justify-center gap-1">
+                          ConnectScore
+                          <div className="relative group">
+                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                            <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-[100] w-64 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
+                              ConnectScore adalah skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya. Skor ini membantu admin menilai kesiapan profil mitra untuk dipublikasikan.
+                              <div className="absolute bottom-full right-3 border-4 border-transparent border-b-foreground" />
+                            </div>
+                          </div>
+                        </div>
+                      </TableHead>
                       <TableHead className="text-center">Featured</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="w-20">Aksi</TableHead>
@@ -344,7 +358,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <TableBody>
                     {businesses.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           Belum ada data bisnis
                         </TableCell>
                       </TableRow>
@@ -376,6 +390,13 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           </TableCell>
                           <TableCell>{business.category_name || "-"}</TableCell>
                           <TableCell>{business.kota_provinsi || "-"}</TableCell>
+                          <TableCell className="text-center">
+                            {business.connect_score != null ? (
+                              <ConnectScoreBadge score={business.connect_score} />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-center">
                             <Button variant="ghost" size="sm" onClick={() => handleToggleFeatured(business)}>
                               {business.is_featured ? (

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { sanitizeHTML } from "@/lib/sanitize"
 import { MapPin, Clock, Building2, Globe, Phone, User, Briefcase, Instagram, Facebook, Handshake } from "lucide-react"
+import { ConnectScoreDetail } from "@/components/connect-score-badge"
 
 interface BusinessViewModalProps {
   business: any
@@ -27,7 +28,7 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             {business.logo_url && (
@@ -54,11 +55,12 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Dasar</TabsTrigger>
             <TabsTrigger value="detail">Detail</TabsTrigger>
             <TabsTrigger value="contact">Kontak</TabsTrigger>
             <TabsTrigger value="images">Gambar</TabsTrigger>
+            <TabsTrigger value="score">ConnectScore</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
@@ -267,6 +269,27 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="score" className="mt-4 space-y-4">
+            <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+              ConnectScore adalah skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya. Skor ini membantu admin menilai kesiapan profil mitra untuk dipublikasikan.
+            </div>
+            {business.connect_score != null && business.connect_score_breakdown ? (
+              <ConnectScoreDetail
+                score={business.connect_score}
+                breakdown={business.connect_score_breakdown}
+              />
+            ) : business.connect_score != null ? (
+              <div className="text-center py-8">
+                <p className="text-3xl font-bold">{business.connect_score}/100</p>
+                <p className="text-sm text-muted-foreground mt-1">ConnectScore</p>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Score belum dihitung. Score akan dihitung otomatis saat halaman detail dibuka.</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 

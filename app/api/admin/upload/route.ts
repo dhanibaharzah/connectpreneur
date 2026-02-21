@@ -4,18 +4,20 @@ import { getSessionFromRequest } from "@/lib/auth"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 
-// Max upload size 5MB, will be compressed to ~100KB
-const MAX_UPLOAD_SIZE = 5 * 1024 * 1024 // 5MB
+// Max upload size for images: 5MB, for PDFs: 10MB
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_PDF_SIZE = 10 * 1024 * 1024 // 10MB
 const TARGET_WIDTH = 800
 const TARGET_HEIGHT = 800
 const JPEG_QUALITY = 75
 
 // Whitelist of allowed folders to prevent path traversal
-const ALLOWED_FOLDERS = ["uploads", "logos", "products", "mitra"] as const
+const ALLOWED_FOLDERS = ["uploads", "logos", "products", "mitra", "documents"] as const
 type AllowedFolder = typeof ALLOWED_FOLDERS[number]
 
 // Allowed MIME types (validated by magic bytes)
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const
+const ALLOWED_PDF_TYPE = "application/pdf"
 
 // Whitelist of allowed blob storage hostnames
 const ALLOWED_HOSTS = [
@@ -111,11 +113,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 })
     }
 
-    // Validate file size first
-    if (file.size > MAX_UPLOAD_SIZE) {
-      return NextResponse.json({ error: "Ukuran file maksimal 5MB" }, { status: 400 })
-    }
-
     // Convert file to buffer for magic byte validation
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
@@ -127,21 +124,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tipe file tidak dapat dideteksi" }, { status: 400 })
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(detectedType.mime as typeof ALLOWED_MIME_TYPES[number])) {
+    const isPDF = detectedType.mime === ALLOWED_PDF_TYPE
+    const isImage = ALLOWED_IMAGE_TYPES.includes(detectedType.mime as typeof ALLOWED_IMAGE_TYPES[number])
+
+    if (!isPDF && !isImage) {
       return NextResponse.json({ 
-        error: `Tipe file tidak didukung: ${detectedType.mime}. Gunakan JPG, PNG, WebP, atau GIF` 
+        error: `Tipe file tidak didukung: ${detectedType.mime}. Gunakan JPG, PNG, WebP, GIF, atau PDF` 
       }, { status: 400 })
+    }
+
+    // Validate file size based on type
+    const maxSize = isPDF ? MAX_PDF_SIZE : MAX_IMAGE_SIZE
+    const maxSizeLabel = isPDF ? "10MB" : "5MB"
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: `Ukuran file maksimal ${maxSizeLabel}` }, { status: 400 })
     }
 
     // Sanitize folder (prevent path traversal)
     const folder = sanitizeFolder(rawFolder)
+    const baseName = sanitizeFilename(file.name)
+
+    if (isPDF) {
+      // PDF: upload directly without compression
+      const filename = `${folder}/${Date.now()}-${baseName}.pdf`
+
+      const blob = await put(filename, buffer, {
+        access: "public",
+        contentType: "application/pdf",
+      })
+
+      console.log(`[Upload] PDF: ${(file.size / 1024).toFixed(1)}KB`)
+
+      return NextResponse.json({
+        success: true,
+        url: blob.url,
+        filename: filename,
+        originalSize: file.size,
+      })
+    }
     
-    // Compress image
+    // Image: compress and upload
     const compressedBuffer = await compressImage(buffer, detectedType.mime)
     
     // Determine output extension based on actual processing
     const outputExt = detectedType.mime === "image/png" ? ".webp" : ".jpg"
-    const baseName = sanitizeFilename(file.name)
     const filename = `${folder}/${Date.now()}-${baseName}${outputExt}`
 
     const blob = await put(filename, compressedBuffer, {

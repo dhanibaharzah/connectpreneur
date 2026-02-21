@@ -139,10 +139,21 @@ export async function GET(request: NextRequest) {
       `
     }
 
-    // Map product images to businesses
+    // Get cached scores
+    let scores: Array<Record<string, unknown>> = []
+    if (businessIds.length > 0) {
+      scores = await sql`
+        SELECT business_id, score FROM connect_scores
+        WHERE business_id = ANY(${businessIds})
+      `
+    }
+    const scoreMap = new Map(scores.map((s) => [s.business_id, s.score]))
+
+    // Map product images and scores to businesses
     const businessesWithImages = businesses.map((business) => ({
       ...business,
       product_images: productImages.filter((img) => img.business_id === business.id),
+      connect_score: scoreMap.get(business.id) ?? null,
     }))
 
     return NextResponse.json({

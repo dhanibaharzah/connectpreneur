@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless"
 import type { Business } from "@/types/business"
+import { getOrUpdateScore } from "@/lib/connect-score"
 
 // Create a SQL client with the connection string from environment variable
 export const sql = neon(process.env.DATABASE_URL!)
@@ -58,7 +59,11 @@ export interface DbLocation {
 }
 
 // Helper function to transform DB result to Business type
-export function transformDbToBusiness(dbBusiness: DbBusiness, productImages: { image_url: string }[] = []): Business {
+export function transformDbToBusiness(
+  dbBusiness: DbBusiness,
+  productImages: { image_url: string }[] = [],
+  score?: { score: number; breakdown: Record<string, number> } | null
+): Business {
   return {
     id: String(dbBusiness.id),
     slug: dbBusiness.slug || "",
@@ -82,6 +87,8 @@ export function transformDbToBusiness(dbBusiness: DbBusiness, productImages: { i
     namaPIC: dbBusiness.nama_pic || "",
     jabatanPIC: dbBusiness.jabatan_pic || "",
     kontakPIC: dbBusiness.kontak_pic || "",
+    connectScore: score?.score ?? null,
+    connectScoreBreakdown: score?.breakdown ?? null,
   }
 }
 
@@ -115,7 +122,22 @@ export async function getAllBusinesses(): Promise<Business[]> {
       imagesByBusiness[img.business_id].push({ image_url: img.image_url })
     }
 
-    return businesses.map((b: DbBusiness) => transformDbToBusiness(b, imagesByBusiness[b.id] || []))
+    // Get cached scores
+    const businessIds = businesses.map((b: any) => b.id as number)
+    let scores: Array<Record<string, unknown>> = []
+    if (businessIds.length > 0) {
+      scores = await sql`
+        SELECT business_id, score FROM connect_scores
+        WHERE business_id = ANY(${businessIds})
+      `
+    }
+    const scoreMap = new Map(scores.map((s) => [s.business_id as number, s.score as number]))
+
+    return businesses.map((b: any) => transformDbToBusiness(
+      b as DbBusiness,
+      imagesByBusiness[b.id] || [],
+      scoreMap.has(b.id) ? { score: scoreMap.get(b.id)!, breakdown: {} } : null
+    ))
   } catch (error) {
     console.error("[v0] Error fetching businesses from database:", error)
     return []
@@ -153,7 +175,22 @@ export async function getFeaturedBusinesses(limit = 4): Promise<Business[]> {
       imagesByBusiness[b.id] = images.map((img: any) => ({ image_url: img.image_url }))
     }
 
-    return businesses.map((b: DbBusiness) => transformDbToBusiness(b, imagesByBusiness[b.id] || []))
+    // Get cached scores for featured
+    const featuredIds = businesses.map((b: any) => b.id as number)
+    let featuredScores: Array<Record<string, unknown>> = []
+    if (featuredIds.length > 0) {
+      featuredScores = await sql`
+        SELECT business_id, score FROM connect_scores
+        WHERE business_id = ANY(${featuredIds})
+      `
+    }
+    const featuredScoreMap = new Map(featuredScores.map((s) => [s.business_id as number, s.score as number]))
+
+    return businesses.map((b: any) => transformDbToBusiness(
+      b as DbBusiness,
+      imagesByBusiness[b.id] || [],
+      featuredScoreMap.has(b.id) ? { score: featuredScoreMap.get(b.id)!, breakdown: {} } : null
+    ))
   } catch (error) {
     console.error("[v0] Error fetching featured businesses:", error)
     return []
@@ -187,7 +224,10 @@ export async function getBusinessBySlug(slug: string): Promise<Business | null> 
       ORDER BY sort_order
     `
 
-    return transformDbToBusiness(business, productImages)
+    // Lazy backfill ConnectScore
+    const scoreResult = await getOrUpdateScore(business.id, business as any)
+
+    return transformDbToBusiness(business as DbBusiness, productImages as { image_url: string }[], scoreResult)
   } catch (error) {
     console.error("[v0] Error fetching business by slug:", error)
     return null
@@ -200,7 +240,7 @@ export async function getAllCategories(): Promise<string[]> {
     const categories = await sql`
       SELECT name FROM categories ORDER BY name
     `
-    return ["Semua", ...categories.map((c: { name: string }) => c.name)]
+    return ["Semua", ...categories.map((c: any) => c.name as string)]
   } catch (error) {
     console.error("[v0] Error fetching categories:", error)
     return ["Semua"]
@@ -218,7 +258,7 @@ export async function getKabupatenKota(): Promise<{ id: number; name: string }[]
       WHERE level = 'kabupaten_kota' 
       ORDER BY name
     `
-    return locations.map((l: DbLocation) => ({ id: l.id, name: l.name }))
+    return locations.map((l: any) => ({ id: l.id as number, name: l.name as string }))
   } catch (error) {
     console.error("[db] Error fetching kabupaten/kota:", error)
     return []
@@ -234,7 +274,7 @@ export async function getKecamatanByParent(parentId: number): Promise<{ id: numb
       WHERE parent_id = ${parentId} AND level = 'kecamatan'
       ORDER BY name
     `
-    return locations.map((l: DbLocation) => ({ id: l.id, name: l.name }))
+    return locations.map((l: any) => ({ id: l.id as number, name: l.name as string }))
   } catch (error) {
     console.error("[db] Error fetching kecamatan:", error)
     return []

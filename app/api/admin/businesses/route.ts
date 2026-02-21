@@ -219,7 +219,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get product images for each business
+    // Get product images and scores for each business
+    const businessIds = businesses.map((b: any) => b.id as number)
+    let scoresMap = new Map<number, number | null>()
+    if (businessIds.length > 0) {
+      const scores = await sql`
+        SELECT business_id, score FROM connect_scores
+        WHERE business_id = ANY(${businessIds})
+      `
+      scoresMap = new Map(scores.map((s: any) => [s.business_id, s.score]))
+    }
+
     const businessesWithImages = await Promise.all(
       businesses.map(async (b: any) => {
         const productImages = await sql`
@@ -230,6 +240,7 @@ export async function GET(request: NextRequest) {
         return {
           ...b,
           product_images: productImages,
+          connect_score: scoresMap.get(b.id) ?? null,
         }
       }),
     )
@@ -284,6 +295,8 @@ export async function POST(request: NextRequest) {
       jumlah_cabang,
       is_featured,
       product_images,
+      akta_pendirian_url,
+      legalitas_url,
     } = body
 
     if (!nama || !slug) {
@@ -305,7 +318,8 @@ export async function POST(request: NextRequest) {
         nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi, location_id,
         category_id, jenis_peluang, deskripsi_kemitraan, link_kemitraan, link_galeri, website,
         instagram, facebook, tiktok, nama_pic, jabatan_pic, kontak_pic,
-        logo_url, jumlah_cabang, is_featured, is_active
+        logo_url, jumlah_cabang, akta_pendirian_url, legalitas_url,
+        is_featured, is_active
       ) VALUES (
         ${nama}, 
         ${slug}, 
@@ -328,6 +342,8 @@ export async function POST(request: NextRequest) {
         ${kontak_pic ?? null},
         ${logo_url ?? null}, 
         ${jumlah_cabang ?? "0"}, 
+        ${akta_pendirian_url ?? null},
+        ${legalitas_url ?? null},
         ${is_featured ?? false}, 
         true
       )

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { MapPin, Clock, Building2, Eye, Handshake } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { ConnectScoreBadge } from "@/components/connect-score-badge"
 
 interface BusinessCardProps {
   business: Business
@@ -61,6 +62,11 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         )}
         <Badge className="absolute top-3 left-3 bg-primary text-white">{business.jenisUsaha}</Badge>
+        {business.connectScore != null && (
+          <div className="absolute top-3 right-3">
+            <ConnectScoreBadge score={business.connectScore} />
+          </div>
+        )}
       </div>
       <CardContent className="p-4 flex-grow">
         <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-1">{business.nama}</h3>

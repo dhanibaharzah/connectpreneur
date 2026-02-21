@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 import { getSessionFromRequest } from "@/lib/auth"
+import { getOrUpdateScore } from "@/lib/connect-score"
 
 // GET /api/businesses/[slug] - Get single business by slug (PUBLIC)
 export async function GET(
@@ -34,10 +35,15 @@ export async function GET(
       ORDER BY sort_order
     `
 
+    // Lazy backfill ConnectScore
+    const scoreResult = await getOrUpdateScore(business.id, business as any)
+
     return NextResponse.json({
       data: {
         ...business,
         product_images: productImages,
+        connect_score: scoreResult?.score ?? null,
+        connect_score_breakdown: scoreResult?.breakdown ?? null,
       },
     })
   } catch (error) {

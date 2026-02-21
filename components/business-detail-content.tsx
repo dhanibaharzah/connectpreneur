@@ -23,7 +23,10 @@ import {
   ChevronRight,
   ExternalLink,
   ArrowLeft,
+  ChevronDown,
+  Info,
 } from "lucide-react"
+import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
 
 function isValidImageUrl(url: string): boolean {
   if (!url) return false
@@ -48,6 +51,42 @@ function TikTokIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
       <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
     </svg>
+  )
+}
+
+function ConnectScoreCollapsible({ score, breakdown }: { score: number; breakdown?: Record<string, number> | null }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <button
+          type="button"
+          onClick={() => breakdown && setOpen(!open)}
+          className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors rounded-lg"
+        >
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-foreground">ConnectScore</span>
+            <ConnectScoreBadge score={score} size="md" />
+            <div className="relative group">
+              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-64 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
+                ConnectScore adalah skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+              </div>
+            </div>
+          </div>
+          {breakdown && (
+            <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+          )}
+        </button>
+        {open && breakdown && (
+          <div className="px-4 pb-4 border-t">
+            <ConnectScoreDetail score={score} breakdown={breakdown} className="pt-4" />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -184,6 +223,14 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               dangerouslySetInnerHTML={{ __html: sanitizeHTML(business.deskripsi || "") }}
             />
           </div>
+
+          {/* ConnectScore */}
+          {business.connectScore != null && (
+            <ConnectScoreCollapsible
+              score={business.connectScore}
+              breakdown={business.connectScoreBreakdown}
+            />
+          )}
 
           {/* Business Details */}
           <Card>
