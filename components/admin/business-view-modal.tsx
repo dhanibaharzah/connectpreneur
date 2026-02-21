@@ -55,12 +55,12 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full mt-4">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic">Dasar</TabsTrigger>
-            <TabsTrigger value="detail">Detail</TabsTrigger>
-            <TabsTrigger value="contact">Kontak</TabsTrigger>
-            <TabsTrigger value="images">Gambar</TabsTrigger>
-            <TabsTrigger value="score">ConnectScore</TabsTrigger>
+          <TabsList className="w-full overflow-x-auto scrollbar-none flex">
+            <TabsTrigger value="basic" className="flex-shrink-0">Dasar</TabsTrigger>
+            <TabsTrigger value="detail" className="flex-shrink-0">Detail</TabsTrigger>
+            <TabsTrigger value="contact" className="flex-shrink-0">Kontak</TabsTrigger>
+            <TabsTrigger value="images" className="flex-shrink-0">Gambar</TabsTrigger>
+            <TabsTrigger value="score" className="flex-shrink-0">ConnectScore</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
