@@ -14,6 +14,7 @@
 
 <p align="center">
   <a href="#-tentang-project">Tentang</a> •
+  <a href="#-flow-sistem-business-perspective">Flow Sistem</a> •
   <a href="#-tech-stack">Tech Stack</a> •
   <a href="#-fitur-utama">Fitur</a> •
   <a href="#-local-development">Setup</a> •
@@ -52,6 +53,182 @@
 2. **Akses Terbatas** - Membuka akses informasi kemitraan ke puluhan ribu anggota BOEMKraf
 3. **Proses Manual** - Digitalisasi proses pendaftaran dan verifikasi mitra bisnis
 4. **Keterhubungan** - Memfasilitasi koneksi langsung antara pemilik bisnis dan calon mitra
+
+## 🔄 Flow Sistem (Business Perspective)
+
+### Overview
+
+ConnectPreneur menghubungkan tiga aktor utama: **Pemilik Bisnis** (UMKM), **Pengunjung** (calon mitra), dan **Admin** (pengelola platform dari BOEMKraf). Berikut alur sistem dari sisi bisnis:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        CONNECTPRENEUR FLOW                         │
+│                                                                     │
+│  ┌──────────┐    Daftar     ┌──────────┐   Verifikasi  ┌────────┐  │
+│  │ Pemilik  │──────────────▶│ Platform │◀──────────────│ Admin  │  │
+│  │ Bisnis   │               │  (Web)   │               │ Panel  │  │
+│  └──────────┘               └────┬─────┘               └────────┘  │
+│                                  │                                  │
+│                            Tampil di                                │
+│                             Katalog                                 │
+│                                  │                                  │
+│                                  ▼                                  │
+│                           ┌──────────┐                              │
+│                           │Pengunjung│                              │
+│                           │(Calon    │                              │
+│                           │ Mitra)   │                              │
+│                           └────┬─────┘                              │
+│                                │                                    │
+│                         Hubungi via                                 │
+│                          WhatsApp                                   │
+│                                │                                    │
+│                                ▼                                    │
+│                        ┌──────────────┐                             │
+│                        │  Koneksi     │                             │
+│                        │  Langsung    │                             │
+│                        │  (Offline)   │                             │
+│                        └──────────────┘                             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 1. Pendaftaran Bisnis (Self-Registration)
+
+```
+Pemilik Bisnis → Buka /daftar-mitra → Isi Form Multi-Tab → Submit
+                                          │
+                                          ├─ Info Dasar (nama, deskripsi, kategori)
+                                          ├─ Detail (alamat, lokasi, link kemitraan)
+                                          ├─ Kontak (PIC, WhatsApp, sosial media)
+                                          ├─ Legalitas (Akta Pendirian, Legalitas PDF)
+                                          └─ Gambar (logo, foto produk max 5)
+                                          │
+                                          ▼
+                              Status: PENDING (is_active=false)
+                              Bisnis belum tampil di katalog
+```
+
+- Pemilik bisnis mendaftar mandiri tanpa perlu akun
+- Data yang disubmit mencakup profil bisnis lengkap termasuk dokumen legal
+- Gambar otomatis dikompresi (~100KB) untuk efisiensi storage
+- Setelah submit, bisnis masuk antrian verifikasi
+
+### 2. Verifikasi oleh Admin
+
+```
+Admin Login → Dashboard → Lihat Daftar Pending → Review Data Bisnis
+                                                        │
+                                                  ┌─────┴─────┐
+                                                  │           │
+                                              Approve      Reject
+                                                  │           │
+                                                  ▼           ▼
+                                          is_active=true   Ditolak/
+                                          Tampil di        Dihapus
+                                          Katalog
+```
+
+- Admin melakukan verifikasi kelengkapan & keabsahan data bisnis
+- Akses admin dibatasi berdasarkan wilayah (Location-Based Access Control):
+
+| Level Admin | Cakupan Akses |
+|-------------|---------------|
+| Superadmin | Seluruh bisnis tanpa batasan |
+| Admin Kab/Kota | Bisnis di kota tersebut + seluruh kecamatan di dalamnya |
+| Admin Kecamatan | Hanya bisnis di kecamatan tersebut |
+
+- Setelah diverifikasi, bisnis langsung aktif dan tampil di katalog publik
+
+### 3. Katalog & Pencarian (Public)
+
+```
+Pengunjung → Homepage                → Lihat Featured Bisnis
+           → Katalog (/katalog)      → Cari & Filter (nama, kategori, lokasi)
+           → Detail Bisnis           → Lihat Profil, Galeri, ConnectScore
+                                           │
+                                           ▼
+                                     Hubungi via WhatsApp
+```
+
+- Pengunjung melihat katalog bisnis yang sudah terverifikasi
+- Tersedia fitur pencarian dan filter berdasarkan kategori
+- Setiap bisnis memiliki **ConnectScore** (0-100) yang menunjukkan kelengkapan profil
+- Kontak langsung melalui WhatsApp tanpa perantara platform
+
+### 4. ConnectScore — Indikator Kelengkapan Profil
+
+```
+Profil Bisnis → Evaluasi 17 Aspek → Skor 0-100
+                    │
+                    ├─ Deskripsi Bisnis (8 poin)
+                    ├─ Logo (8 poin)
+                    ├─ Akta Pendirian (10 poin)
+                    ├─ Legalitas (7 poin)
+                    ├─ Foto Produk (7-10 poin)
+                    ├─ Sosial Media (Instagram 5, Facebook 3, TikTok 2)
+                    ├─ Info Kemitraan, Lokasi, Kontak, dll
+                    └─ Total: 100 poin
+```
+
+- Semakin lengkap profil, semakin tinggi skor → meningkatkan kredibilitas bisnis
+- Skor di-cache di database untuk performa optimal
+- Mendorong pemilik bisnis untuk melengkapi profilnya
+
+### 5. Alur Koneksi Bisnis (Business Matching)
+
+```
+┌───────────────┐         ┌───────────────┐         ┌──────────────┐
+│   Pemilik     │  Daftar │               │  Browse │  Pengunjung  │
+│   Bisnis      │────────▶│ ConnectPreneur │◀───────│  (Calon      │
+│ (Franchisor,  │         │   Platform    │         │   Mitra)     │
+│  Distributor) │         │               │         │              │
+└───────────────┘         └───────┬───────┘         └──────┬───────┘
+                                  │                        │
+                                  │   Profil + WhatsApp    │
+                                  └────────────────────────┘
+                                             │
+                                             ▼
+                                  ┌──────────────────┐
+                                  │  Negosiasi &     │
+                                  │  Kerjasama       │
+                                  │  (Di luar        │
+                                  │   platform)      │
+                                  └──────────────────┘
+```
+
+**Jenis peluang kemitraan yang tersedia:**
+- Reseller
+- Agen / Distributor
+- Dropshipper
+- Franchise / Kemitraan
+- Dan lainnya
+
+Platform berfungsi sebagai **katalog & jembatan awal** — proses negosiasi dan kerjasama berlangsung langsung antara kedua pihak melalui WhatsApp.
+
+### 6. Ringkasan Alur End-to-End
+
+```
+                    PENDAFTARAN              VERIFIKASI            PUBLIKASI
+                    ───────────              ──────────            ─────────
+Pemilik Bisnis ──▶ Isi Form ──▶ Submit ──▶ Admin Review ──▶ Approve ──▶ Tampil di Katalog
+                    (5 tab)      (pending)   (by region)     (active)    │
+                                                                         │
+                    DISCOVERY               KONEKSI                      │
+                    ─────────               ───────                      │
+Calon Mitra ◀──── Browse/Search ◀─────── Katalog Publik ◀──────────────┘
+      │
+      ▼
+ Hubungi via WA ──▶ Negosiasi ──▶ Kerjasama (offline)
+```
+
+**Tidak ada:**
+- Sistem pembayaran / transaksi di platform
+- Sistem pesan internal
+- Matching otomatis / algoritma rekomendasi
+- Subscription / fitur premium
+
+Platform ini sepenuhnya **gratis** sebagai layanan ekosistem digital BOEMKraf untuk mendukung pertumbuhan UMKM.
+
+---
 
 ## 🛠️ Tech Stack
 
