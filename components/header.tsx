@@ -31,6 +31,12 @@ export function Header() {
           <Link href="/#tentang" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Tentang Kami
           </Link>
+          <Link
+            href="https://docs.connectpreneur.id"
+            className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+          >
+            Docs
+          </Link>
           <Link 
             href="/daftar-mitra" 
             className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
@@ -71,6 +77,13 @@ export function Header() {
               onClick={() => setIsMenuOpen(false)}
             >
               Tentang Kami
+            </Link>
+            <Link
+              href="https://docs.connectpreneur.id"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Docs
             </Link>
             <Link
               href="/daftar-mitra"
