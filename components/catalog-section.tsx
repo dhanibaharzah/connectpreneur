@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react"
-import Link from "next/link"
 import { BusinessCard } from "@/components/business-card"
+import { CatalogCtaLink } from "@/components/analytics/catalog-cta-link"
 import { getFeaturedBusinesses } from "@/lib/db"
 import { unstable_noStore as noStore } from "next/cache"
 
@@ -23,13 +23,10 @@ export async function CatalogSection() {
         </div>
 
         <div className="text-center">
-          <Link
-            href="/katalog"
-            className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-          >
+          <CatalogCtaLink className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-6 py-3 rounded-lg font-semibold transition-colors">
             Lihat Semua Katalog
             <ArrowRight className="h-5 w-5" />
-          </Link>
+          </CatalogCtaLink>
         </div>
       </div>
     </section>

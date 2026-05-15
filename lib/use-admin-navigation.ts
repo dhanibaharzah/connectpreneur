@@ -31,5 +31,9 @@ export function getLoginPath(): string {
 }
 
 export function getDashboardPath(): string {
-  return getAdminPath("/admin")
+  return getAdminPath("/admin/dashboard")
+}
+
+export function getMitraPath(): string {
+  return getAdminPath("/admin/mitra")
 }

@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,19 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, LogOut, Star, StarOff, Loader2, CheckCircle, Clock, XCircle, Info } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, Star, StarOff, Loader2, CheckCircle, Clock, XCircle, Info } from "lucide-react"
 import BusinessFormModal from "./business-form-modal"
 import BusinessViewModal from "./business-view-modal"
-import { getLoginPath } from "@/lib/use-admin-navigation"
 import { ConnectScoreBadge } from "@/components/connect-score-badge"
-
-interface AdminUser {
-  id: number
-  email: string
-  name: string | null
-  role: string
-  location_id?: number | null
-}
+import AdminShell, { getAdminAuthHeaders, type AdminUser } from "./admin-shell"
 
 interface Business {
   id: number
@@ -42,23 +33,7 @@ interface AdminDashboardProps {
   user: AdminUser
 }
 
-// Get CSRF token from cookie
-function getCSRFToken(): string | null {
-  if (typeof document === "undefined") return null
-  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/)
-  return match ? match[1] : null
-}
-
-function getAuthHeaders(): HeadersInit {
-  const csrfToken = getCSRFToken()
-  return {
-    "Content-Type": "application/json",
-    ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
-  }
-}
-
 export default function AdminDashboard({ user }: AdminDashboardProps) {
-  const router = useRouter()
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -86,7 +61,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
       const res = await fetch(`/api/admin/businesses?${params}`, {
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
       })
       const data = await res.json()
 
@@ -121,20 +96,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     fetchBusinesses()
   }
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { 
-      method: "POST", 
-      credentials: "include",
-      headers: getAuthHeaders(),
-    })
-    router.push(getLoginPath())
-  }
-
   const handleEdit = async (business: Business) => {
     try {
       const res = await fetch(`/api/admin/businesses/${business.id}`, {
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
       })
       const data = await res.json()
       if (res.ok) {
@@ -150,7 +116,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     try {
       const res = await fetch(`/api/admin/businesses/${business.id}`, {
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
       })
       const data = await res.json()
       if (res.ok) {
@@ -169,7 +135,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       const res = await fetch(`/api/admin/businesses/${deleteConfirm.id}`, {
         method: "DELETE",
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
       })
 
       if (res.ok) {
@@ -192,7 +158,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       const res = await fetch(`/api/admin/businesses/${business.id}`, {
         method: "PUT",
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ is_featured: !business.is_featured }),
       })
 
@@ -209,7 +175,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       const res = await fetch(`/api/admin/businesses/${business.id}`, {
         method: "PUT",
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ is_active: !business.is_active }),
       })
 
@@ -232,37 +198,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/images/logoconnectpreneur.png"
-              alt="ConnectPreneur"
-              width={120}
-              height={48}
-              className="h-10 w-auto"
-            />
-            <span className="text-sm text-muted-foreground">Admin Panel</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <Badge variant="outline">{user.role}</Badge>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Keluar
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+    <AdminShell user={user}>
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold">Daftar Mitra Bisnis</h1>
+              <h1 className="text-2xl font-bold">Mitra Bisnis</h1>
               {pendingCount > 0 && (
                 <p className="text-sm text-orange-600 mt-1">
                   <Clock className="h-4 w-4 inline mr-1" />
@@ -506,7 +446,6 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
             </>
           )}
         </div>
-      </main>
 
       {/* Form Modal */}
       {showFormModal && (
@@ -545,6 +484,6 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminShell>
   )
 }

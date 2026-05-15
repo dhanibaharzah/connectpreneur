@@ -23,9 +23,10 @@ export function middleware(request: NextRequest) {
     
     // For all other paths on admin subdomain, prefix with /admin if not already
     if (
-      !url.pathname.startsWith('/admin') && 
-      !url.pathname.startsWith('/api') && 
-      !url.pathname.startsWith('/_next')
+      !url.pathname.startsWith('/admin') &&
+      !url.pathname.startsWith('/api') &&
+      !url.pathname.startsWith('/_next') &&
+      !url.pathname.startsWith('/geo')
     ) {
       url.pathname = `/admin${url.pathname}`
       return NextResponse.rewrite(url)

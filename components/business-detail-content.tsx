@@ -27,6 +27,7 @@ import {
   Info,
 } from "lucide-react"
 import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
+import { trackEvent } from "@/lib/analytics/client"
 
 function isValidImageUrl(url: string): boolean {
   if (!url) return false
@@ -118,6 +119,20 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
 
   const whatsappNumber = business.kontakPIC.replace(/[^0-9]/g, "")
   const whatsappLink = `https://wa.me/${whatsappNumber.startsWith("0") ? "62" + whatsappNumber.slice(1) : whatsappNumber}?text=Halo, saya tertarik dengan program kemitraan ${business.nama}`
+
+  const businessId = Number.parseInt(business.id, 10)
+
+  const trackBusinessClick = (
+    eventType: "whatsapp_click" | "website_click" | "social_click",
+    platform?: string,
+  ) => {
+    if (Number.isNaN(businessId)) return
+    trackEvent({
+      eventType,
+      businessId,
+      metadata: platform ? { platform } : undefined,
+    })
+  }
 
   return (
     <div className="container mx-auto px-4">
@@ -310,7 +325,13 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                   <p className="text-muted-foreground">{business.kontakPIC}</p>
                 </div>
               </div>
-              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="block">
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+                onClick={() => trackBusinessClick("whatsapp_click")}
+              >
                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                   <Phone className="h-4 w-4 mr-2" />
                   Hubungi via WhatsApp
@@ -330,6 +351,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                       href={sanitizeURL(business.website)}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => trackBusinessClick("website_click")}
                     >
                       <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                         <Globe className="h-4 w-4" />
@@ -338,7 +360,12 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                     </a>
                   )}
                   {business.instagram && (
-                    <a href={business.instagram} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={business.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackBusinessClick("social_click", "instagram")}
+                    >
                       <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                         <Instagram className="h-4 w-4" />
                         Instagram
@@ -346,7 +373,12 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                     </a>
                   )}
                   {business.facebook && (
-                    <a href={business.facebook} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={business.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackBusinessClick("social_click", "facebook")}
+                    >
                       <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                         <Facebook className="h-4 w-4" />
                         Facebook
@@ -354,7 +386,12 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                     </a>
                   )}
                   {business.tiktok && (
-                    <a href={business.tiktok} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={business.tiktok}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackBusinessClick("social_click", "tiktok")}
+                    >
                       <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                         <TikTokIcon className="h-4 w-4" />
                         TikTok
