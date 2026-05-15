@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { sanitizeHTML } from "@/lib/sanitize"
-import { MapPin, Clock, Building2, Globe, Phone, User, Briefcase, Instagram, Facebook, Handshake } from "lucide-react"
+import { MapPin, Clock, Building2, Globe, Phone, User, Briefcase, Instagram, Facebook, Handshake, FileText, ExternalLink } from "lucide-react"
 import { ConnectScoreDetail } from "@/components/connect-score-badge"
 
 interface BusinessViewModalProps {
@@ -18,6 +18,46 @@ function TikTokIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
       <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
     </svg>
+  )
+}
+
+function LegalitasDocument({
+  title,
+  url,
+  description,
+}: {
+  title: string
+  url?: string | null
+  description?: string
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">{title}</p>
+      {description && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
+      {url ? (
+        <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+          <FileText className="h-8 w-8 text-red-500 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{title}.pdf</p>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-0.5"
+            >
+              Lihat file
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 border border-dashed rounded-lg bg-muted/30 text-sm text-muted-foreground">
+          Belum diupload
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -60,6 +100,7 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
             <TabsTrigger value="basic" className="flex-shrink-0">Dasar</TabsTrigger>
             <TabsTrigger value="detail" className="flex-shrink-0">Detail</TabsTrigger>
             <TabsTrigger value="contact" className="flex-shrink-0">Kontak</TabsTrigger>
+            <TabsTrigger value="legalitas" className="flex-shrink-0">Legalitas</TabsTrigger>
             <TabsTrigger value="images" className="flex-shrink-0">Gambar</TabsTrigger>
             <TabsTrigger value="score" className="flex-shrink-0">ConnectScore</TabsTrigger>
           </TabsList>
@@ -224,6 +265,21 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="legalitas" className="space-y-6 mt-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900">
+              Dokumen legalitas hanya dapat dilihat oleh admin. Tidak ditampilkan di halaman publik mitra.
+            </div>
+            <LegalitasDocument
+              title="Akta Pendirian Perusahaan beserta Perubahannya"
+              url={business.akta_pendirian_url}
+            />
+            <LegalitasDocument
+              title="Legalitas Perusahaan"
+              url={business.legalitas_url}
+              description="SIUP, TDP, NIB, Domisili Perusahaan, SKT, NPWP Perusahaan, HAKI — digabung dalam 1 file PDF"
+            />
           </TabsContent>
 
           <TabsContent value="images" className="space-y-6 mt-4">

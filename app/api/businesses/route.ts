@@ -1,4 +1,5 @@
 import { sql } from "@/lib/db"
+import { stripSensitiveBusinessFields } from "@/lib/strip-sensitive-business-fields"
 import { type NextRequest, NextResponse } from "next/server"
 
 // GET /api/businesses - Get all businesses with optional filtering
@@ -150,11 +151,13 @@ export async function GET(request: NextRequest) {
     const scoreMap = new Map(scores.map((s) => [s.business_id, s.score]))
 
     // Map product images and scores to businesses
-    const businessesWithImages = businesses.map((business) => ({
-      ...business,
-      product_images: productImages.filter((img) => img.business_id === business.id),
-      connect_score: scoreMap.get(business.id) ?? null,
-    }))
+    const businessesWithImages = businesses.map((business) =>
+      stripSensitiveBusinessFields({
+        ...business,
+        product_images: productImages.filter((img) => img.business_id === business.id),
+        connect_score: scoreMap.get(business.id) ?? null,
+      }),
+    )
 
     return NextResponse.json({
       data: businessesWithImages,

@@ -2,6 +2,7 @@ import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 import { getSessionFromRequest } from "@/lib/auth"
 import { getOrUpdateScore } from "@/lib/connect-score"
+import { stripSensitiveBusinessFields } from "@/lib/strip-sensitive-business-fields"
 
 // GET /api/businesses/[slug] - Get single business by slug (PUBLIC)
 export async function GET(
@@ -39,12 +40,12 @@ export async function GET(
     const scoreResult = await getOrUpdateScore(business.id, business as any)
 
     return NextResponse.json({
-      data: {
+      data: stripSensitiveBusinessFields({
         ...business,
         product_images: productImages,
         connect_score: scoreResult?.score ?? null,
         connect_score_breakdown: scoreResult?.breakdown ?? null,
-      },
+      }),
     })
   } catch (error) {
     console.error("Error fetching business:", error)
