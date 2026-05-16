@@ -33,14 +33,11 @@ export function Header({ variant = "default" }: HeaderProps) {
     "rounded-2xl",
     isHero
       ? "border-white/50 bg-white/78"
-      : "border-border/40 bg-background/80 supports-[backdrop-filter]:bg-background/65",
+      : "border-border/30 bg-background/92 supports-[backdrop-filter]:bg-background/80",
   )
 
-  const desktopNavClass = cn(
-    "hidden items-center gap-10 rounded-full px-8 py-3 md:flex lg:gap-20",
-    /* Hero: no second surface — links sit on the same frosted panel (avoids two whites) */
-    isHero ? "bg-transparent" : "bg-black/[0.04] backdrop-blur-sm",
-  )
+  const desktopNavClass =
+    "hidden items-center gap-10 rounded-full bg-transparent px-8 py-3 md:flex lg:gap-20"
 
   return (
     <Fragment>
