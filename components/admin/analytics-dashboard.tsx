@@ -284,7 +284,7 @@ export default function AnalyticsDashboard({ user }: { user: AdminUser }) {
         <div>
           <h1 className="text-2xl font-bold">Dashboard Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Pengunjung unik sepanjang waktu · Lokasi mitra per kab/kota · Asal pengunjung dari geo IP (gratis via Vercel)
+            Pengunjung unik sepanjang waktu · Lokasi mitra per kab/kota · Asal pengunjung dari geo IP
           </p>
         </div>
 
