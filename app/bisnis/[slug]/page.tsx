@@ -23,9 +23,9 @@ export default async function BusinessDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="relative isolate flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-1 py-8 md:py-12">
+      <main className="relative z-0 flex-1 py-8 md:py-12">
         <BusinessPageTracker businessId={business.id} />
         <BusinessDetailContent business={business} />
       </main>

@@ -11,9 +11,9 @@ export default async function KatalogPage() {
   const [businesses, categories] = await Promise.all([getAllBusinesses(), getAllCategories()])
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="relative isolate flex min-h-screen flex-col bg-background">
       <Header />
-      <main className="flex-1 py-8 md:py-12">
+      <main className="relative z-0 flex-1 py-8 md:py-12">
         <KatalogPageTracker />
         <KatalogClient businesses={businesses} categories={categories} />
       </main>

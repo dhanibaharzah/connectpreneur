@@ -1,96 +1,93 @@
 import Image from "next/image"
-import { Target, Users, Lightbulb, Handshake } from "lucide-react"
+import { Lightbulb, Users, TrendingUp, Handshake } from "lucide-react"
+
+const values = [
+  {
+    icon: Lightbulb,
+    title: "Kreatif",
+    description: "Mengembangkan ide-ide inovatif untuk pertumbuhan bisnis anggota",
+  },
+  {
+    icon: Users,
+    title: "Kolaboratif",
+    description: "Membangun jaringan kemitraan yang saling menguntungkan",
+  },
+  {
+    icon: TrendingUp,
+    title: "Berdaya",
+    description: "Memberdayakan UMKM untuk mandiri dan berkembang",
+  },
+  {
+    icon: Handshake,
+    title: "Business Matching",
+    description: "Menghubungkan mitra strategis untuk percepatan bisnis",
+  },
+] as const
 
 export function AboutSection() {
-  const values = [
-    {
-      icon: Target,
-      title: "Kreatif",
-      description: "Mengembangkan ide-ide inovatif untuk pertumbuhan bisnis anggota",
-    },
-    {
-      icon: Users,
-      title: "Kolaboratif",
-      description: "Membangun jaringan kemitraan yang saling menguntungkan",
-    },
-    {
-      icon: Lightbulb,
-      title: "Berdaya",
-      description: "Memberdayakan UMKM untuk mandiri dan berkembang",
-    },
-    {
-      icon: Handshake,
-      title: "Business Matching",
-      description: "Menghubungkan mitra strategis untuk percepatan bisnis",
-    },
-  ]
-
   return (
-    <section id="tentang" className="py-16 md:py-20 bg-background">
-      <div className="container mx-auto px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Tentang ConnectPreneur</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Program Business Matching dari BOEMKraf
+    <section id="tentang" className="bg-white px-4 py-16 md:px-8 lg:px-[60px] lg:py-20">
+      <div className="container mx-auto flex max-w-6xl flex-col items-center gap-12 lg:flex-row lg:gap-16">
+        <div className="flex w-full max-w-[540px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-[32px] bg-white p-12 shadow-[0_0_12px_rgba(0,0,0,0.1)] lg:aspect-square lg:max-h-[540px] lg:p-16">
+          <div className="relative h-36 w-full max-w-[430px] md:h-44">
+            <Image
+              src="/images/logoconnectpreneur.png"
+              alt="ConnectPreneur Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-[#636363]">Tentang ConnectPreneur</p>
+            <h2 className="text-2xl font-medium text-[#1f1f1f] md:text-2xl">
+              Apa itu <span className="text-primary">ConnectPreneur</span>?
+            </h2>
+            <p className="text-sm leading-6 text-[#838383] md:text-sm">
+              ConnectPreneur adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf. Program ini
+              bertujuan untuk menghubungkan para pelaku UMKM dengan berbagai peluang kemitraan bisnis.
             </p>
           </div>
 
-          {/* Main Content */}
-          <div className="grid md:grid-cols-2 gap-8 items-center mb-12">
-            <div className="relative">
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 border border-primary/20">
-                <Image
-                  src="/images/logoconnectpreneur.png"
-                  alt="ConnectPreneur Logo"
-                  width={300}
-                  height={150}
-                  className="w-full h-auto max-w-xs mx-auto"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-3">Apa itu ConnectPreneur?</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  ConnectPreneur adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf. Program ini bertujuan untuk menghubungkan para
-                  pelaku UMKM dengan berbagai peluang kemitraan bisnis.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-3">Tujuan Program</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Melalui program Business Matching internal, kami membantu memperluas jangkauan bisnis anggota dengan
-                  menghubungkan mereka dengan puluhan ribu anggota BOEMKraf untuk menemukan mitra
-                  strategis dan mempercepat pertumbuhan bisnis.
-                </p>
-              </div>
-            </div>
+          <div className="space-y-2 rounded-xl border border-[#f9c8b6] bg-[#fdede8] p-3 text-xs">
+            <p className="font-semibold text-primary">Tujuan Program</p>
+            <p className="leading-5 text-[#1f1f1f]">
+              Membantu memperluas jangkauan bisnis anggota dengan menghubungkan mereka dengan puluhan
+              ribu anggota BOEMKraf untuk menemukan mitra strategis dan mempercepat pertumbuhan bisnis.
+            </p>
           </div>
 
-          {/* Values */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {values.map((value, index) => (
-              <div
-                key={index}
-                className="bg-card rounded-xl p-6 text-center border border-border hover:border-primary/50 transition-colors"
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-4">
-                  <value.icon className="h-6 w-6" />
+          <div className="flex flex-col gap-7 pt-2">
+            <div className="grid gap-6 sm:grid-cols-2">
+              {values.slice(0, 2).map(({ icon: Icon, title, description }) => (
+                <div key={title} className="flex gap-5">
+                  <div className="w-1 shrink-0 rounded-sm bg-gradient-to-b from-[#fdede8] to-[#f9c8b6]" />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-[#fdede8]">
+                      <Icon className="h-5 w-5 text-primary" aria-hidden />
+                    </div>
+                    <p className="text-sm font-semibold text-[#b13b0f]">{title}</p>
+                    <p className="text-xs font-medium text-[#838383]">{description}</p>
+                  </div>
                 </div>
-                <h4 className="font-bold text-foreground mb-2">{value.title}</h4>
-                <p className="text-sm text-muted-foreground">{value.description}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Footer Info */}
-          <div className="mt-12 text-center bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-2xl p-8 border border-primary/20">
-            <p className="text-foreground font-bold text-xl mb-2">BOEMKraf</p>
-            <p className="text-primary font-semibold text-lg">Kreatif, Kolaboratif, Berdaya!</p>
+              ))}
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              {values.slice(2).map(({ icon: Icon, title, description }) => (
+                <div key={title} className="flex gap-5">
+                  <div className="w-1 shrink-0 rounded-sm bg-gradient-to-b from-[#fdede8] to-[#f9c8b6]" />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-[#fdede8]">
+                      <Icon className="h-5 w-5 text-primary" aria-hidden />
+                    </div>
+                    <p className="text-sm font-semibold text-[#b13b0f]">{title}</p>
+                    <p className="text-xs font-medium text-[#838383]">{description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
