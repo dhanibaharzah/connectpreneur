@@ -265,7 +265,7 @@ Platform ini sepenuhnya **gratis** sebagai layanan ekosistem digital BOEMKraf un
 - 🖼️ Auto-compress gambar (max 1MB → ~100KB)
 - ⭐ Featured business management
 
-## 🚀 Local Development
+<!-- ## 🚀 Local Development
 
 ### Prerequisites
 
@@ -508,6 +508,6 @@ Free tier considerations:
 
 Private project for BOEMKraf.
 
----
+--- -->
 
 **BOEMKraf** - *Kreatif, Kolaboratif, Berdaya!*

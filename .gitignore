@@ -30,3 +30,6 @@ next-env.d.ts
 
 # docs
 /docs
+
+# scripts (local / generated; remove this line if you want to track `scripts/` in git)
+/scripts/
