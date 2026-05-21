@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+function basicAuth(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization')
+  if (!authHeader || !authHeader.startsWith('Basic ')) return false
+
+  const username = process.env.SIGNUP_BASIC_AUTH_USERNAME
+  const password = process.env.SIGNUP_BASIC_AUTH_PASSWORD
+  if (!username || !password) return false
+
+  const encoded = btoa(`${username}:${password}`)
+  return authHeader === `Basic ${encoded}`
+}
+
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const url = request.nextUrl.clone()
+  
+  // Protect /signup and /admin/signup with Basic Auth
+  if (
+    url.pathname === '/signup' ||
+    url.pathname === '/admin/signup'
+  ) {
+    if (!basicAuth(request)) {
+      return new NextResponse('Authentication required', {
+        status: 401,
+        headers: { 'WWW-Authenticate': 'Basic realm="Signup Access"', 'Content-Type': 'text/plain' },
+      })
+    }
+  }
   
   // Check if it's the admin subdomain
   const isAdminSubdomain = hostname.startsWith('admin.')
@@ -18,6 +43,12 @@ export function middleware(request: NextRequest) {
     // If at /login on admin subdomain, rewrite to /admin/login
     if (url.pathname === '/login') {
       url.pathname = '/admin/login'
+      return NextResponse.rewrite(url)
+    }
+    
+    // If at /signup on admin subdomain, rewrite to /admin/signup
+    if (url.pathname === '/signup') {
+      url.pathname = '/admin/signup'
       return NextResponse.rewrite(url)
     }
     

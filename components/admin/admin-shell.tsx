@@ -6,9 +6,9 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { LayoutDashboard, Building2, LogOut } from "lucide-react"
+import { LayoutDashboard, Building2, Users, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getLoginPath, getDashboardPath, getMitraPath } from "@/lib/use-admin-navigation"
+import { getLoginPath, getDashboardPath, getMitraPath, getMembersPath } from "@/lib/use-admin-navigation"
 
 export interface AdminUser {
   id: number
@@ -23,10 +23,16 @@ interface AdminShellProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { href: getDashboardPath(), label: "Dashboard", icon: LayoutDashboard, match: "/dashboard" },
-  { href: getMitraPath(), label: "Mitra Bisnis", icon: Building2, match: "/mitra" },
-]
+function getNavItems(userRole: string) {
+  const items = [
+    { href: getDashboardPath(), label: "Dashboard", icon: LayoutDashboard, match: "/dashboard" },
+    { href: getMitraPath(), label: "Mitra Bisnis", icon: Building2, match: "/mitra" },
+  ]
+  if (userRole === "superadmin") {
+    items.push({ href: getMembersPath(), label: "Anggota", icon: Users, match: "/members" })
+  }
+  return items
+}
 
 function getCSRFToken(): string | null {
   if (typeof document === "undefined") return null
@@ -62,6 +68,8 @@ export default function AdminShell({ user, children }: AdminShellProps) {
     }
     return normalized.startsWith(match)
   }
+
+  const navItems = getNavItems(user.role)
 
   return (
     <div className="min-h-screen bg-muted/30">

@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -146,6 +147,13 @@ export default function AdminLoginPage() {
                 "Masuk"
               )}
             </Button>
+
+            <p className="text-center text-sm text-muted-foreground">
+              Belum punya akun?{" "}
+              <Link href="/signup" className="text-primary hover:underline">
+                Daftar
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
