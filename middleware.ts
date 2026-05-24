@@ -17,8 +17,8 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone()
   const isAdminSubdomain = hostname.startsWith('admin.')
   
-  // Protect the entire admin subdomain with Basic Auth
-  if (isAdminSubdomain) {
+  // Protect admin subdomain pages with Basic Auth (exclude API routes)
+  if (isAdminSubdomain && !url.pathname.startsWith('/api') && !url.pathname.startsWith('/_next')) {
     if (!basicAuth(request)) {
       return new NextResponse('Authentication required', {
         status: 401,
