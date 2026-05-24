@@ -15,22 +15,17 @@ function basicAuth(request: NextRequest): boolean {
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const url = request.nextUrl.clone()
+  const isAdminSubdomain = hostname.startsWith('admin.')
   
-  // Protect /signup and /admin/signup with Basic Auth
-  if (
-    url.pathname === '/signup' ||
-    url.pathname === '/admin/signup'
-  ) {
+  // Protect the entire admin subdomain with Basic Auth
+  if (isAdminSubdomain) {
     if (!basicAuth(request)) {
       return new NextResponse('Authentication required', {
         status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Signup Access"', 'Content-Type': 'text/plain' },
+        headers: { 'WWW-Authenticate': 'Basic realm="Admin Access"', 'Content-Type': 'text/plain' },
       })
     }
   }
-  
-  // Check if it's the admin subdomain
-  const isAdminSubdomain = hostname.startsWith('admin.')
   
   // Handle admin subdomain routing
   if (isAdminSubdomain) {
