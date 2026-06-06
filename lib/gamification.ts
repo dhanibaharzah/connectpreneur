@@ -1,6 +1,7 @@
 import { sql } from "@/lib/sql"
 import { normalizePhoneDigits } from "@/lib/phone"
-import type { Transaction } from "@/types/transaction"
+import type { Transaction, TransactionRow } from "@/types/transaction"
+import { transformTransactionRow } from "@/types/transaction"
 import {
   BUYER_TOP_ORDERS_THRESHOLD,
   BUYER_TOP_POINTS_THRESHOLD,
@@ -231,4 +232,108 @@ export async function getBusinessGamificationStats(businessId: number) {
     failedAfterInvoice: (row.gamification_failed_after_invoice as number) ?? 0,
     trustTier: (row.trust_tier as TrustTier | null) ?? null,
   }
+}
+
+export async function getCompletedTransactionsOrdered(): Promise<Transaction[]> {
+  const rows = await sql`
+    SELECT t.*, b.nama AS business_name, b.slug AS business_slug
+    FROM transactions t
+    JOIN businesses b ON b.id = t.business_id
+    WHERE t.status = 'completed'
+    ORDER BY COALESCE(t.completed_at, t.updated_at, t.created_at) ASC, t.id ASC
+  `
+  return rows.map((row) => transformTransactionRow(row as TransactionRow))
+}
+
+async function getUnawardedCompletedTransactionIds(): Promise<number[]> {
+  const rows = await sql`
+    SELECT t.id
+    FROM transactions t
+    WHERE t.status = 'completed'
+      AND NOT EXISTS (
+        SELECT 1 FROM point_ledger pl
+        WHERE pl.transaction_id = t.id
+          AND pl.event_type = 'transaction_completed'
+          AND pl.entity_type = 'buyer'
+      )
+    ORDER BY COALESCE(t.completed_at, t.updated_at, t.created_at) ASC, t.id ASC
+  `
+  return rows.map((row) => row.id as number)
+}
+
+export async function resetGamificationStats(): Promise<void> {
+  await sql`DELETE FROM point_ledger WHERE event_type = 'transaction_completed'`
+  await sql`DELETE FROM buyer_profiles`
+  await sql`
+    UPDATE businesses SET
+      gamification_points = 0,
+      gamification_completed_orders = 0,
+      gamification_failed_after_invoice = 0,
+      trust_tier = NULL,
+      updated_at = NOW()
+  `
+}
+
+export interface BackfillGamificationResult {
+  dryRun: boolean
+  rebuild: boolean
+  totalCompleted: number
+  processed: number
+  skipped: number
+  awarded: number
+  errors: Array<{ transactionId: number; referenceNo: string; error: string }>
+}
+
+export async function backfillGamificationPoints(options?: {
+  dryRun?: boolean
+  rebuild?: boolean
+}): Promise<BackfillGamificationResult> {
+  const dryRun = options?.dryRun ?? false
+  const rebuild = options?.rebuild ?? false
+
+  if (rebuild && !dryRun) {
+    await resetGamificationStats()
+  }
+
+  const allCompleted = await getCompletedTransactionsOrdered()
+  const unawardedIds = rebuild
+    ? new Set(allCompleted.map((tx) => tx.id))
+    : new Set(await getUnawardedCompletedTransactionIds())
+
+  const toProcess = allCompleted.filter((tx) => unawardedIds.has(tx.id))
+
+  const result: BackfillGamificationResult = {
+    dryRun,
+    rebuild,
+    totalCompleted: allCompleted.length,
+    processed: 0,
+    skipped: allCompleted.length - toProcess.length,
+    awarded: 0,
+    errors: [],
+  }
+
+  for (const transaction of toProcess) {
+    result.processed++
+    if (dryRun) {
+      result.awarded++
+      continue
+    }
+
+    try {
+      const award = await awardPointsForCompletedTransaction(transaction)
+      if (award) {
+        result.awarded++
+      } else {
+        result.skipped++
+      }
+    } catch (error) {
+      result.errors.push({
+        transactionId: transaction.id,
+        referenceNo: transaction.referenceNo,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  return result
 }
