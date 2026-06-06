@@ -1,4 +1,4 @@
-import { appUrl } from "@/lib/app-url"
+import { buyerPortalUrl, mitraPortalUrl } from "@/lib/app-url"
 import { formatCurrency } from "@/lib/transactions"
 import { normalizePhoneDigits } from "@/lib/phone"
 
@@ -86,7 +86,7 @@ Pembeli: ${params.buyerName}
 Kuantitas: ${qtyLine}
 Catatan: ${params.notes}
 
-Kelola di portal UMKM: ${appUrl("/umkm")}`
+Kelola di portal UMKM: ${mitraPortalUrl()}`
 
   await sendWhatsAppMessage(params.phone, message)
 }
@@ -163,7 +163,7 @@ export async function sendPaymentProofNotificationToUmkm(params: {
 
 Bukti transfer diupload untuk transaksi *${params.referenceNo}* oleh ${params.buyerName}.
 
-Konfirmasi di portal UMKM: ${appUrl("/umkm")}`
+Konfirmasi di portal UMKM: ${mitraPortalUrl()}`
 
   await sendWhatsAppMessage(params.phone, message)
 }
@@ -200,7 +200,7 @@ export async function sendPointsEarnedToBuyer(params: {
 }): Promise<void> {
   const portalLine = params.portalUrl
     ? `\n\nLihat poin & transaksi: ${params.portalUrl}`
-    : `\n\nPortal pembeli: ${appUrl("/pembeli")}`
+    : `\n\nPortal pembeli: ${buyerPortalUrl()}`
   const message = `Halo ${params.buyerName},
 
 Transaksi *${params.referenceNo}* selesai! Anda mendapat *+${params.pointsEarned} poin*.
@@ -223,7 +223,7 @@ Pembayaran *${params.referenceNo}* dikonfirmasi. Anda mendapat *+${params.points
 
 Total poin UMKM: *${params.totalPoints}*
 
-Portal UMKM: ${appUrl("/umkm")}`
+Portal UMKM: ${mitraPortalUrl()}`
 
   await sendWhatsAppMessage(params.phone, message)
 }
@@ -237,7 +237,7 @@ export async function sendBuyerBadgeLevelUp(params: {
 
 Selamat! Badge Anda naik menjadi *${params.badgeLabel}* di ConnectPreneur.
 
-Portal pembeli: ${appUrl("/pembeli")}`
+Portal pembeli: ${buyerPortalUrl()}`
 
   await sendWhatsAppMessage(params.phone, message)
 }
@@ -251,7 +251,7 @@ export async function sendTrustTierUpToUmkm(params: {
 
 Selamat! Bisnis Anda mendapat badge *${params.tierLabel}* di ConnectPreneur.
 
-Portal UMKM: ${appUrl("/umkm")}`
+Portal UMKM: ${mitraPortalUrl()}`
 
   await sendWhatsAppMessage(params.phone, message)
 }
