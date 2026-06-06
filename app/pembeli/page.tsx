@@ -10,6 +10,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, LogOut, ShoppingBag, ExternalLink, Trophy } from "lucide-react"
 import { BuyerBadge } from "@/components/buyer-badge"
+import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
+import { TransactionPagination } from "@/components/transaction-pagination"
+import type { PaginationMeta } from "@/lib/pagination"
+import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/pagination"
 import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,
@@ -46,11 +50,19 @@ export default function PembeliPortalPage() {
   const [completedOrders, setCompletedOrders] = useState(0)
   const [transactions, setTransactions] = useState<TransactionWithLinks[]>([])
   const [points, setPoints] = useState<PointLedgerEntry[]>([])
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [txPage, setTxPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    limit: DEFAULT_TRANSACTION_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  })
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async (page = 1) => {
     const [meRes, txRes, pointsRes] = await Promise.all([
       fetch("/api/pembeli/me", { credentials: "include" }),
-      fetch("/api/pembeli/transactions", { credentials: "include" }),
+      fetch(`/api/pembeli/transactions?page=${page}`, { credentials: "include" }),
       fetch("/api/pembeli/points", { credentials: "include" }),
     ])
 
@@ -68,9 +80,30 @@ export default function PembeliPortalPage() {
     setBadgeLevel(me.badgeLevel ?? "new")
     setCompletedOrders(me.completedOrders ?? 0)
     setTransactions(txData.transactions || [])
+    setPagination(
+      txData.pagination ?? {
+        page,
+        limit: DEFAULT_TRANSACTION_PAGE_SIZE,
+        total: txData.transactions?.length ?? 0,
+        totalPages: 1,
+      },
+    )
+    setTxPage(page)
     setPoints(pointsData.points || [])
     setStep("dashboard")
   }, [])
+
+  const changeTxPage = async (page: number) => {
+    setLoading(true)
+    setExpandedId(null)
+    try {
+      await loadDashboard(page)
+    } catch {
+      setStep("phone")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     loadDashboard().catch(() => setStep("phone"))
@@ -244,56 +277,68 @@ export default function PembeliPortalPage() {
             </Card>
 
             <div className="space-y-3">
-              <h2 className="font-semibold">Transaksi ({transactions.length})</h2>
-              {transactions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Belum ada transaksi.</p>
-              ) : (
-                transactions.map((tx) => (
-                  <Card key={tx.id}>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <p className="font-mono text-sm font-medium">{tx.referenceNo}</p>
-                          {tx.businessName && (
-                            <Link
-                              href={tx.businessSlug ? `/bisnis/${tx.businessSlug}` : "#"}
-                              className="font-medium text-primary hover:underline"
-                            >
-                              {tx.businessName}
-                            </Link>
-                          )}
-                        </div>
-                        <Badge variant={STATUS_VARIANT[tx.status] || "secondary"}>
+              <h2 className="font-semibold">Transaksi ({pagination.total})</h2>
+              <ExpandableList isEmpty={transactions.length === 0} emptyMessage="Belum ada transaksi.">
+                {transactions.map((tx) => (
+                  <ExpandableListItem
+                    key={tx.id}
+                    open={expandedId === tx.id}
+                    onToggle={() => setExpandedId(expandedId === tx.id ? null : tx.id)}
+                    title={tx.businessName || tx.referenceNo}
+                    subtitle={tx.businessName ? tx.referenceNo : undefined}
+                    trailing={
+                      <>
+                        {tx.invoiceTotal != null && (
+                          <span className="hidden text-xs font-medium text-foreground sm:inline">
+                            Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                          </span>
+                        )}
+                        <Badge variant={STATUS_VARIANT[tx.status] || "secondary"} className="shrink-0">
                           {TRANSACTION_STATUS_LABELS[tx.status as TransactionStatus]}
                         </Badge>
-                      </div>
-                      {tx.invoiceTotal != null && (
-                        <p className="text-sm">
-                          <strong>Total:</strong> Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                        </p>
+                      </>
+                    }
+                  >
+                    {tx.businessName && tx.businessSlug && (
+                      <Link
+                        href={`/bisnis/${tx.businessSlug}`}
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        {tx.businessName}
+                      </Link>
+                    )}
+                    {tx.invoiceTotal != null && (
+                      <p className="text-sm">
+                        <span className="font-medium">Total:</span>{" "}
+                        Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {tx.invoiceUrl && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={tx.invoiceUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Invoice
+                          </a>
+                        </Button>
                       )}
-                      <div className="flex flex-wrap gap-2">
-                        {tx.invoiceUrl && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={tx.invoiceUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Invoice
-                            </a>
-                          </Button>
-                        )}
-                        {tx.paymentUrl && tx.status !== "completed" && tx.status !== "rejected" && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={tx.paymentUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Bayar / Upload Bukti
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                      {tx.paymentUrl && tx.status !== "completed" && tx.status !== "rejected" && (
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={tx.paymentUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Bayar / Upload Bukti
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </ExpandableListItem>
+                ))}
+              </ExpandableList>
+              <TransactionPagination
+                pagination={pagination}
+                onPageChange={changeTxPage}
+                loading={loading}
+              />
             </div>
 
             {points.length > 0 && (

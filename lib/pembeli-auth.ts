@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import type { NextRequest } from "next/server"
-import { normalizePhoneDigits, phonesMatch } from "@/lib/phone"
+import { normalizePhoneDigits, getBuyerPhoneQueryVariants } from "@/lib/phone"
 import { checkOtpRateLimit } from "@/lib/umkm-auth"
 import { transformTransactionRow, type TransactionRow } from "@/types/transaction"
 
@@ -23,21 +23,50 @@ const MAX_OTP_ATTEMPTS = 5
 export { checkOtpRateLimit }
 
 export async function buyerHasTransactions(phone: string): Promise<boolean> {
-  const transactions = await findTransactionsByPhone(phone)
-  return transactions.length > 0
+  const variants = getBuyerPhoneQueryVariants(phone)
+  const [row] = await sql`
+    SELECT COUNT(*)::int AS total FROM transactions
+    WHERE buyer_phone = ANY(${variants})
+  `
+  return ((row?.total as number) ?? 0) > 0
 }
 
 export async function findTransactionsByPhone(phone: string) {
-  const normalized = normalizePhoneDigits(phone)
+  const variants = getBuyerPhoneQueryVariants(phone)
   const rows = await sql`
     SELECT t.*, b.nama AS business_name, b.slug AS business_slug
     FROM transactions t
     JOIN businesses b ON b.id = t.business_id
+    WHERE t.buyer_phone = ANY(${variants})
     ORDER BY t.created_at DESC
   `
-  return rows
-    .filter((row) => phonesMatch(String(row.buyer_phone), normalized))
-    .map((row) => transformTransactionRow(row as TransactionRow))
+  return rows.map((row) => transformTransactionRow(row as TransactionRow))
+}
+
+export async function getTransactionsForBuyerPaginated(
+  phone: string,
+  params: { limit: number; offset: number },
+) {
+  const variants = getBuyerPhoneQueryVariants(phone)
+
+  const [countRow] = await sql`
+    SELECT COUNT(*)::int AS total FROM transactions
+    WHERE buyer_phone = ANY(${variants})
+  `
+
+  const rows = await sql`
+    SELECT t.*, b.nama AS business_name, b.slug AS business_slug
+    FROM transactions t
+    JOIN businesses b ON b.id = t.business_id
+    WHERE t.buyer_phone = ANY(${variants})
+    ORDER BY t.created_at DESC
+    LIMIT ${params.limit} OFFSET ${params.offset}
+  `
+
+  return {
+    items: rows.map((row) => transformTransactionRow(row as TransactionRow)),
+    total: (countRow?.total as number) ?? 0,
+  }
 }
 
 export async function createPembeliOtpChallenge(phone: string): Promise<string> {

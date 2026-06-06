@@ -76,6 +76,29 @@ export async function getTransactionsForBusiness(businessId: number): Promise<Tr
   return rows.map((row) => transformTransactionRow(row as TransactionRow))
 }
 
+export async function getTransactionsForBusinessPaginated(
+  businessId: number,
+  params: { limit: number; offset: number },
+): Promise<{ items: Transaction[]; total: number }> {
+  const [countRow] = await sql`
+    SELECT COUNT(*)::int AS total FROM transactions WHERE business_id = ${businessId}
+  `
+
+  const rows = await sql`
+    SELECT t.*, b.nama AS business_name, b.slug AS business_slug
+    FROM transactions t
+    JOIN businesses b ON b.id = t.business_id
+    WHERE t.business_id = ${businessId}
+    ORDER BY t.created_at DESC
+    LIMIT ${params.limit} OFFSET ${params.offset}
+  `
+
+  return {
+    items: rows.map((row) => transformTransactionRow(row as TransactionRow)),
+    total: (countRow?.total as number) ?? 0,
+  }
+}
+
 export async function updateTransactionStatus(
   id: number,
   status: string,

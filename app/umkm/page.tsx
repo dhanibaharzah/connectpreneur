@@ -18,8 +18,15 @@ import {
   FileText,
   Building2,
   Trophy,
+  Settings,
+  ArrowLeft,
 } from "lucide-react"
+import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
+import { TransactionPagination } from "@/components/transaction-pagination"
+import { UmkmStoreQrCard } from "@/components/umkm-store-qr-card"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
+import type { PaginationMeta } from "@/lib/pagination"
+import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/pagination"
 import type { TrustTier } from "@/types/gamification"
 import {
   TRANSACTION_STATUS_LABELS,
@@ -28,6 +35,7 @@ import {
 } from "@/types/transaction"
 
 type Step = "phone" | "otp" | "dashboard"
+type DashboardTab = "transactions" | "settings"
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending_review: "secondary",
@@ -41,6 +49,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 
 export default function UmkmPortalPage() {
   const [step, setStep] = useState<Step>("phone")
+  const [dashboardTab, setDashboardTab] = useState<DashboardTab>("transactions")
   const [phone, setPhone] = useState("")
   const [otp, setOtp] = useState("")
   const [businessId, setBusinessId] = useState<number | null>(null)
@@ -51,7 +60,9 @@ export default function UmkmPortalPage() {
   const [bank, setBank] = useState({ bank_name: "", bank_account_number: "", bank_account_name: "" })
   const [bankSaved, setBankSaved] = useState(false)
   const [bankMessage, setBankMessage] = useState("")
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [rejectingId, setRejectingId] = useState<number | null>(null)
+  const [invoiceEditId, setInvoiceEditId] = useState<number | null>(null)
   const [invoiceForm, setInvoiceForm] = useState({ description: "", quantity: "1", unit_price: "" })
   const [rejectReason, setRejectReason] = useState("")
   const [gamification, setGamification] = useState({
@@ -59,10 +70,17 @@ export default function UmkmPortalPage() {
     completedOrders: 0,
     trustTier: null as string | null,
   })
+  const [txPage, setTxPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    limit: DEFAULT_TRANSACTION_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  })
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(async (page = 1) => {
     const [txRes, bankRes, gamRes] = await Promise.all([
-      fetch("/api/umkm/transactions", { credentials: "include" }),
+      fetch(`/api/umkm/transactions?page=${page}`, { credentials: "include" }),
       fetch("/api/umkm/bank", { credentials: "include" }),
       fetch("/api/umkm/gamification", { credentials: "include" }),
     ])
@@ -83,6 +101,15 @@ export default function UmkmPortalPage() {
       })
     }
     setTransactions(txData.transactions || [])
+    setPagination(
+      txData.pagination ?? {
+        page,
+        limit: DEFAULT_TRANSACTION_PAGE_SIZE,
+        total: txData.transactions?.length ?? 0,
+        totalPages: 1,
+      },
+    )
+    setTxPage(page)
     setBank({
       bank_name: bankData.bank_name || "",
       bank_account_number: bankData.bank_account_number || "",
@@ -136,7 +163,7 @@ export default function UmkmPortalPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setBusinessName(data.business.nama)
-      await loadDashboard()
+      await loadDashboard(txPage)
     } catch (err) {
       setError(err instanceof Error ? err.message : "OTP tidak valid")
     } finally {
@@ -188,9 +215,9 @@ export default function UmkmPortalPage() {
 
     try {
       if (!bankSaved) {
-        const saved = await persistBank()
-        if (!saved) return
-        setBankMessage("Rekening bank disimpan otomatis.")
+        setError("Lengkapi rekening bank di Pengaturan terlebih dahulu.")
+        setDashboardTab("settings")
+        return
       }
 
       const res = await fetch(`/api/umkm/transactions/${txId}`, {
@@ -207,8 +234,8 @@ export default function UmkmPortalPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      await loadDashboard()
-      setSelectedId(null)
+      await loadDashboard(txPage)
+      closeTransactionPanel()
       setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal kirim invoice")
@@ -217,6 +244,36 @@ export default function UmkmPortalPage() {
     }
   }
 
+  const toggleTransaction = (id: number) => {
+    if (expandedId === id) {
+      setExpandedId(null)
+      setRejectingId(null)
+      setInvoiceEditId(null)
+    } else {
+      setExpandedId(id)
+      setRejectingId(null)
+      setInvoiceEditId(null)
+    }
+  }
+
+  const closeTransactionPanel = () => {
+    setExpandedId(null)
+    setRejectingId(null)
+    setInvoiceEditId(null)
+  }
+
+  const changeTxPage = async (page: number) => {
+    setLoading(true)
+    setError("")
+    closeTransactionPanel()
+    try {
+      await loadDashboard(page)
+    } catch {
+      setStep("phone")
+    } finally {
+      setLoading(false)
+    }
+  }
   const action = async (id: number, actionName: string, extra?: Record<string, unknown>) => {
     setLoading(true)
     setError("")
@@ -229,8 +286,8 @@ export default function UmkmPortalPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      await loadDashboard()
-      setSelectedId(null)
+      await loadDashboard(txPage)
+      closeTransactionPanel()
       setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
       setRejectReason("")
     } catch (err) {
@@ -249,10 +306,18 @@ export default function UmkmPortalPage() {
             <span className="text-sm font-medium text-muted-foreground hidden sm:inline">Portal UMKM</span>
           </div>
           {step === "dashboard" && (
-            <Button variant="ghost" size="sm" onClick={() => { document.cookie = "umkm_session=; Max-Age=0; path=/"; setStep("phone") }}>
-              <LogOut className="h-4 w-4 mr-1" />
-              Keluar
-            </Button>
+            <div className="flex items-center gap-1">
+              {dashboardTab === "transactions" && (
+                <Button variant="ghost" size="sm" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("settings") }}>
+                  <Settings className="h-4 w-4 mr-1" />
+                  Pengaturan
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => { document.cookie = "umkm_session=; Max-Age=0; path=/"; setStep("phone"); setDashboardTab("transactions") }}>
+                <LogOut className="h-4 w-4 mr-1" />
+                Keluar
+              </Button>
+            </div>
           )}
         </div>
       </header>
@@ -304,7 +369,67 @@ export default function UmkmPortalPage() {
           </Card>
         )}
 
-        {step === "dashboard" && (
+        {step === "dashboard" && dashboardTab === "settings" && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" className="-ml-2" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("transactions") }}>
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Transaksi
+              </Button>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Pengaturan</h1>
+              <p className="text-muted-foreground text-sm">{businessName}</p>
+            </div>
+
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <h2 className="font-semibold">Rekening Bank</h2>
+                <p className="text-xs text-muted-foreground">
+                  Rekening untuk menerima pembayaran pembeli. Wajib diisi sebelum menerbitkan invoice.
+                </p>
+                <div className="grid gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="bank-name">Nama Bank</Label>
+                    <Input
+                      id="bank-name"
+                      placeholder="Contoh: BCA"
+                      value={bank.bank_name}
+                      onChange={(e) => { setBank({ ...bank, bank_name: e.target.value }); setBankSaved(false) }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bank-number">No. Rekening</Label>
+                    <Input
+                      id="bank-number"
+                      placeholder="1234567890"
+                      value={bank.bank_account_number}
+                      onChange={(e) => { setBank({ ...bank, bank_account_number: e.target.value }); setBankSaved(false) }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bank-holder">Atas Nama</Label>
+                    <Input
+                      id="bank-holder"
+                      placeholder="Nama pemilik rekening"
+                      value={bank.bank_account_name}
+                      onChange={(e) => { setBank({ ...bank, bank_account_name: e.target.value }); setBankSaved(false) }}
+                    />
+                  </div>
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                {bankMessage && <p className="text-sm text-green-700">{bankMessage}</p>}
+                <Button onClick={saveBank} disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan Rekening"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <UmkmStoreQrCard />
+          </div>
+        )}
+
+        {step === "dashboard" && dashboardTab === "transactions" && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold">{businessName}</h1>
@@ -339,149 +464,194 @@ export default function UmkmPortalPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h2 className="font-semibold">Rekening Bank</h2>
-                <p className="text-xs text-muted-foreground">Wajib diisi sebelum menerbitkan invoice.</p>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <Input placeholder="Nama Bank" value={bank.bank_name} onChange={(e) => { setBank({ ...bank, bank_name: e.target.value }); setBankSaved(false) }} />
-                  <Input placeholder="No. Rekening" value={bank.bank_account_number} onChange={(e) => { setBank({ ...bank, bank_account_number: e.target.value }); setBankSaved(false) }} />
-                  <Input placeholder="Atas Nama" value={bank.bank_account_name} onChange={(e) => { setBank({ ...bank, bank_account_name: e.target.value }); setBankSaved(false) }} />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button size="sm" onClick={saveBank} disabled={loading}>Simpan Rekening</Button>
-                  {bankSaved && !bankMessage && (
-                    <span className="text-xs text-green-700">✓ Rekening tersimpan</span>
-                  )}
-                  {bankMessage && (
-                    <span className="text-xs text-green-700">{bankMessage}</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {!bankSaved && (
+              <Card className="border-amber-200 bg-amber-50/50">
+                <CardContent className="p-6 space-y-4">
+                  <h2 className="font-semibold">Lengkapi Rekening Bank</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Rekening bank wajib diisi sebelum Anda dapat menerbitkan invoice ke pembeli.
+                  </p>
+                  <Button onClick={() => setDashboardTab("settings")}>
+                    <Settings className="h-4 w-4 mr-1" />
+                    Atur Rekening Bank
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="space-y-3">
-              <h2 className="font-semibold">Transaksi ({transactions.length})</h2>
-              {transactions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Belum ada permintaan penawaran.</p>
-              ) : (
-                transactions.map((tx) => (
-                  <Card key={tx.id} className={selectedId === tx.id ? "ring-2 ring-primary" : ""}>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <p className="font-mono text-sm font-medium">{tx.referenceNo}</p>
-                          <p className="font-medium">{tx.buyerName}</p>
-                          <p className="text-sm text-muted-foreground">{tx.buyerPhone}</p>
-                        </div>
-                        <Badge variant={STATUS_VARIANT[tx.status] || "secondary"}>
+              <h2 className="font-semibold">Transaksi ({pagination.total})</h2>
+              <ExpandableList isEmpty={transactions.length === 0} emptyMessage="Belum ada permintaan penawaran.">
+                {transactions.map((tx) => (
+                  <ExpandableListItem
+                    key={tx.id}
+                    open={expandedId === tx.id}
+                    onToggle={() => toggleTransaction(tx.id)}
+                    title={tx.buyerName}
+                    subtitle={tx.referenceNo}
+                    trailing={
+                      <>
+                        {tx.invoiceTotal != null && (
+                          <span className="hidden text-xs font-medium text-foreground sm:inline">
+                            Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                          </span>
+                        )}
+                        <Badge variant={STATUS_VARIANT[tx.status] || "secondary"} className="shrink-0">
                           {TRANSACTION_STATUS_LABELS[tx.status as TransactionStatus]}
                         </Badge>
-                      </div>
-                      <p className="text-sm"><strong>Catatan:</strong> {tx.notes}</p>
-                      {tx.quantity > 0 && <p className="text-sm"><strong>Kuantitas:</strong> {tx.quantity}</p>}
-
-                      {tx.status === "pending_review" && (
-                        <div className="flex flex-wrap gap-2">
-                          <Button size="sm" onClick={() => action(tx.id, "approve")} disabled={loading}>
-                            <Check className="h-4 w-4 mr-1" /> Setujui
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => setSelectedId(selectedId === tx.id ? null : tx.id)} disabled={loading}>
-                            <X className="h-4 w-4 mr-1" /> Tolak
-                          </Button>
-                        </div>
+                      </>
+                    }
+                  >
+                    <div className="space-y-1 text-sm">
+                      <p className="text-muted-foreground">{tx.buyerPhone}</p>
+                      {tx.notes && (
+                        <p><span className="font-medium">Catatan:</span> {tx.notes}</p>
                       )}
-
-                      {selectedId === tx.id && tx.status === "pending_review" && (
-                        <div className="space-y-2 pt-2 border-t">
-                          <Textarea placeholder="Alasan penolakan (opsional)" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={2} />
-                          <Button size="sm" variant="destructive" onClick={() => action(tx.id, "reject", { reason: rejectReason })} disabled={loading}>
-                            Konfirmasi Tolak
-                          </Button>
-                        </div>
+                      {tx.quantity > 0 && (
+                        <p><span className="font-medium">Kuantitas:</span> {tx.quantity}</p>
                       )}
-
-                      {tx.status === "approved" && (
-                        <div className="space-y-2 pt-2 border-t">
-                          {selectedId !== tx.id ? (
-                            <Button size="sm" onClick={() => { setSelectedId(tx.id); setInvoiceForm({ description: "", quantity: "1", unit_price: "" }) }} disabled={loading}>
-                              <FileText className="h-4 w-4 mr-1" /> Buat Invoice
-                            </Button>
-                          ) : (
-                            <>
-                              <p className="text-sm font-medium">Terbitkan Invoice</p>
-                              <Input placeholder="Deskripsi item" value={invoiceForm.description} onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })} />
-                              <div className="grid grid-cols-2 gap-2">
-                                <Input type="number" min={1} placeholder="Qty" value={invoiceForm.quantity} onChange={(e) => setInvoiceForm({ ...invoiceForm, quantity: e.target.value })} />
-                                <Input type="number" min={1} placeholder="Harga satuan (Rp)" value={invoiceForm.unit_price} onChange={(e) => setInvoiceForm({ ...invoiceForm, unit_price: e.target.value })} />
-                              </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" onClick={() => sendInvoice(tx.id)} disabled={loading}>
-                                  Kirim Invoice
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={() => setSelectedId(null)}>Batal</Button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      {tx.status === "invoice_sent" && (
-                        <div className="pt-2 border-t space-y-2">
-                          {tx.invoiceTotal != null && (
-                            <p className="text-sm font-medium">
-                              Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                            </p>
-                          )}
-                          <Button size="sm" variant="outline" onClick={() => action(tx.id, "remind")} disabled={loading}>
-                            <Bell className="h-4 w-4 mr-1" /> Kirim Reminder Bayar
-                          </Button>
-                        </div>
-                      )}
-
-                      {tx.status === "payment_proof_uploaded" && (
-                        <div className="pt-2 border-t flex flex-col gap-3">
-                          {tx.invoiceTotal != null && (
-                            <p className="text-sm font-medium">
-                              Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                            </p>
-                          )}
-                          {tx.paymentProofUrl && (
-                            <a
-                              href={tx.paymentProofUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-sm text-primary underline underline-offset-2 w-fit"
-                            >
-                              Lihat bukti transfer
-                            </a>
-                          )}
-                          <Button
-                            size="sm"
-                            className="w-fit"
-                            onClick={() => action(tx.id, "confirm_payment")}
-                            disabled={loading}
-                          >
-                            <Check className="h-4 w-4 mr-1" /> Konfirmasi Pembayaran
-                          </Button>
-                        </div>
-                      )}
-
-                      {tx.invoiceTotal != null &&
-                        tx.status !== "pending_review" &&
-                        tx.status !== "approved" &&
-                        tx.status !== "invoice_sent" &&
-                        tx.status !== "payment_proof_uploaded" && (
-                        <p className="text-sm font-medium pt-2 border-t">
+                      {tx.invoiceTotal != null && (
+                        <p className="font-medium sm:hidden">
                           Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
                         </p>
                       )}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                    </div>
+
+                    {tx.status === "pending_review" && (
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" onClick={() => action(tx.id, "approve")} disabled={loading}>
+                          <Check className="h-4 w-4 mr-1" /> Setujui
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            setExpandedId(tx.id)
+                            setRejectingId(rejectingId === tx.id ? null : tx.id)
+                            setInvoiceEditId(null)
+                          }}
+                          disabled={loading}
+                        >
+                          <X className="h-4 w-4 mr-1" /> Tolak
+                        </Button>
+                      </div>
+                    )}
+
+                    {rejectingId === tx.id && tx.status === "pending_review" && (
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="Alasan penolakan (opsional)"
+                          value={rejectReason}
+                          onChange={(e) => setRejectReason(e.target.value)}
+                          rows={2}
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="destructive" onClick={() => action(tx.id, "reject", { reason: rejectReason })} disabled={loading}>
+                            Konfirmasi Tolak
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setRejectingId(null)} disabled={loading}>
+                            Batal
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {tx.status === "approved" && (
+                      <div className="space-y-2">
+                        {invoiceEditId !== tx.id ? (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setExpandedId(tx.id)
+                              setInvoiceEditId(tx.id)
+                              setRejectingId(null)
+                              setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
+                            }}
+                            disabled={loading}
+                          >
+                            <FileText className="h-4 w-4 mr-1" /> Buat Invoice
+                          </Button>
+                        ) : (
+                          <>
+                            <p className="text-sm font-medium">Terbitkan Invoice</p>
+                            <Input placeholder="Deskripsi item" value={invoiceForm.description} onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })} />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="number" min={1} placeholder="Qty" value={invoiceForm.quantity} onChange={(e) => setInvoiceForm({ ...invoiceForm, quantity: e.target.value })} />
+                              <Input type="number" min={1} placeholder="Harga satuan (Rp)" value={invoiceForm.unit_price} onChange={(e) => setInvoiceForm({ ...invoiceForm, unit_price: e.target.value })} />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => sendInvoice(tx.id)} disabled={loading}>
+                                Kirim Invoice
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setInvoiceEditId(null)} disabled={loading}>
+                                Batal
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {tx.status === "invoice_sent" && (
+                      <div className="space-y-2">
+                        {tx.invoiceTotal != null && (
+                          <p className="text-sm font-medium">
+                            Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                          </p>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => action(tx.id, "remind")} disabled={loading}>
+                          <Bell className="h-4 w-4 mr-1" /> Kirim Reminder Bayar
+                        </Button>
+                      </div>
+                    )}
+
+                    {tx.status === "payment_proof_uploaded" && (
+                      <div className="flex flex-col gap-3">
+                        {tx.invoiceTotal != null && (
+                          <p className="text-sm font-medium">
+                            Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                          </p>
+                        )}
+                        {tx.paymentProofUrl && (
+                          <a
+                            href={tx.paymentProofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex w-fit items-center text-sm text-primary underline underline-offset-2"
+                          >
+                            Lihat bukti transfer
+                          </a>
+                        )}
+                        <Button
+                          size="sm"
+                          className="w-fit"
+                          onClick={() => action(tx.id, "confirm_payment")}
+                          disabled={loading}
+                        >
+                          <Check className="h-4 w-4 mr-1" /> Konfirmasi Pembayaran
+                        </Button>
+                      </div>
+                    )}
+
+                    {tx.invoiceTotal != null &&
+                      tx.status !== "pending_review" &&
+                      tx.status !== "approved" &&
+                      tx.status !== "invoice_sent" &&
+                      tx.status !== "payment_proof_uploaded" && (
+                      <p className="text-sm font-medium">
+                        Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                      </p>
+                    )}
+                  </ExpandableListItem>
+                ))}
+              </ExpandableList>
+              <TransactionPagination
+                pagination={pagination}
+                onPageChange={changeTxPage}
+                loading={loading}
+              />
             </div>
 
             <Link href="/katalog" className="text-sm text-muted-foreground hover:text-primary">

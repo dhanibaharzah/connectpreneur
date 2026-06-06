@@ -1,7 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { findTransactionsByPhone, getPembeliSessionFromRequest } from "@/lib/pembeli-auth"
+import {
+  getPembeliSessionFromRequest,
+  getTransactionsForBuyerPaginated,
+} from "@/lib/pembeli-auth"
 import { getOrCreateToken } from "@/lib/transaction-tokens"
 import { appUrl } from "@/lib/app-url"
+import { buildPaginationMeta, parseTransactionPagination } from "@/lib/pagination"
 
 export async function GET(request: NextRequest) {
   const session = await getPembeliSessionFromRequest(request)
@@ -9,10 +13,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const transactions = await findTransactionsByPhone(session.phone)
+  const { page, limit, offset } = parseTransactionPagination(request.nextUrl.searchParams)
+  const { items, total } = await getTransactionsForBuyerPaginated(session.phone, {
+    limit,
+    offset,
+  })
 
   const withLinks = await Promise.all(
-    transactions.map(async (tx) => {
+    items.map(async (tx) => {
       let invoiceUrl: string | null = null
       let paymentUrl: string | null = null
 
@@ -35,5 +43,8 @@ export async function GET(request: NextRequest) {
     }),
   )
 
-  return NextResponse.json({ transactions: withLinks })
+  return NextResponse.json({
+    transactions: withLinks,
+    pagination: buildPaginationMeta(page, limit, total),
+  })
 }

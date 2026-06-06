@@ -160,8 +160,23 @@ export async function updateBusinessBankDetails(
 
 export async function getBusinessBankDetails(businessId: number) {
   const [row] = await sql`
-    SELECT bank_name, bank_account_number, bank_account_name, nama, kontak_pic
+    SELECT bank_name, bank_account_number, bank_account_name, nama, kontak_pic, slug, logo_url
     FROM businesses WHERE id = ${businessId}
   `
   return row ?? null
+}
+
+export async function getBusinessCatalogInfo(businessId: number) {
+  const [row] = await sql`
+    SELECT id, slug, nama, logo_url
+    FROM businesses
+    WHERE id = ${businessId} AND is_active = true
+  `
+  if (!row?.slug) return null
+  return {
+    id: row.id as number,
+    slug: row.slug as string,
+    nama: row.nama as string,
+    logoUrl: (row.logo_url as string | null) ?? null,
+  }
 }

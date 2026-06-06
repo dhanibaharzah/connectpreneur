@@ -36,12 +36,22 @@ function redirectToMainSite(request: NextRequest): NextResponse {
 function handlePortalSubdomain(
   request: NextRequest,
   portalPath: "/pembeli" | "/umkm",
+  extraPaths: string[] = [],
 ): NextResponse | null {
   const url = request.nextUrl.clone()
   const pathname = url.pathname
 
   if (shouldPassthrough(pathname)) {
     return null
+  }
+
+  for (const extra of extraPaths) {
+    const normalized = extra.startsWith("/") ? extra : `/${extra}`
+    const fullPath = `/umkm${normalized}`
+    if (pathname === normalized || pathname === fullPath) {
+      url.pathname = fullPath
+      return NextResponse.rewrite(url)
+    }
   }
 
   if (pathname === portalPath) {
@@ -70,7 +80,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isMitraSubdomain) {
-    const response = handlePortalSubdomain(request, "/umkm")
+    const response = handlePortalSubdomain(request, "/umkm", ["/cetak-qr"])
     if (response) return response
   }
 

@@ -14,3 +14,13 @@ export function formatPhoneDisplay(phone: string): string {
   if (digits.startsWith("62")) return `0${digits.slice(2)}`
   return phone
 }
+
+/** Variants stored in DB for matching buyer_phone in SQL. */
+export function getBuyerPhoneQueryVariants(phone: string): string[] {
+  const normalized = normalizePhoneDigits(phone)
+  const variants = new Set<string>([normalized])
+  if (normalized.startsWith("62")) {
+    variants.add(`0${normalized.slice(2)}`)
+  }
+  return [...variants]
+}
