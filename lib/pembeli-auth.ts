@@ -1,0 +1,140 @@
+import { sql } from "@/lib/sql"
+import { SignJWT, jwtVerify } from "jose"
+import bcrypt from "bcryptjs"
+import { cookies } from "next/headers"
+import type { NextRequest } from "next/server"
+import { normalizePhoneDigits, phonesMatch } from "@/lib/phone"
+import { checkOtpRateLimit } from "@/lib/umkm-auth"
+import { transformTransactionRow, type TransactionRow } from "@/types/transaction"
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "dev-only-secret-do-not-use-in-production",
+)
+
+export interface PembeliSession {
+  phone: string
+  displayName: string | null
+}
+
+const OTP_TTL_MS = 5 * 60 * 1000
+const SESSION_TTL = "7d"
+const MAX_OTP_ATTEMPTS = 5
+
+export { checkOtpRateLimit }
+
+export async function buyerHasTransactions(phone: string): Promise<boolean> {
+  const transactions = await findTransactionsByPhone(phone)
+  return transactions.length > 0
+}
+
+export async function findTransactionsByPhone(phone: string) {
+  const normalized = normalizePhoneDigits(phone)
+  const rows = await sql`
+    SELECT t.*, b.nama AS business_name, b.slug AS business_slug
+    FROM transactions t
+    JOIN businesses b ON b.id = t.business_id
+    ORDER BY t.created_at DESC
+  `
+  return rows
+    .filter((row) => phonesMatch(String(row.buyer_phone), normalized))
+    .map((row) => transformTransactionRow(row as TransactionRow))
+}
+
+export async function createPembeliOtpChallenge(phone: string): Promise<string> {
+  const otp = String(Math.floor(100000 + Math.random() * 900000))
+  const otpHash = await bcrypt.hash(otp, 10)
+  const expiresAt = new Date(Date.now() + OTP_TTL_MS)
+  const normalized = normalizePhoneDigits(phone)
+
+  await sql`
+    INSERT INTO pembeli_otp_challenges (phone, otp_hash, expires_at)
+    VALUES (${normalized}, ${otpHash}, ${expiresAt.toISOString()})
+  `
+
+  return otp
+}
+
+export async function verifyPembeliOtpChallenge(phone: string, otp: string): Promise<boolean> {
+  const normalized = normalizePhoneDigits(phone)
+  const rows = await sql`
+    SELECT id, otp_hash, expires_at, attempts
+    FROM pembeli_otp_challenges
+    WHERE phone = ${normalized}
+      AND expires_at > NOW()
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+
+  if (rows.length === 0) return false
+
+  const challenge = rows[0]
+  if ((challenge.attempts as number) >= MAX_OTP_ATTEMPTS) return false
+
+  const valid = await bcrypt.compare(otp, challenge.otp_hash as string)
+
+  await sql`
+    UPDATE pembeli_otp_challenges SET attempts = attempts + 1 WHERE id = ${challenge.id}
+  `
+
+  if (valid) {
+    await sql`DELETE FROM pembeli_otp_challenges WHERE phone = ${normalized}`
+  }
+
+  return valid
+}
+
+export async function createPembeliSession(session: PembeliSession): Promise<string> {
+  return new SignJWT({
+    type: "pembeli",
+    phone: normalizePhoneDigits(session.phone),
+    displayName: session.displayName,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime(SESSION_TTL)
+    .sign(JWT_SECRET)
+}
+
+export async function verifyPembeliSession(token: string): Promise<PembeliSession | null> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET)
+    if (payload.type !== "pembeli") return null
+    return {
+      phone: payload.phone as string,
+      displayName: (payload.displayName as string | null) ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function getPembeliSessionFromRequest(
+  request: NextRequest,
+): Promise<PembeliSession | null> {
+  const token = request.cookies.get("pembeli_session")?.value
+  if (!token) return null
+  return verifyPembeliSession(token)
+}
+
+export function pembeliSessionCookieOptions(token: string) {
+  return {
+    name: "pembeli_session",
+    value: token,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  }
+}
+
+export function clearPembeliSessionCookie() {
+  return {
+    name: "pembeli_session",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+  }
+}

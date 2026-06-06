@@ -5,6 +5,8 @@ import { MapPin, Clock, Building2, Handshake, ArrowUpRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { ConnectScoreBadge } from "@/components/connect-score-badge"
+import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
+import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 
 interface BusinessCardProps {
   business: Business
@@ -65,11 +67,18 @@ export function BusinessCard({ business }: BusinessCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-3">
-        <div className="flex items-start gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           <h3 className="min-w-0 flex-1 text-sm font-semibold leading-tight text-[#1f1f1f] line-clamp-2">
             {business.nama}
           </h3>
-          <span className="shrink-0 rounded-full bg-[#fdede8] px-3 py-2 text-[10px] font-medium text-[#b13b0f] backdrop-blur-sm">
+          <div className="flex shrink-0 items-center gap-1">
+            <VerifiedSellerBadge variant="icon" />
+            {business.trustTier && <UmkmTrustBadge tier={business.trustTier} variant="icon" />}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-[#fdede8] px-3 py-1 text-[10px] font-medium text-[#b13b0f]">
             {business.jenisUsaha}
           </span>
         </div>

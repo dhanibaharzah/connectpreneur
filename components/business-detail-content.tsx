@@ -28,6 +28,8 @@ import {
   Info,
 } from "lucide-react"
 import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
+import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
+import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import { trackEvent } from "@/lib/analytics/client"
 import { RfqRequestModal } from "@/components/rfq-request-modal"
 
@@ -231,7 +233,9 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
         {/* Right Column - Business Info */}
         <div className="space-y-6">
           <div>
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <VerifiedSellerBadge size="md" />
+              {business.trustTier && <UmkmTrustBadge tier={business.trustTier} size="md" />}
               <Badge className="bg-primary text-white">{business.jenisUsaha}</Badge>
               {business.jenisPeluang && (
                 <Badge variant="outline" className="border-primary text-primary">{business.jenisPeluang}</Badge>

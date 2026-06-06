@@ -183,6 +183,79 @@ Terima kasih!`
   await sendWhatsAppMessage(params.phone, message)
 }
 
+export async function sendPembeliOtp(phone: string, otp: string): Promise<void> {
+  const message = `Kode OTP ConnectPreneur Pembeli: *${otp}*
+
+Berlaku 5 menit. Jangan bagikan kode ini.`
+  await sendWhatsAppMessage(phone, message)
+}
+
+export async function sendPointsEarnedToBuyer(params: {
+  phone: string
+  buyerName: string
+  pointsEarned: number
+  totalPoints: number
+  referenceNo: string
+  portalUrl?: string
+}): Promise<void> {
+  const portalLine = params.portalUrl
+    ? `\n\nLihat poin & transaksi: ${params.portalUrl}`
+    : `\n\nPortal pembeli: ${appUrl("/pembeli")}`
+  const message = `Halo ${params.buyerName},
+
+Transaksi *${params.referenceNo}* selesai! Anda mendapat *+${params.pointsEarned} poin*.
+
+Total poin: *${params.totalPoints}*${portalLine}`
+
+  await sendWhatsAppMessage(params.phone, message)
+}
+
+export async function sendPointsEarnedToUmkm(params: {
+  phone: string
+  businessName: string
+  pointsEarned: number
+  totalPoints: number
+  referenceNo: string
+}): Promise<void> {
+  const message = `Halo ${params.businessName},
+
+Pembayaran *${params.referenceNo}* dikonfirmasi. Anda mendapat *+${params.pointsEarned} poin*.
+
+Total poin UMKM: *${params.totalPoints}*
+
+Portal UMKM: ${appUrl("/umkm")}`
+
+  await sendWhatsAppMessage(params.phone, message)
+}
+
+export async function sendBuyerBadgeLevelUp(params: {
+  phone: string
+  buyerName: string
+  badgeLabel: string
+}): Promise<void> {
+  const message = `Halo ${params.buyerName},
+
+Selamat! Badge Anda naik menjadi *${params.badgeLabel}* di ConnectPreneur.
+
+Portal pembeli: ${appUrl("/pembeli")}`
+
+  await sendWhatsAppMessage(params.phone, message)
+}
+
+export async function sendTrustTierUpToUmkm(params: {
+  phone: string
+  businessName: string
+  tierLabel: string
+}): Promise<void> {
+  const message = `Halo ${params.businessName},
+
+Selamat! Bisnis Anda mendapat badge *${params.tierLabel}* di ConnectPreneur.
+
+Portal UMKM: ${appUrl("/umkm")}`
+
+  await sendWhatsAppMessage(params.phone, message)
+}
+
 export async function sendRfqRejectedToBuyer(params: {
   phone: string
   buyerName: string

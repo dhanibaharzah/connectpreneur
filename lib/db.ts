@@ -1,4 +1,5 @@
 import type { Business } from "@/types/business"
+import type { TrustTier } from "@/types/gamification"
 import { getOrUpdateScore } from "@/lib/connect-score"
 import { sql } from "@/lib/sql"
 
@@ -32,6 +33,7 @@ export interface DbBusiness {
   kontak_pic: string | null
   is_featured: boolean
   is_active: boolean
+  trust_tier: string | null
   created_at: string
   updated_at: string
 }
@@ -88,6 +90,7 @@ export function transformDbToBusiness(
     kontakPIC: dbBusiness.kontak_pic || "",
     connectScore: score?.score ?? null,
     connectScoreBreakdown: score?.breakdown ?? null,
+    trustTier: (dbBusiness.trust_tier as TrustTier | null) ?? null,
   }
 }
 

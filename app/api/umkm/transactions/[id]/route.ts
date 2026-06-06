@@ -16,11 +16,20 @@ import {
 import { getOrCreateToken } from "@/lib/transaction-tokens"
 import { appUrl } from "@/lib/app-url"
 import {
+  sendBuyerBadgeLevelUp,
   sendInvoiceToBuyer,
   sendPaymentConfirmedToBuyer,
   sendPaymentReminderToBuyer,
+  sendPointsEarnedToBuyer,
+  sendPointsEarnedToUmkm,
   sendRfqRejectedToBuyer,
+  sendTrustTierUpToUmkm,
 } from "@/lib/gowa"
+import { awardPointsForCompletedTransaction } from "@/lib/gamification"
+import {
+  BUYER_BADGE_LABELS,
+  TRUST_TIER_LABELS,
+} from "@/types/gamification"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -152,6 +161,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       if (!updated) {
         return NextResponse.json({ error: "Transaksi tidak dapat dikonfirmasi" }, { status: 400 })
       }
+
+      let gamification = null
+      try {
+        gamification = await awardPointsForCompletedTransaction(updated)
+      } catch (err) {
+        console.error("Gamification award error:", err)
+      }
+
       try {
         await sendPaymentConfirmedToBuyer({
           phone: transaction.buyerPhone,
@@ -162,7 +179,68 @@ export async function POST(request: NextRequest, context: RouteContext) {
       } catch (err) {
         console.error("Payment confirmed notification error:", err)
       }
-      return NextResponse.json({ success: true, transaction: updated })
+
+      if (gamification) {
+        try {
+          await sendPointsEarnedToBuyer({
+            phone: transaction.buyerPhone,
+            buyerName: transaction.buyerName,
+            pointsEarned: gamification.buyer.pointsEarned,
+            totalPoints: gamification.buyer.totalPoints,
+            referenceNo: transaction.referenceNo,
+          })
+        } catch (err) {
+          console.error("Buyer points notification error:", err)
+        }
+
+        const bank = await getBusinessBankDetails(session.businessId)
+        const umkmPhone = bank?.kontak_pic as string | undefined
+
+        if (umkmPhone) {
+          try {
+            await sendPointsEarnedToUmkm({
+              phone: umkmPhone,
+              businessName: session.businessName,
+              pointsEarned: gamification.business.pointsEarned,
+              totalPoints: gamification.business.totalPoints,
+              referenceNo: transaction.referenceNo,
+            })
+          } catch (err) {
+            console.error("UMKM points notification error:", err)
+          }
+        }
+
+        if (gamification.buyer.badgeLevel !== gamification.buyer.previousBadgeLevel) {
+          try {
+            await sendBuyerBadgeLevelUp({
+              phone: transaction.buyerPhone,
+              buyerName: transaction.buyerName,
+              badgeLabel: BUYER_BADGE_LABELS[gamification.buyer.badgeLevel],
+            })
+          } catch (err) {
+            console.error("Buyer badge notification error:", err)
+          }
+        }
+
+        if (
+          gamification.business.trustTier &&
+          gamification.business.trustTier !== gamification.business.previousTrustTier
+        ) {
+          try {
+            if (umkmPhone) {
+              await sendTrustTierUpToUmkm({
+                phone: umkmPhone,
+                businessName: session.businessName,
+                tierLabel: TRUST_TIER_LABELS[gamification.business.trustTier],
+              })
+            }
+          } catch (err) {
+            console.error("Trust tier notification error:", err)
+          }
+        }
+      }
+
+      return NextResponse.json({ success: true, transaction: updated, gamification })
     }
 
     if (action === "remind") {

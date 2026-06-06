@@ -1,3 +1,5 @@
+import type { TrustTier } from "@/types/gamification"
+
 export interface Business {
   id: string
   slug: string
@@ -23,4 +25,5 @@ export interface Business {
   kontakPIC: string
   connectScore?: number | null
   connectScoreBreakdown?: Record<string, number> | null
+  trustTier?: TrustTier | null
 }

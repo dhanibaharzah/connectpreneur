@@ -17,7 +17,10 @@ import {
   X,
   FileText,
   Building2,
+  Trophy,
 } from "lucide-react"
+import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
+import type { TrustTier } from "@/types/gamification"
 import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,
@@ -51,11 +54,17 @@ export default function UmkmPortalPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [invoiceForm, setInvoiceForm] = useState({ description: "", quantity: "1", unit_price: "" })
   const [rejectReason, setRejectReason] = useState("")
+  const [gamification, setGamification] = useState({
+    totalPoints: 0,
+    completedOrders: 0,
+    trustTier: null as string | null,
+  })
 
   const loadDashboard = useCallback(async () => {
-    const [txRes, bankRes] = await Promise.all([
+    const [txRes, bankRes, gamRes] = await Promise.all([
       fetch("/api/umkm/transactions", { credentials: "include" }),
       fetch("/api/umkm/bank", { credentials: "include" }),
+      fetch("/api/umkm/gamification", { credentials: "include" }),
     ])
 
     if (txRes.status === 401) {
@@ -65,6 +74,14 @@ export default function UmkmPortalPage() {
 
     const txData = await txRes.json()
     const bankData = await bankRes.json()
+    if (gamRes.ok) {
+      const gamData = await gamRes.json()
+      setGamification({
+        totalPoints: gamData.totalPoints ?? 0,
+        completedOrders: gamData.completedOrders ?? 0,
+        trustTier: gamData.trustTier ?? null,
+      })
+    }
     setTransactions(txData.transactions || [])
     setBank({
       bank_name: bankData.bank_name || "",
@@ -293,6 +310,34 @@ export default function UmkmPortalPage() {
               <h1 className="text-2xl font-bold">{businessName}</h1>
               <p className="text-muted-foreground text-sm">Kelola permintaan penawaran & transaksi</p>
             </div>
+
+            <Card>
+              <CardContent className="p-6 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-primary" />
+                    <h2 className="font-semibold">Poin & Trust Badge</h2>
+                  </div>
+                  {gamification.trustTier && (
+                    <UmkmTrustBadge tier={gamification.trustTier as TrustTier} size="md" />
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg bg-muted/50 p-4">
+                    <p className="text-xs text-muted-foreground">Total Poin</p>
+                    <p className="text-2xl font-bold text-primary">{gamification.totalPoints}</p>
+                  </div>
+                  <div className="rounded-lg bg-muted/50 p-4">
+                    <p className="text-xs text-muted-foreground">Pesanan Selesai</p>
+                    <p className="text-2xl font-bold">{gamification.completedOrders}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +50 poin per transaksi dikonfirmasi. Trust badge naik otomatis berdasarkan
+                  performa pesanan.
+                </p>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardContent className="p-6 space-y-4">
