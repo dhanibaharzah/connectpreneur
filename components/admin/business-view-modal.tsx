@@ -25,18 +25,43 @@ function LegalitasDocument({
   title,
   url,
   description,
+  isImage = false,
+  ocrVerified,
 }: {
   title: string
   url?: string | null
   description?: string
+  isImage?: boolean
+  ocrVerified?: boolean | null
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">{title}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-sm text-muted-foreground">{title}</p>
+        {url != null && ocrVerified != null && (
+          <Badge variant={ocrVerified ? "default" : "secondary"} className={ocrVerified ? "bg-green-600" : "bg-amber-500 text-white"}>
+            OCR {ocrVerified ? "Lulus" : "Perlu Review"}
+          </Badge>
+        )}
+      </div>
       {description && (
         <p className="text-xs text-muted-foreground">{description}</p>
       )}
       {url ? (
+        isImage ? (
+          <div className="p-3 border rounded-lg bg-muted/30">
+            <img src={url} alt={title} className="max-h-64 rounded border object-contain" />
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+            >
+              Lihat file
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        ) : (
         <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
           <FileText className="h-8 w-8 text-red-500 shrink-0" />
           <div className="flex-1 min-w-0">
@@ -52,6 +77,7 @@ function LegalitasDocument({
             </a>
           </div>
         </div>
+        )
       ) : (
         <div className="p-4 border border-dashed rounded-lg bg-muted/30 text-sm text-muted-foreground">
           Belum diupload
@@ -272,8 +298,15 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
               Dokumen legalitas hanya dapat dilihat oleh admin. Tidak ditampilkan di halaman publik mitra.
             </div>
             <LegalitasDocument
+              title="KTP Pemilik / PIC"
+              url={business.ktp_url}
+              isImage
+              ocrVerified={business.ktp_ocr_verified}
+            />
+            <LegalitasDocument
               title="Akta Pendirian Perusahaan beserta Perubahannya"
               url={business.akta_pendirian_url}
+              ocrVerified={business.akta_ocr_verified}
             />
             <LegalitasDocument
               title="Legalitas Perusahaan"

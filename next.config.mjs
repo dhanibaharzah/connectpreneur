@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["tesseract.js", "pdf-parse"],
   typescript: {
     // TODO: Set to false once TypeScript issues are fixed
     ignoreBuildErrors: true,

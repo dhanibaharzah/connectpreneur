@@ -55,10 +55,15 @@ export async function sendRegistrationWhatsAppNotification(params: {
   phone: string
   namaPic: string
   namaBisnis: string
+  autoApproved?: boolean
 }): Promise<void> {
-  const message = `Halo ${params.namaPic},
+  const message = params.autoApproved
+    ? `Halo ${params.namaPic},
 
-Terima kasih telah mendaftar ConnectPreneur. Bisnis *${params.namaBisnis}* Anda sedang dalam tahap kurasi. Kami akan menghubungi Anda setelah proses verifikasi selesai.`
+Terima kasih telah mendaftar ConnectPreneur. Bisnis *${params.namaBisnis}* Anda sudah aktif dan dapat dilihat di katalog kami.`
+    : `Halo ${params.namaPic},
+
+Terima kasih telah mendaftar ConnectPreneur. Pendaftaran bisnis *${params.namaBisnis}* Anda sedang direview tim kami karena verifikasi dokumen otomatis perlu pengecekan manual. Kami akan menghubungi Anda setelah proses selesai.`
 
   await sendWhatsAppMessage(params.phone, message)
 }

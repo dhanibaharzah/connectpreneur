@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
 import { sendRegistrationWhatsAppNotification } from "@/lib/gowa"
+import {
+  fetchDocumentBuffer,
+  verifyAktaDocument,
+  verifyKtpDocument,
+} from "@/lib/document-verification"
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,11 +32,11 @@ export async function POST(request: NextRequest) {
       logo_url,
       jumlah_cabang,
       product_images,
+      ktp_url,
       akta_pendirian_url,
       legalitas_url,
     } = body
 
-    // Validation
     if (!nama || !slug) {
       return NextResponse.json({ error: "Nama dan slug harus diisi" }, { status: 400 })
     }
@@ -52,6 +57,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Kategori harus dipilih" }, { status: 400 })
     }
 
+    if (!ktp_url) {
+      return NextResponse.json({ error: "KTP harus diupload" }, { status: 400 })
+    }
+
     if (!akta_pendirian_url) {
       return NextResponse.json({ error: "Akta Pendirian harus diupload" }, { status: 400 })
     }
@@ -60,19 +69,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Legalitas Perusahaan harus diupload" }, { status: 400 })
     }
 
-    // Check slug uniqueness
     const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug}`
     if (existingSlug.length > 0) {
       return NextResponse.json({ error: "Slug sudah digunakan, silakan pilih nama lain" }, { status: 400 })
     }
 
-    // Insert business with is_active = false (pending verification)
+    const [ktpBuffer, aktaBuffer] = await Promise.all([
+      fetchDocumentBuffer(ktp_url),
+      fetchDocumentBuffer(akta_pendirian_url),
+    ])
+
+    const [ktpVerification, aktaVerification] = await Promise.all([
+      verifyKtpDocument(ktpBuffer, nama_pic),
+      verifyAktaDocument(aktaBuffer, nama_pic),
+    ])
+
+    const autoApproved = ktpVerification.verified && aktaVerification.verified
+
     const result = await sql`
       INSERT INTO businesses (
         nama, slug, deskripsi, lama_usaha, alamat, kota_provinsi, location_id,
         category_id, jenis_peluang, deskripsi_kemitraan, website,
         instagram, facebook, tiktok, nama_pic, jabatan_pic, kontak_pic,
-        logo_url, jumlah_cabang, akta_pendirian_url, legalitas_url,
+        logo_url, jumlah_cabang, ktp_url, akta_pendirian_url, legalitas_url,
+        ktp_ocr_verified, akta_ocr_verified,
         is_featured, is_active
       ) VALUES (
         ${nama}, 
@@ -94,17 +114,19 @@ export async function POST(request: NextRequest) {
         ${kontak_pic ?? null},
         ${logo_url ?? null}, 
         ${jumlah_cabang ?? "0"}, 
+        ${ktp_url ?? null},
         ${akta_pendirian_url ?? null},
         ${legalitas_url ?? null},
+        ${ktpVerification.verified},
+        ${aktaVerification.verified},
         false,
-        false
+        ${autoApproved}
       )
       RETURNING *
     `
 
     const business = result[0]
 
-    // Insert product images
     if (product_images && product_images.length > 0) {
       for (let i = 0; i < product_images.length; i++) {
         const img = product_images[i]
@@ -123,16 +145,23 @@ export async function POST(request: NextRequest) {
         phone: kontak_pic,
         namaPic: nama_pic,
         namaBisnis: nama,
+        autoApproved,
       })
     } catch (whatsappError) {
       console.error("Register mitra WhatsApp notification error:", whatsappError)
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Pendaftaran berhasil! Silakan tunggu proses verifikasi.",
-      business: { id: business.id, nama: business.nama } 
-    }, { status: 201 })
+    return NextResponse.json(
+      {
+        success: true,
+        auto_approved: autoApproved,
+        message: autoApproved
+          ? "Pendaftaran berhasil! Bisnis Anda sudah aktif di ConnectPreneur."
+          : "Pendaftaran berhasil! Data Anda akan direview admin karena verifikasi dokumen otomatis perlu pengecekan manual.",
+        business: { id: business.id, nama: business.nama },
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Register mitra error:", error)
     return NextResponse.json(
@@ -144,3 +173,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const maxDuration = 120

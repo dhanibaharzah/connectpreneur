@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, X, Loader2, Plus, CheckCircle, ArrowLeft } from "lucide-react"
+import { Upload, X, Loader2, Plus, CheckCircle, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
@@ -24,11 +24,19 @@ export default function DaftarMitraPage() {
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
+  const [uploadingKtp, setUploadingKtp] = useState(false)
   const [uploadingAkta, setUploadingAkta] = useState(false)
   const [uploadingLegalitas, setUploadingLegalitas] = useState(false)
+  const [ktpVerifyError, setKtpVerifyError] = useState("")
+  const [aktaVerifyError, setAktaVerifyError] = useState("")
+  const [ktpOcrVerified, setKtpOcrVerified] = useState(false)
+  const [aktaOcrVerified, setAktaOcrVerified] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+  const [autoApproved, setAutoApproved] = useState(true)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const productInputRef = useRef<HTMLInputElement>(null)
+  const ktpInputRef = useRef<HTMLInputElement>(null)
   const aktaInputRef = useRef<HTMLInputElement>(null)
   const legalitasInputRef = useRef<HTMLInputElement>(null)
 
@@ -50,6 +58,7 @@ export default function DaftarMitraPage() {
     nama_pic: "",
     jabatan_pic: "",
     kontak_pic: "",
+    ktp_url: "",
     logo_url: "",
     jumlah_cabang: "0",
     akta_pendirian_url: "",
@@ -192,9 +201,146 @@ export default function DaftarMitraPage() {
     setForm({ ...form, logo_url: "" })
   }
 
+  const handleNamaPicChange = (value: string) => {
+    setForm((prev) => {
+      const nameChanged = prev.nama_pic.trim() !== value.trim() && (prev.ktp_url || prev.akta_pendirian_url)
+      return {
+        ...prev,
+        nama_pic: value,
+        ...(nameChanged ? { ktp_url: "", akta_pendirian_url: "" } : {}),
+      }
+    })
+    if (form.nama_pic.trim() !== value.trim()) {
+      setKtpVerifyError("")
+      setAktaVerifyError("")
+      setKtpOcrVerified(false)
+      setAktaOcrVerified(false)
+    }
+  }
+
+  const handleUploadKtp = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!form.nama_pic.trim()) {
+      alert("Isi Nama PIC / Pemilik terlebih dahulu sebelum upload KTP")
+      if (ktpInputRef.current) ktpInputRef.current.value = ""
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran foto KTP maksimal 5MB")
+      return
+    }
+
+    setUploadingKtp(true)
+    setKtpVerifyError("")
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("nama_pic", form.nama_pic.trim())
+
+      const res = await fetch("/api/register-mitra/verify/ktp", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (res.ok && data.url) {
+        setForm((prev) => ({ ...prev, ktp_url: data.url }))
+        setKtpOcrVerified(Boolean(data.verified))
+        setKtpVerifyError(
+          data.verified ? "" : (data.warning || "Verifikasi otomatis gagal — akan direview admin"),
+        )
+      } else {
+        setKtpVerifyError(data.error || "Gagal mengupload KTP")
+      }
+    } catch (error) {
+      console.error("Error verifying KTP:", error)
+      setKtpVerifyError("Gagal memverifikasi KTP. Silakan coba lagi.")
+    } finally {
+      setUploadingKtp(false)
+      if (ktpInputRef.current) ktpInputRef.current.value = ""
+    }
+  }
+
+  const handleRemoveKtp = async () => {
+    if (form.ktp_url && form.ktp_url.includes("blob.vercel-storage.com")) {
+      try {
+        await fetch("/api/register-mitra/upload/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: form.ktp_url }),
+        })
+      } catch (error) {
+        console.error("Failed to delete KTP blob:", error)
+      }
+    }
+    setForm((prev) => ({ ...prev, ktp_url: "" }))
+    setKtpVerifyError("")
+    setKtpOcrVerified(false)
+  }
+
+  const handleUploadAkta = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!form.nama_pic.trim()) {
+      alert("Isi Nama PIC / Pemilik terlebih dahulu sebelum upload akta")
+      if (aktaInputRef.current) aktaInputRef.current.value = ""
+      return
+    }
+
+    if (file.type !== "application/pdf") {
+      alert("Hanya file PDF yang diperbolehkan")
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Ukuran file maksimal 10MB")
+      return
+    }
+
+    setUploadingAkta(true)
+    setAktaVerifyError("")
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("nama_pic", form.nama_pic.trim())
+
+      const res = await fetch("/api/register-mitra/verify/akta", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (res.ok && data.url) {
+        setForm((prev) => ({ ...prev, akta_pendirian_url: data.url }))
+        setAktaOcrVerified(Boolean(data.verified))
+        setAktaVerifyError(
+          data.verified ? "" : (data.warning || "Verifikasi otomatis gagal — akan direview admin"),
+        )
+      } else {
+        setAktaVerifyError(data.error || "Gagal mengupload akta")
+      }
+    } catch (error) {
+      console.error("Error verifying akta:", error)
+      setAktaVerifyError("Gagal memverifikasi akta. Silakan coba lagi.")
+    } finally {
+      setUploadingAkta(false)
+      if (aktaInputRef.current) aktaInputRef.current.value = ""
+    }
+  }
+
+  const handleRemoveAkta = async () => {
+    await handleRemovePdf("akta_pendirian_url")
+    setAktaVerifyError("")
+    setAktaOcrVerified(false)
+  }
+
   const handleUploadPdf = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: "akta_pendirian_url" | "legalitas_url",
+    field: "legalitas_url",
     setUploading: (v: boolean) => void,
     inputRef: React.RefObject<HTMLInputElement | null>
   ) => {
@@ -263,6 +409,11 @@ export default function DaftarMitraPage() {
       return
     }
 
+    if (!form.ktp_url) {
+      alert("KTP harus diupload")
+      return
+    }
+
     if (!form.akta_pendirian_url) {
       alert("Akta Pendirian harus diupload")
       return
@@ -300,6 +451,8 @@ export default function DaftarMitraPage() {
 
       if (res.ok) {
         setShowConfirmDialog(false)
+        setAutoApproved(Boolean(data.auto_approved))
+        setSuccessMessage(data.message || "Pendaftaran berhasil!")
         setSuccess(true)
       } else {
         alert(data.error || "Gagal mendaftarkan bisnis")
@@ -317,15 +470,18 @@ export default function DaftarMitraPage() {
       <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-8 pb-8">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-10 w-10 text-green-600" />
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${autoApproved ? "bg-green-100" : "bg-amber-100"}`}>
+              <CheckCircle className={`h-10 w-10 ${autoApproved ? "text-green-600" : "text-amber-600"}`} />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-3">Pendaftaran Berhasil!</h2>
-            <p className="text-muted-foreground mb-6">
-              Terima kasih telah mendaftar sebagai mitra ConnectPreneur. Tim kami akan memverifikasi data Anda dalam 1-3 hari kerja.
-            </p>
+            <p className="text-muted-foreground mb-6">{successMessage}</p>
+            {!autoApproved && (
+              <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+                Verifikasi dokumen otomatis perlu pengecekan manual. Tim admin akan review KTP dan akta Anda.
+              </p>
+            )}
             <p className="text-sm text-muted-foreground mb-6">
-              Anda akan dihubungi melalui WhatsApp yang terdaftar setelah proses verifikasi selesai.
+              Notifikasi telah dikirim ke WhatsApp yang Anda daftarkan.
             </p>
             <Link href="/">
               <Button className="bg-primary hover:bg-primary/90">
@@ -515,9 +671,9 @@ export default function DaftarMitraPage() {
                         <Input
                           id="nama_pic"
                           value={form.nama_pic}
-                          onChange={(e) => setForm({ ...form, nama_pic: e.target.value })}
+                          onChange={(e) => handleNamaPicChange(e.target.value)}
                           required
-                          placeholder="Nama lengkap"
+                          placeholder="Nama lengkap (sesuai KTP)"
                         />
                       </div>
                       <div className="space-y-2">
@@ -541,6 +697,69 @@ export default function DaftarMitraPage() {
                         placeholder="Contoh: 6281234567890"
                       />
                       <p className="text-xs text-muted-foreground">Gunakan format internasional (62xxx)</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Foto KTP (Depan) *</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Upload foto depan KTP. Nama dan NIK akan diverifikasi otomatis dengan Nama PIC.
+                      </p>
+                      {form.ktp_url ? (
+                        <div className={`flex items-center gap-3 p-3 border rounded-lg ${ktpOcrVerified ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"}`}>
+                          {ktpOcrVerified ? (
+                            <CheckCircle2 className="h-8 w-8 text-green-600 shrink-0" />
+                          ) : (
+                            <AlertCircle className="h-8 w-8 text-amber-600 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${ktpOcrVerified ? "text-green-800" : "text-amber-800"}`}>
+                              {ktpOcrVerified ? "KTP terverifikasi otomatis" : "KTP terupload — menunggu review admin"}
+                            </p>
+                            <a
+                              href={form.ktp_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline"
+                            >
+                              Lihat file
+                            </a>
+                          </div>
+                          <Button type="button" variant="ghost" size="icon" onClick={handleRemoveKtp}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => !uploadingKtp && ktpInputRef.current?.click()}
+                          className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
+                          {uploadingKtp ? (
+                            <>
+                              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+                              <p className="text-sm text-muted-foreground">Memverifikasi KTP...</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-sm font-medium">Upload Foto KTP</p>
+                              <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP — maks. 5MB</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {ktpVerifyError && (
+                        <p className={`text-sm flex items-start gap-2 ${ktpOcrVerified ? "text-destructive" : "text-amber-800"}`}>
+                          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                          {ktpVerifyError}
+                        </p>
+                      )}
+                      <input
+                        ref={ktpInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/*"
+                        onChange={handleUploadKtp}
+                        className="hidden"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -584,23 +803,29 @@ export default function DaftarMitraPage() {
                   </TabsContent>
 
                   <TabsContent value="legalitas" forceMount className="data-[state=inactive]:hidden space-y-6 mt-6">
-                    {/* Akta Pendirian */}
                     <div className="space-y-2">
                       <Label>Akta Pendirian Perusahaan beserta Perubahannya *</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Nama pemilik di akta harus cocok dengan Nama PIC yang sudah diverifikasi di KTP.
+                      </p>
                       {form.akta_pendirian_url ? (
-                        <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
-                          <div className="flex-1 flex items-center gap-2 min-w-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">Akta Pendirian.pdf</p>
-                              <a href={form.akta_pendirian_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                                Lihat file
-                              </a>
-                            </div>
+                        <div className={`flex items-center gap-3 p-3 border rounded-lg ${aktaOcrVerified ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"}`}>
+                          {aktaOcrVerified ? (
+                            <CheckCircle2 className="h-8 w-8 text-green-600 shrink-0" />
+                          ) : (
+                            <AlertCircle className="h-8 w-8 text-amber-600 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${aktaOcrVerified ? "text-green-800" : "text-amber-800"}`}>
+                              {aktaOcrVerified ? "Akta terverifikasi otomatis" : "Akta terupload — menunggu review admin"}
+                            </p>
+                            <a href={form.akta_pendirian_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                              Lihat file
+                            </a>
                           </div>
                           <button
                             type="button"
-                            onClick={() => handleRemovePdf("akta_pendirian_url")}
+                            onClick={handleRemoveAkta}
                             className="shrink-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                           >
                             <X className="h-4 w-4" />
@@ -608,11 +833,14 @@ export default function DaftarMitraPage() {
                         </div>
                       ) : (
                         <div
-                          onClick={() => aktaInputRef.current?.click()}
+                          onClick={() => !uploadingAkta && aktaInputRef.current?.click()}
                           className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
                         >
                           {uploadingAkta ? (
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            <>
+                              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground mt-2">Memverifikasi akta...</span>
+                            </>
                           ) : (
                             <>
                               <Upload className="h-8 w-8 text-muted-foreground" />
@@ -622,11 +850,17 @@ export default function DaftarMitraPage() {
                           )}
                         </div>
                       )}
+                      {aktaVerifyError && (
+                        <p className={`text-sm flex items-start gap-2 ${aktaOcrVerified ? "text-destructive" : "text-amber-800"}`}>
+                          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                          {aktaVerifyError}
+                        </p>
+                      )}
                       <input
                         ref={aktaInputRef}
                         type="file"
                         accept=".pdf,application/pdf"
-                        onChange={(e) => handleUploadPdf(e, "akta_pendirian_url", setUploadingAkta, aktaInputRef)}
+                        onChange={handleUploadAkta}
                         className="hidden"
                       />
                     </div>
@@ -783,12 +1017,15 @@ export default function DaftarMitraPage() {
                 <div className="mt-8 pt-6 border-t">
                   <div className="bg-muted/50 rounded-lg p-4 mb-6">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Catatan:</strong> Setelah mendaftar, data Anda akan direview oleh tim kami. 
-                      Proses verifikasi membutuhkan waktu 1-3 hari kerja. Anda akan dihubungi melalui WhatsApp 
-                      setelah proses verifikasi selesai.
+                      <strong>Catatan:</strong> KTP dan akta akan dicoba verifikasi otomatis. Jika gagal, pendaftaran tetap bisa disubmit dan akan direview admin.
+                      Legalitas perusahaan diupload tanpa verifikasi otomatis.
                     </p>
                   </div>
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary hover:bg-primary/90"
+                    disabled={loading || !form.ktp_url || !form.akta_pendirian_url}
+                  >
                     {loading ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
