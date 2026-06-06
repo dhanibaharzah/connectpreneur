@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid session" }, { status: 400 })
     }
 
-    const needsBusiness = ["page_view", "whatsapp_click", "website_click", "social_click"].includes(eventType)
+    const needsBusiness = ["page_view", "whatsapp_click", "rfq_submit", "website_click", "social_click"].includes(eventType)
     if (needsBusiness && (businessId == null || Number.isNaN(Number(businessId)))) {
       return NextResponse.json({ error: "businessId required" }, { status: 400 })
     }

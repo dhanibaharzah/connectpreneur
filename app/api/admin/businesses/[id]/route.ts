@@ -1,10 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { neon } from "@neondatabase/serverless"
+import { sql } from "@/lib/sql"
 import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
 import { getOrUpdateScore } from "@/lib/connect-score"
 import { del } from "@vercel/blob"
-
-const sql = neon(process.env.DATABASE_URL!)
 
 // Check if admin has access to a specific business based on location scope
 async function checkBusinessAccess(user: any, businessLocationId: number | null): Promise<boolean> {

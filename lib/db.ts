@@ -1,9 +1,8 @@
-import { neon } from "@neondatabase/serverless"
 import type { Business } from "@/types/business"
 import { getOrUpdateScore } from "@/lib/connect-score"
+import { sql } from "@/lib/sql"
 
-// Create a SQL client with the connection string from environment variable
-export const sql = neon(process.env.DATABASE_URL!)
+export { sql }
 
 // Types for database results
 export interface DbBusiness {

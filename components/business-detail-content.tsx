@@ -24,10 +24,12 @@ import {
   ExternalLink,
   ArrowLeft,
   ChevronDown,
+  FileText,
   Info,
 } from "lucide-react"
 import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
 import { trackEvent } from "@/lib/analytics/client"
+import { RfqRequestModal } from "@/components/rfq-request-modal"
 
 function isValidImageUrl(url: string): boolean {
   if (!url) return false
@@ -97,6 +99,7 @@ interface BusinessDetailContentProps {
 
 export function BusinessDetailContent({ business }: BusinessDetailContentProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [rfqOpen, setRfqOpen] = useState(false)
 
   // Filter valid image URLs for carousel
   const validImages = business.produkUrls.filter((url) => isValidImageUrl(url))
@@ -117,10 +120,12 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
     }
   }
 
-  const whatsappNumber = business.kontakPIC.replace(/[^0-9]/g, "")
-  const whatsappLink = `https://wa.me/${whatsappNumber.startsWith("0") ? "62" + whatsappNumber.slice(1) : whatsappNumber}?text=Halo, saya tertarik dengan program kemitraan ${business.nama}`
-
   const businessId = Number.parseInt(business.id, 10)
+
+  const trackRfqSubmit = () => {
+    if (Number.isNaN(businessId)) return
+    trackEvent({ eventType: "rfq_submit", businessId, pagePath: `/bisnis/${business.slug}` })
+  }
 
   const trackBusinessClick = (
     eventType: "whatsapp_click" | "website_click" | "social_click",
@@ -325,18 +330,20 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                   <p className="text-muted-foreground">{business.kontakPIC}</p>
                 </div>
               </div>
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-                onClick={() => trackBusinessClick("whatsapp_click")}
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setRfqOpen(true)}
               >
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Hubungi via WhatsApp
-                </Button>
-              </a>
+                <FileText className="h-4 w-4 mr-2" />
+                Minta Penawaran
+              </Button>
+              <RfqRequestModal
+                businessSlug={business.slug}
+                businessName={business.nama}
+                open={rfqOpen}
+                onOpenChange={setRfqOpen}
+                onSubmitted={trackRfqSubmit}
+              />
             </CardContent>
           </Card>
 
@@ -406,8 +413,10 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
           {/* Disclaimer */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <p className="text-xs text-amber-800 leading-relaxed">
-              <strong>⚠️ Peringatan:</strong> Selalu berhati-hati dalam melakukan transaksi bisnis. Lakukan verifikasi dan riset terlebih dahulu sebelum menjalin kerjasama. 
-              ConnectPreneur dan BOEMKraf tidak bertanggung jawab atas segala bentuk wanprestasi atau kerugian yang mungkin timbul dari kerjasama bisnis.
+              <strong>⚠️ Peringatan:</strong> ConnectPreneur memfasilitasi permintaan penawaran dan invoice
+              digital. Pembayaran dilakukan langsung ke rekening mitra bisnis — platform tidak menampung dana.
+              Lakukan verifikasi mitra dan bukti transfer sebelum menyelesaikan transaksi. ConnectPreneur dan
+              BOEMKraf tidak bertanggung jawab atas wanprestasi atau kerugian dari kerjasama bisnis.
             </p>
           </div>
 

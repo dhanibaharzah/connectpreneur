@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from "@/lib/sql"
+import { sendRegistrationWhatsAppNotification } from "@/lib/gowa"
 
 export async function POST(request: NextRequest) {
   try {
@@ -117,6 +116,16 @@ export async function POST(request: NextRequest) {
           `
         }
       }
+    }
+
+    try {
+      await sendRegistrationWhatsAppNotification({
+        phone: kontak_pic,
+        namaPic: nama_pic,
+        namaBisnis: nama,
+      })
+    } catch (whatsappError) {
+      console.error("Register mitra WhatsApp notification error:", whatsappError)
     }
 
     return NextResponse.json({ 

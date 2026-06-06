@@ -1,9 +1,7 @@
-import { neon } from "@neondatabase/serverless"
+import { sql } from "@/lib/sql"
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
-
-const sql = neon(process.env.DATABASE_URL!)
 
 // Require JWT_SECRET - fail fast if not set
 if (!process.env.JWT_SECRET) {

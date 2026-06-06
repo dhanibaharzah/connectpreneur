@@ -1,0 +1,450 @@
+"use client"
+
+import { useCallback, useEffect, useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  Loader2,
+  LogOut,
+  Bell,
+  Check,
+  X,
+  FileText,
+  Building2,
+} from "lucide-react"
+import {
+  TRANSACTION_STATUS_LABELS,
+  type Transaction,
+  type TransactionStatus,
+} from "@/types/transaction"
+
+type Step = "phone" | "otp" | "dashboard"
+
+const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  pending_review: "secondary",
+  approved: "default",
+  invoice_sent: "outline",
+  payment_proof_uploaded: "default",
+  completed: "default",
+  rejected: "destructive",
+  cancelled: "destructive",
+}
+
+export default function UmkmPortalPage() {
+  const [step, setStep] = useState<Step>("phone")
+  const [phone, setPhone] = useState("")
+  const [otp, setOtp] = useState("")
+  const [businessId, setBusinessId] = useState<number | null>(null)
+  const [businessName, setBusinessName] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [bank, setBank] = useState({ bank_name: "", bank_account_number: "", bank_account_name: "" })
+  const [bankSaved, setBankSaved] = useState(false)
+  const [bankMessage, setBankMessage] = useState("")
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [invoiceForm, setInvoiceForm] = useState({ description: "", quantity: "1", unit_price: "" })
+  const [rejectReason, setRejectReason] = useState("")
+
+  const loadDashboard = useCallback(async () => {
+    const [txRes, bankRes] = await Promise.all([
+      fetch("/api/umkm/transactions", { credentials: "include" }),
+      fetch("/api/umkm/bank", { credentials: "include" }),
+    ])
+
+    if (txRes.status === 401) {
+      setStep("phone")
+      return
+    }
+
+    const txData = await txRes.json()
+    const bankData = await bankRes.json()
+    setTransactions(txData.transactions || [])
+    setBank({
+      bank_name: bankData.bank_name || "",
+      bank_account_number: bankData.bank_account_number || "",
+      bank_account_name: bankData.bank_account_name || "",
+    })
+    const hasBank =
+      Boolean(bankData.bank_name?.trim()) &&
+      Boolean(bankData.bank_account_number?.trim()) &&
+      Boolean(bankData.bank_account_name?.trim())
+    setBankSaved(hasBank)
+    setStep("dashboard")
+  }, [])
+
+  useEffect(() => {
+    loadDashboard().catch(() => setStep("phone"))
+  }, [loadDashboard])
+
+  const requestOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/umkm/otp/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, business_id: businessId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setBusinessId(data.business_id)
+      setBusinessName(data.business_name)
+      setStep("otp")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal kirim OTP")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/umkm/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ phone, otp, business_id: businessId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setBusinessName(data.business.nama)
+      await loadDashboard()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "OTP tidak valid")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const persistBank = async (): Promise<boolean> => {
+    if (!bank.bank_name.trim() || !bank.bank_account_number.trim() || !bank.bank_account_name.trim()) {
+      setError("Semua field rekening bank harus diisi")
+      return false
+    }
+    const res = await fetch("/api/umkm/bank", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(bank),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      setError(data.error || "Gagal simpan rekening")
+      return false
+    }
+    setBankSaved(true)
+    return true
+  }
+
+  const saveBank = async (): Promise<boolean> => {
+    setLoading(true)
+    setError("")
+    setBankMessage("")
+    try {
+      const ok = await persistBank()
+      if (ok) setBankMessage("Rekening bank berhasil disimpan.")
+      return ok
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal simpan rekening")
+      setBankSaved(false)
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const sendInvoice = async (txId: number) => {
+    setLoading(true)
+    setError("")
+    setBankMessage("")
+
+    try {
+      if (!bankSaved) {
+        const saved = await persistBank()
+        if (!saved) return
+        setBankMessage("Rekening bank disimpan otomatis.")
+      }
+
+      const res = await fetch(`/api/umkm/transactions/${txId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          action: "invoice",
+          description: invoiceForm.description,
+          quantity: Number(invoiceForm.quantity),
+          unit_price: Number(invoiceForm.unit_price),
+          bank,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      await loadDashboard()
+      setSelectedId(null)
+      setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal kirim invoice")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const action = async (id: number, actionName: string, extra?: Record<string, unknown>) => {
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch(`/api/umkm/transactions/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action: actionName, ...extra }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      await loadDashboard()
+      setSelectedId(null)
+      setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
+      setRejectReason("")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Aksi gagal")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <header className="bg-white border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image src="/images/logoconnectpreneur.png" alt="ConnectPreneur" width={140} height={36} className="h-9 w-auto" />
+            <span className="text-sm font-medium text-muted-foreground hidden sm:inline">Portal UMKM</span>
+          </div>
+          {step === "dashboard" && (
+            <Button variant="ghost" size="sm" onClick={() => { document.cookie = "umkm_session=; Max-Age=0; path=/"; setStep("phone") }}>
+              <LogOut className="h-4 w-4 mr-1" />
+              Keluar
+            </Button>
+          )}
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 max-w-3xl">
+        {step === "phone" && (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" />
+                <h1 className="text-xl font-bold">Masuk Portal UMKM</h1>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Masukkan nomor WhatsApp PIC yang terdaftar. Kode OTP akan dikirim via WhatsApp.
+              </p>
+              <form onSubmit={requestOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="umkm-phone">Nomor WhatsApp</Label>
+                  <Input id="umkm-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08xxxxxxxxxx" required />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Kirim OTP"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === "otp" && (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <h1 className="text-xl font-bold">Verifikasi OTP</h1>
+              <p className="text-sm text-muted-foreground">Kode OTP dikirim ke {phone}</p>
+              <form onSubmit={verifyOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="umkm-otp">Kode OTP</Label>
+                  <Input id="umkm-otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6 digit" maxLength={6} required />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verifikasi"}
+                </Button>
+                <Button type="button" variant="ghost" className="w-full" onClick={() => setStep("phone")}>
+                  Ganti nomor
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === "dashboard" && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold">{businessName}</h1>
+              <p className="text-muted-foreground text-sm">Kelola permintaan penawaran & transaksi</p>
+            </div>
+
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <h2 className="font-semibold">Rekening Bank</h2>
+                <p className="text-xs text-muted-foreground">Wajib diisi sebelum menerbitkan invoice.</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Input placeholder="Nama Bank" value={bank.bank_name} onChange={(e) => { setBank({ ...bank, bank_name: e.target.value }); setBankSaved(false) }} />
+                  <Input placeholder="No. Rekening" value={bank.bank_account_number} onChange={(e) => { setBank({ ...bank, bank_account_number: e.target.value }); setBankSaved(false) }} />
+                  <Input placeholder="Atas Nama" value={bank.bank_account_name} onChange={(e) => { setBank({ ...bank, bank_account_name: e.target.value }); setBankSaved(false) }} />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button size="sm" onClick={saveBank} disabled={loading}>Simpan Rekening</Button>
+                  {bankSaved && !bankMessage && (
+                    <span className="text-xs text-green-700">✓ Rekening tersimpan</span>
+                  )}
+                  {bankMessage && (
+                    <span className="text-xs text-green-700">{bankMessage}</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {error && <p className="text-sm text-destructive">{error}</p>}
+
+            <div className="space-y-3">
+              <h2 className="font-semibold">Transaksi ({transactions.length})</h2>
+              {transactions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Belum ada permintaan penawaran.</p>
+              ) : (
+                transactions.map((tx) => (
+                  <Card key={tx.id} className={selectedId === tx.id ? "ring-2 ring-primary" : ""}>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="font-mono text-sm font-medium">{tx.referenceNo}</p>
+                          <p className="font-medium">{tx.buyerName}</p>
+                          <p className="text-sm text-muted-foreground">{tx.buyerPhone}</p>
+                        </div>
+                        <Badge variant={STATUS_VARIANT[tx.status] || "secondary"}>
+                          {TRANSACTION_STATUS_LABELS[tx.status as TransactionStatus]}
+                        </Badge>
+                      </div>
+                      <p className="text-sm"><strong>Catatan:</strong> {tx.notes}</p>
+                      {tx.quantity > 0 && <p className="text-sm"><strong>Kuantitas:</strong> {tx.quantity}</p>}
+
+                      {tx.status === "pending_review" && (
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" onClick={() => action(tx.id, "approve")} disabled={loading}>
+                            <Check className="h-4 w-4 mr-1" /> Setujui
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => setSelectedId(selectedId === tx.id ? null : tx.id)} disabled={loading}>
+                            <X className="h-4 w-4 mr-1" /> Tolak
+                          </Button>
+                        </div>
+                      )}
+
+                      {selectedId === tx.id && tx.status === "pending_review" && (
+                        <div className="space-y-2 pt-2 border-t">
+                          <Textarea placeholder="Alasan penolakan (opsional)" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={2} />
+                          <Button size="sm" variant="destructive" onClick={() => action(tx.id, "reject", { reason: rejectReason })} disabled={loading}>
+                            Konfirmasi Tolak
+                          </Button>
+                        </div>
+                      )}
+
+                      {tx.status === "approved" && (
+                        <div className="space-y-2 pt-2 border-t">
+                          {selectedId !== tx.id ? (
+                            <Button size="sm" onClick={() => { setSelectedId(tx.id); setInvoiceForm({ description: "", quantity: "1", unit_price: "" }) }} disabled={loading}>
+                              <FileText className="h-4 w-4 mr-1" /> Buat Invoice
+                            </Button>
+                          ) : (
+                            <>
+                              <p className="text-sm font-medium">Terbitkan Invoice</p>
+                              <Input placeholder="Deskripsi item" value={invoiceForm.description} onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })} />
+                              <div className="grid grid-cols-2 gap-2">
+                                <Input type="number" min={1} placeholder="Qty" value={invoiceForm.quantity} onChange={(e) => setInvoiceForm({ ...invoiceForm, quantity: e.target.value })} />
+                                <Input type="number" min={1} placeholder="Harga satuan (Rp)" value={invoiceForm.unit_price} onChange={(e) => setInvoiceForm({ ...invoiceForm, unit_price: e.target.value })} />
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => sendInvoice(tx.id)} disabled={loading}>
+                                  Kirim Invoice
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => setSelectedId(null)}>Batal</Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {tx.status === "invoice_sent" && (
+                        <div className="pt-2 border-t space-y-2">
+                          {tx.invoiceTotal != null && (
+                            <p className="text-sm font-medium">
+                              Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                            </p>
+                          )}
+                          <Button size="sm" variant="outline" onClick={() => action(tx.id, "remind")} disabled={loading}>
+                            <Bell className="h-4 w-4 mr-1" /> Kirim Reminder Bayar
+                          </Button>
+                        </div>
+                      )}
+
+                      {tx.status === "payment_proof_uploaded" && (
+                        <div className="pt-2 border-t flex flex-col gap-3">
+                          {tx.invoiceTotal != null && (
+                            <p className="text-sm font-medium">
+                              Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                            </p>
+                          )}
+                          {tx.paymentProofUrl && (
+                            <a
+                              href={tx.paymentProofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-sm text-primary underline underline-offset-2 w-fit"
+                            >
+                              Lihat bukti transfer
+                            </a>
+                          )}
+                          <Button
+                            size="sm"
+                            className="w-fit"
+                            onClick={() => action(tx.id, "confirm_payment")}
+                            disabled={loading}
+                          >
+                            <Check className="h-4 w-4 mr-1" /> Konfirmasi Pembayaran
+                          </Button>
+                        </div>
+                      )}
+
+                      {tx.invoiceTotal != null &&
+                        tx.status !== "pending_review" &&
+                        tx.status !== "approved" &&
+                        tx.status !== "invoice_sent" &&
+                        tx.status !== "payment_proof_uploaded" && (
+                        <p className="text-sm font-medium pt-2 border-t">
+                          Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+
+            <Link href="/katalog" className="text-sm text-muted-foreground hover:text-primary">
+              ← Kembali ke Katalog
+            </Link>
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}

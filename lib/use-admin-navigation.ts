@@ -41,3 +41,7 @@ export function getMitraPath(): string {
 export function getMembersPath(): string {
   return getAdminPath("/admin/members")
 }
+
+export function getTransaksiPath(): string {
+  return getAdminPath("/admin/transaksi")
+}

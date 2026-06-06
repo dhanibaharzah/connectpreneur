@@ -1,8 +1,6 @@
-import { neon } from "@neondatabase/serverless"
+import { sql } from "@/lib/sql"
 import type { TrackEventPayload, AnalyticsEventType } from "./types"
 import type { VisitorGeo } from "./geo"
-
-const sql = neon(process.env.DATABASE_URL!)
 
 const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{16,64}$/
 
