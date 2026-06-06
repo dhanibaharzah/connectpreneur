@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import {
-  buildWhatsappPrefillMessage,
-  createTransaction,
-} from "@/lib/transactions"
+import { createTransaction } from "@/lib/transactions"
 import {
   sendRfqConfirmationToBuyer,
   sendRfqNotificationToUmkm,
@@ -66,17 +63,6 @@ export async function POST(request: NextRequest) {
       notes: notes.trim(),
     })
 
-    const whatsappMessage = buildWhatsappPrefillMessage({
-      businessName: business.nama as string,
-      buyerName: buyer_name.trim(),
-      referenceNo: transaction.referenceNo,
-      quantity: qty,
-      notes: notes.trim(),
-    })
-
-    const waNumber = normalizePhoneDigits(String(business.kontak_pic))
-    const whatsappUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(whatsappMessage)}`
-
     try {
       await sendRfqNotificationToUmkm({
         phone: String(business.kontak_pic),
@@ -100,7 +86,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         reference_no: transaction.referenceNo,
-        whatsapp_url: whatsappUrl,
+        message:
+          "Terima kasih. Harap menunggu, transaksi Anda sedang diproses oleh Mitra UMKM kami.",
       },
       { status: 201 },
     )

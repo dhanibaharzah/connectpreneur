@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, FileText } from "lucide-react"
+import { CheckCircle2, Loader2, FileText } from "lucide-react"
 
 interface RfqRequestModalProps {
   businessSlug: string
@@ -35,6 +35,15 @@ export function RfqRequestModal({
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState<{ message: string; referenceNo: string } | null>(null)
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setSuccess(null)
+      setError("")
+    }
+    onOpenChange(nextOpen)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,15 +70,16 @@ export function RfqRequestModal({
       }
 
       onSubmitted?.()
-      onOpenChange(false)
       setBuyerName("")
       setBuyerPhone("")
       setQuantity("0")
       setNotes("")
-
-      if (data.whatsapp_url) {
-        window.open(data.whatsapp_url, "_blank", "noopener,noreferrer")
-      }
+      setSuccess({
+        message:
+          data.message ||
+          "Terima kasih. Harap menunggu, transaksi Anda sedang diproses oleh Mitra UMKM kami.",
+        referenceNo: data.reference_no,
+      })
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.")
     } finally {
@@ -78,8 +88,28 @@ export function RfqRequestModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
+        {success ? (
+          <div className="space-y-4 py-2 text-center">
+            <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
+            <DialogHeader>
+              <DialogTitle>Permintaan Terkirim</DialogTitle>
+              <DialogDescription className="text-base text-foreground pt-2">
+                {success.message}
+              </DialogDescription>
+            </DialogHeader>
+            {success.referenceNo && (
+              <p className="text-sm text-muted-foreground font-mono">
+                Ref: {success.referenceNo}
+              </p>
+            )}
+            <Button type="button" className="w-full" onClick={() => handleOpenChange(false)}>
+              Tutup
+            </Button>
+          </div>
+        ) : (
+          <>
         <DialogHeader>
           <DialogTitle>Minta Penawaran</DialogTitle>
           <DialogDescription>
@@ -152,6 +182,8 @@ export function RfqRequestModal({
             )}
           </Button>
         </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   )
