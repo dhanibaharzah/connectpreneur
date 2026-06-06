@@ -125,8 +125,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
   const businessId = Number.parseInt(business.id, 10)
 
   const trackRfqSubmit = () => {
-    if (Number.isNaN(businessId)) return
-    trackEvent({ eventType: "rfq_submit", businessId, pagePath: `/bisnis/${business.slug}` })
+    trackBusinessClick("whatsapp_click")
   }
 
   const trackBusinessClick = (

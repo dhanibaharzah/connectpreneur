@@ -6,7 +6,7 @@ export async function getAnalyticsOverview() {
       (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type = 'page_view') AS mitra_unique_visitors,
       (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type = 'catalog_page_view') AS catalog_unique_visitors,
       (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type = 'catalog_cta_click') AS catalog_cta_unique,
-      (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type = 'whatsapp_click') AS whatsapp_unique,
+      (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type IN ('whatsapp_click', 'rfq_submit')) AS whatsapp_unique,
       (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type = 'website_click') AS website_unique,
       (SELECT COUNT(DISTINCT session_id)::int FROM analytics_events WHERE event_type = 'social_click') AS social_unique,
       (SELECT COUNT(*)::int FROM analytics_events) AS total_events
@@ -22,7 +22,7 @@ export async function getMitraUniqueVisitors() {
       b.slug,
       COALESCE(kab.name, NULLIF(TRIM(b.kota_provinsi), ''), 'Tidak diketahui') AS kab_kota,
       COUNT(DISTINCT e.session_id)::int AS unique_visitors,
-      COUNT(DISTINCT CASE WHEN e2.event_type = 'whatsapp_click' THEN e2.session_id END)::int AS whatsapp_unique,
+      COUNT(DISTINCT CASE WHEN e2.event_type IN ('whatsapp_click', 'rfq_submit') THEN e2.session_id END)::int AS whatsapp_unique,
       COUNT(DISTINCT CASE WHEN e2.event_type = 'website_click' THEN e2.session_id END)::int AS website_unique,
       COUNT(DISTINCT CASE WHEN e2.event_type = 'social_click' THEN e2.session_id END)::int AS social_unique
     FROM businesses b
@@ -34,7 +34,7 @@ export async function getMitraUniqueVisitors() {
     END
     LEFT JOIN analytics_events e ON e.business_id = b.id AND e.event_type = 'page_view'
     LEFT JOIN analytics_events e2 ON e2.business_id = b.id
-      AND e2.event_type IN ('whatsapp_click', 'website_click', 'social_click')
+      AND e2.event_type IN ('whatsapp_click', 'rfq_submit', 'website_click', 'social_click')
     GROUP BY b.id, b.nama, b.slug, kab.name, b.kota_provinsi
     ORDER BY unique_visitors DESC, b.nama ASC
   `

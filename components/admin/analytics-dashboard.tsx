@@ -85,7 +85,7 @@ const CHART_COLORS = [
 const ENGAGEMENT_COLORS: Record<string, string> = {
   "Katalog (/katalog)": "#6366f1",
   "CTA Katalog": "#8b5cf6",
-  WhatsApp: "#22c55e",
+  "Klik Minta Penawaran": "#22c55e",
   Website: "#3b82f6",
   "Sosial Media": "#ec4899",
 }
@@ -174,7 +174,7 @@ function DashboardOverviewStats({ overview }: { overview: AnalyticsOverview }) {
       </div>
       <div className="min-w-[140px] flex-1 basis-0 shrink-0">
         <StatCard
-          title="Klik WhatsApp"
+          title="Klik Minta Penawaran"
           value={overview.whatsapp_unique}
           icon={MessageCircle}
           accentIndex={3}
@@ -272,7 +272,7 @@ export default function AnalyticsDashboard({ user }: { user: AdminUser }) {
     ? [
         { name: "Katalog (/katalog)", value: data.overview.catalog_unique_visitors },
         { name: "CTA Katalog", value: data.overview.catalog_cta_unique },
-        { name: "WhatsApp", value: data.overview.whatsapp_unique },
+        { name: "Klik Minta Penawaran", value: data.overview.whatsapp_unique },
         { name: "Website", value: data.overview.website_unique },
         { name: "Sosial Media", value: data.overview.social_unique },
       ]
@@ -487,7 +487,7 @@ export default function AnalyticsDashboard({ user }: { user: AdminUser }) {
                       <th className="pb-2 pr-4">Mitra</th>
                       <th className="pb-2 pr-4">Kab/Kota</th>
                       <th className="pb-2 pr-4 text-right">Kunjungan</th>
-                      <th className="pb-2 pr-4 text-right">WA</th>
+                      <th className="pb-2 pr-4 text-right">Penawaran</th>
                       <th className="pb-2 pr-4 text-right">Web</th>
                       <th className="pb-2 text-right">Sosial</th>
                     </tr>
