@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         mitra_unique_visitors: 0,
         catalog_unique_visitors: 0,
         catalog_cta_unique: 0,
-        whatsapp_unique: 0,
+        whatsapp_submits: 0,
         website_unique: 0,
         social_unique: 0,
         total_events: 0,

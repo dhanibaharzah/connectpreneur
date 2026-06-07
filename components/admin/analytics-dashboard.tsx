@@ -25,7 +25,7 @@ interface AnalyticsOverview {
   mitra_unique_visitors: number
   catalog_unique_visitors: number
   catalog_cta_unique: number
-  whatsapp_unique: number
+  whatsapp_submits: number
   website_unique: number
   social_unique: number
   total_events: number
@@ -37,7 +37,7 @@ interface MitraStat {
   slug: string
   kab_kota: string
   unique_visitors: number
-  whatsapp_unique: number
+  whatsapp_submits: number
   website_unique: number
   social_unique: number
 }
@@ -85,7 +85,7 @@ const CHART_COLORS = [
 const ENGAGEMENT_COLORS: Record<string, string> = {
   "Katalog (/katalog)": "#6366f1",
   "CTA Katalog": "#8b5cf6",
-  "Klik Minta Penawaran": "#22c55e",
+  "Submit RFQ": "#22c55e",
   Website: "#3b82f6",
   "Sosial Media": "#ec4899",
 }
@@ -174,8 +174,8 @@ function DashboardOverviewStats({ overview }: { overview: AnalyticsOverview }) {
       </div>
       <div className="min-w-[140px] flex-1 basis-0 shrink-0">
         <StatCard
-          title="Klik Minta Penawaran"
-          value={overview.whatsapp_unique}
+          title="Submit RFQ"
+          value={overview.whatsapp_submits}
           icon={MessageCircle}
           accentIndex={3}
         />
@@ -272,7 +272,7 @@ export default function AnalyticsDashboard({ user }: { user: AdminUser }) {
     ? [
         { name: "Katalog (/katalog)", value: data.overview.catalog_unique_visitors },
         { name: "CTA Katalog", value: data.overview.catalog_cta_unique },
-        { name: "Klik Minta Penawaran", value: data.overview.whatsapp_unique },
+        { name: "Submit RFQ", value: data.overview.whatsapp_submits },
         { name: "Website", value: data.overview.website_unique },
         { name: "Sosial Media", value: data.overview.social_unique },
       ]
@@ -487,7 +487,7 @@ export default function AnalyticsDashboard({ user }: { user: AdminUser }) {
                       <th className="pb-2 pr-4">Mitra</th>
                       <th className="pb-2 pr-4">Kab/Kota</th>
                       <th className="pb-2 pr-4 text-right">Kunjungan</th>
-                      <th className="pb-2 pr-4 text-right">Penawaran</th>
+                      <th className="pb-2 pr-4 text-right">Submit RFQ</th>
                       <th className="pb-2 pr-4 text-right">Web</th>
                       <th className="pb-2 text-right">Sosial</th>
                     </tr>
@@ -498,7 +498,7 @@ export default function AnalyticsDashboard({ user }: { user: AdminUser }) {
                         <td className="py-2 pr-4 font-medium">{m.nama}</td>
                         <td className="py-2 pr-4 text-muted-foreground">{m.kab_kota}</td>
                         <td className="py-2 pr-4 text-right">{m.unique_visitors}</td>
-                        <td className="py-2 pr-4 text-right">{m.whatsapp_unique}</td>
+                        <td className="py-2 pr-4 text-right">{m.whatsapp_submits}</td>
                         <td className="py-2 pr-4 text-right">{m.website_unique}</td>
                         <td className="py-2 text-right">{m.social_unique}</td>
                       </tr>

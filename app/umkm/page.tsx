@@ -522,6 +522,7 @@ export default function UmkmPortalPage() {
                       )}
                     </div>
 
+                    {tx.status !== "completed" && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -546,6 +547,7 @@ export default function UmkmPortalPage() {
                         Kontak Pembeli
                       </a>
                     </Button>
+                    )}
 
                     {tx.status === "pending_review" && (
                       <div className="flex flex-wrap gap-2">
