@@ -20,6 +20,7 @@ import {
   Trophy,
   Settings,
   ArrowLeft,
+  MessageCircle,
 } from "lucide-react"
 import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
 import { TransactionPagination } from "@/components/transaction-pagination"
@@ -28,6 +29,8 @@ import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import type { PaginationMeta } from "@/lib/pagination"
 import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/pagination"
 import type { TrustTier } from "@/types/gamification"
+import { buildUmkmContactBuyerMessage } from "@/lib/whatsapp-messages"
+import { buildWhatsappWebUrl, formatPhoneDisplay } from "@/lib/phone"
 import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,
@@ -505,7 +508,7 @@ export default function UmkmPortalPage() {
                     }
                   >
                     <div className="space-y-1 text-sm">
-                      <p className="text-muted-foreground">{tx.buyerPhone}</p>
+                      <p className="text-muted-foreground">{formatPhoneDisplay(tx.buyerPhone)}</p>
                       {tx.notes && (
                         <p><span className="font-medium">Catatan:</span> {tx.notes}</p>
                       )}
@@ -518,6 +521,31 @@ export default function UmkmPortalPage() {
                         </p>
                       )}
                     </div>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-fit border-green-600 text-green-700 hover:bg-green-50"
+                      asChild
+                    >
+                      <a
+                        href={buildWhatsappWebUrl(
+                          tx.buyerPhone,
+                          buildUmkmContactBuyerMessage({
+                            businessName,
+                            buyerName: tx.buyerName,
+                            referenceNo: tx.referenceNo,
+                            quantity: tx.quantity,
+                            notes: tx.notes,
+                          }),
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-1" />
+                        Kontak Pembeli
+                      </a>
+                    </Button>
 
                     {tx.status === "pending_review" && (
                       <div className="flex flex-wrap gap-2">

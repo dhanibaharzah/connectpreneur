@@ -278,24 +278,6 @@ export async function listTransactionsForAdmin(params: {
   }
 }
 
-export function buildWhatsappPrefillMessage(params: {
-  businessName: string
-  buyerName: string
-  referenceNo: string
-  quantity: number
-  notes: string
-}): string {
-  const qtyLine = params.quantity > 0 ? String(params.quantity) : "-"
-  return `Halo ${params.businessName},
-
-Saya ${params.buyerName} tertarik dengan program kemitraan Anda.
-Ref: ${params.referenceNo}
-Kuantitas: ${qtyLine}
-Catatan: ${params.notes}
-
-Mohon info penawaran selanjutnya. Terima kasih.`
-}
-
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

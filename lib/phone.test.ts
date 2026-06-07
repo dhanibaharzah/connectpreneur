@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { formatPhoneDisplay, normalizePhoneDigits, phonesMatch } from "@/lib/phone"
+import {
+  buildWhatsappWebUrl,
+  formatPhoneDisplay,
+  normalizePhoneDigits,
+  phonesMatch,
+} from "@/lib/phone"
 
 describe("normalizePhoneDigits", () => {
   it("converts leading 0 to 62", () => {
@@ -28,5 +33,12 @@ describe("phonesMatch", () => {
 describe("formatPhoneDisplay", () => {
   it("converts 62 to 0 prefix for display", () => {
     expect(formatPhoneDisplay("6281317679056")).toBe("081317679056")
+  })
+})
+
+describe("buildWhatsappWebUrl", () => {
+  it("builds wa.me link with normalized phone and encoded message", () => {
+    const url = buildWhatsappWebUrl("081317679056", "Halo Budi")
+    expect(url).toBe("https://wa.me/6281317679056?text=Halo%20Budi")
   })
 })

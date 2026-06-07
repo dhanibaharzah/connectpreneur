@@ -24,3 +24,7 @@ export function getBuyerPhoneQueryVariants(phone: string): string[] {
   }
   return [...variants]
 }
+
+export function buildWhatsappWebUrl(phone: string, message: string): string {
+  return `https://wa.me/${normalizePhoneDigits(phone)}?text=${encodeURIComponent(message)}`
+}
