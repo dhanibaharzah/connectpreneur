@@ -118,6 +118,11 @@ export default function UmkmPortalPage() {
       bank_account_number: bankData.bank_account_number || "",
       bank_account_name: bankData.bank_account_name || "",
     })
+    if (bankData.business_name) {
+      setBusinessName(bankData.business_name)
+    } else if (txData.transactions?.[0]?.businessName) {
+      setBusinessName(txData.transactions[0].businessName)
+    }
     const hasBank =
       Boolean(bankData.bank_name?.trim()) &&
       Boolean(bankData.bank_account_number?.trim()) &&
@@ -533,7 +538,7 @@ export default function UmkmPortalPage() {
                         href={buildWhatsappWebUrl(
                           tx.buyerPhone,
                           buildUmkmContactBuyerMessage({
-                            businessName,
+                            businessName: tx.businessName || businessName,
                             buyerName: tx.buyerName,
                             referenceNo: tx.referenceNo,
                             quantity: tx.quantity,

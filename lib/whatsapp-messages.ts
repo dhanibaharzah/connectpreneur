@@ -26,9 +26,10 @@ export function buildUmkmContactBuyerMessage(params: {
   notes: string
 }): string {
   const qtyLine = params.quantity > 0 ? String(params.quantity) : "-"
+  const businessName = params.businessName.trim() || "Mitra UMKM kami"
   return `Halo ${params.buyerName},
 
-Saya dari *${params.businessName}* (ConnectPreneur). Terima kasih atas permintaan penawaran Anda.
+Saya dari ${businessName} (ConnectPreneur). Terima kasih atas permintaan penawaran Anda.
 
 Ref: ${params.referenceNo}
 Kuantitas: ${qtyLine}

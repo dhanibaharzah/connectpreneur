@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
   const bank = await getBusinessBankDetails(session.businessId)
   return NextResponse.json({
+    business_name: (bank?.nama as string | undefined) ?? session.businessName ?? "",
     bank_name: bank?.bank_name ?? "",
     bank_account_number: bank?.bank_account_number ?? "",
     bank_account_name: bank?.bank_account_name ?? "",

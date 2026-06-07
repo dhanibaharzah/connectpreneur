@@ -42,10 +42,24 @@ describe("buildUmkmContactBuyerMessage", () => {
     })
 
     expect(message).toContain("Halo Budi")
-    expect(message).toContain("*Toko ABC*")
+    expect(message).toContain("Toko ABC")
+    expect(message).not.toContain("*Toko ABC*")
     expect(message).toContain("CP-20260606-0001")
     expect(message).toContain("Kuantitas: 50")
     expect(message).toContain("Ingin jadi reseller")
     expect(message).toContain("mendiskusikan penawaran")
+  })
+
+  it("falls back when business name is empty", () => {
+    const message = buildUmkmContactBuyerMessage({
+      businessName: "",
+      buyerName: "Budi",
+      referenceNo: "CP-20260606-0001",
+      quantity: 1,
+      notes: "Test",
+    })
+
+    expect(message).toContain("Saya dari Mitra UMKM kami (ConnectPreneur)")
+    expect(message).not.toContain("**")
   })
 })
