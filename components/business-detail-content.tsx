@@ -27,7 +27,7 @@ import {
   FileText,
   Info,
 } from "lucide-react"
-import { BusinessProductsSection } from "@/components/business-products-section"
+import { BusinessProductsSection, type RfqProductSelection } from "@/components/business-products-section"
 import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
 import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
@@ -103,7 +103,7 @@ interface BusinessDetailContentProps {
 export function BusinessDetailContent({ business }: BusinessDetailContentProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [rfqOpen, setRfqOpen] = useState(false)
-  const [rfqProductName, setRfqProductName] = useState<string | null>(null)
+  const [rfqProduct, setRfqProduct] = useState<RfqProductSelection | null>(null)
 
   // Filter valid image URLs for carousel
   const validImages = business.produkUrls.filter((url) => isValidImageUrl(url))
@@ -142,14 +142,18 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
     })
   }
 
-  const openRfq = (productName?: string) => {
-    setRfqProductName(productName?.trim() || null)
+  const openRfq = (product?: RfqProductSelection) => {
+    setRfqProduct(
+      product?.nama?.trim()
+        ? { nama: product.nama.trim(), deskripsi: product.deskripsi?.trim() ?? "" }
+        : null,
+    )
     setRfqOpen(true)
   }
 
   const handleRfqOpenChange = (open: boolean) => {
     setRfqOpen(open)
-    if (!open) setRfqProductName(null)
+    if (!open) setRfqProduct(null)
   }
 
   return (
@@ -242,7 +246,8 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
 
           <BusinessProductsSection
             products={business.products}
-            onRequestQuote={(productName) => openRfq(productName)}
+            onRequestQuote={(product) => openRfq(product)}
+            className="hidden lg:block"
           />
         </div>
 
@@ -423,6 +428,13 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
             </Card>
           )}
 
+          <BusinessProductsSection
+            products={business.products}
+            onRequestQuote={(product) => openRfq(product)}
+            collapsible
+            className="lg:hidden"
+          />
+
           {/* Disclaimer */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <p className="text-xs text-amber-800 leading-relaxed">
@@ -439,7 +451,8 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
       <RfqRequestModal
         businessSlug={business.slug}
         businessName={business.nama}
-        productName={rfqProductName}
+        productName={rfqProduct?.nama ?? null}
+        productDeskripsi={rfqProduct?.deskripsi ?? null}
         open={rfqOpen}
         onOpenChange={handleRfqOpenChange}
         onSubmitted={trackRfqSubmit}

@@ -38,10 +38,14 @@ function stripHtml(html: string): string {
 export function BusinessCard({ business }: BusinessCardProps) {
   const logoUrl = business.logoUrl
   const hasValidLogo = isValidImageUrl(logoUrl)
+  const detailHref = `/bisnis/${business.slug}`
 
   return (
     <div className="group flex h-full flex-col gap-4 rounded-2xl p-2">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+      <Link
+        href={detailHref}
+        className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-[0_0_4px_rgba(0,0,0,0.1)] transition-shadow hover:shadow-[0_0_8px_rgba(212,70,18,0.15)]"
+      >
         {hasValidLogo ? (
           <Image
             src={logoUrl || "/placeholder.svg"}
@@ -64,12 +68,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <ConnectScoreBadge score={business.connectScore} />
           </div>
         )}
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-start gap-2">
-          <h3 className="min-w-0 flex-1 text-sm font-semibold leading-tight text-[#1f1f1f] line-clamp-2">
-            {business.nama}
+          <h3 className="min-w-0 flex-1 text-sm font-semibold leading-tight line-clamp-2">
+            <Link
+              href={detailHref}
+              className="text-[#1f1f1f] transition hover:text-[#d44612]"
+            >
+              {business.nama}
+            </Link>
           </h3>
           <div className="flex shrink-0 items-center gap-1">
             <VerifiedSellerBadge variant="icon" />
@@ -109,7 +118,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
         </div>
 
         <Link
-          href={`/bisnis/${business.slug}`}
+          href={detailHref}
           className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-[#d44612] transition hover:text-[#b13b0f]"
         >
           Lihat Detail

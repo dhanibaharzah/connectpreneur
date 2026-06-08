@@ -18,6 +18,7 @@ interface RfqRequestModalProps {
   businessSlug: string
   businessName: string
   productName?: string | null
+  productDeskripsi?: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmitted?: () => void
@@ -27,6 +28,7 @@ export function RfqRequestModal({
   businessSlug,
   businessName,
   productName,
+  productDeskripsi,
   open,
   onOpenChange,
   onSubmitted,
@@ -43,7 +45,7 @@ export function RfqRequestModal({
     if (!open) return
     setSuccess(null)
     setError("")
-  }, [open, productName])
+  }, [open, productName, productDeskripsi])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -129,9 +131,17 @@ export function RfqRequestModal({
         </DialogHeader>
 
         {productName?.trim() && (
-          <div className="rounded-lg border bg-muted/40 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Produk</p>
-            <p className="mt-1 font-semibold text-foreground">{productName.trim()}</p>
+          <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-2">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Produk</p>
+              <p className="mt-1 font-semibold text-foreground">{productName.trim()}</p>
+            </div>
+            {productDeskripsi?.trim() && (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Deskripsi</p>
+                <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{productDeskripsi.trim()}</p>
+              </div>
+            )}
           </div>
         )}
 
