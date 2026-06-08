@@ -22,7 +22,7 @@ export function ExpandBusinessCta() {
               Siap <span className="text-[#8e2f0c]">Memperluas Bisnis</span> Anda?
             </h2>
             <p className="text-lg text-[#531b07] md:text-xl">
-              Gabung sekarang dan temukan peluang kolaborasi yang lebih luas bersama BOEMKraf.
+              Gabung sekarang dan temukan peluang kolaborasi yang lebih luas melalui ConnectPreneur.
             </p>
             <Link
               href="/daftar-mitra"

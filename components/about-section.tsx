@@ -5,7 +5,7 @@ const values = [
   {
     icon: Lightbulb,
     title: "Kreatif",
-    description: "Mengembangkan ide-ide inovatif untuk pertumbuhan bisnis anggota",
+    description: "Mengembangkan solusi digital inovatif untuk pertumbuhan bisnis UMKM",
   },
   {
     icon: Users,
@@ -46,16 +46,18 @@ export function AboutSection() {
               Apa itu <span className="text-primary">ConnectPreneur</span>?
             </h2>
             <p className="text-sm leading-6 text-[#838383] md:text-sm">
-              ConnectPreneur adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf. Program ini
-              bertujuan untuk menghubungkan para pelaku UMKM dengan berbagai peluang kemitraan bisnis.
+              ConnectPreneur adalah startup digital yang diinisiasi Perkumpulan Anak Muda Bandung. Kami
+              percaya bahwa berwirausaha dapat memajukan ekonomi Indonesia, dan hadir untuk menghubungkan
+              para pelaku UMKM dengan berbagai peluang kemitraan bisnis melalui platform katalog dan
+              business matching.
             </p>
           </div>
 
           <div className="space-y-2 rounded-xl border border-[#f9c8b6] bg-[#fdede8] p-3 text-xs">
-            <p className="font-semibold text-primary">Tujuan Program</p>
+            <p className="font-semibold text-primary">Tujuan Kami</p>
             <p className="leading-5 text-[#1f1f1f]">
-              Membantu memperluas jangkauan bisnis anggota dengan menghubungkan mereka dengan puluhan
-              ribu anggota BOEMKraf untuk menemukan mitra strategis dan mempercepat pertumbuhan bisnis.
+              Membantu memperluas jangkauan bisnis UMKM dengan menghubungkan mitra bisnis dan calon mitra
+              untuk menemukan kolaborasi strategis dan mempercepat pertumbuhan usaha.
             </p>
           </div>
 

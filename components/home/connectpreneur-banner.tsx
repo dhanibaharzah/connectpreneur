@@ -1,6 +1,6 @@
 import Image from "next/image"
 
-export function BoemkrafBanner() {
+export function ConnectpreneurBanner() {
   return (
     <section className="bg-white px-4 pb-16 pt-5 md:px-8 lg:px-[60px]">
       <div className="container mx-auto max-w-6xl">
@@ -17,8 +17,8 @@ export function BoemkrafBanner() {
             </div>
           </div>
           <div className="relative z-[1] flex h-full flex-col items-center justify-center gap-5 px-4 text-center text-primary">
-            <p className="text-3xl font-semibold md:text-4xl">BOEMKraf</p>
-            <p className="text-xl tracking-wide md:text-2xl">Kreatif, Kolaboratif, Berdaya!</p>
+            <p className="text-3xl font-semibold md:text-4xl">ConnectPreneur</p>
+            <p className="text-xl tracking-wide md:text-2xl">Startup Digital untuk Kemitraan Bisnis</p>
           </div>
         </div>
       </div>

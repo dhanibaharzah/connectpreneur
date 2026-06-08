@@ -441,7 +441,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               <strong>⚠️ Peringatan:</strong> ConnectPreneur memfasilitasi permintaan penawaran dan invoice
               digital. Pembayaran dilakukan langsung ke rekening mitra bisnis — platform tidak menampung dana.
               Lakukan verifikasi mitra dan bukti transfer sebelum menyelesaikan transaksi. ConnectPreneur dan
-              BOEMKraf tidak bertanggung jawab atas wanprestasi atau kerugian dari kerjasama bisnis.
+              ConnectPreneur tidak bertanggung jawab atas wanprestasi atau kerugian dari kerjasama bisnis.
             </p>
           </div>
 

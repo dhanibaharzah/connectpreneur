@@ -41,16 +41,16 @@
 
 ## 📖 Tentang Project
 
-**ConnectPreneur** adalah program Digital Ecosystem yang diinisiasi oleh BOEMKraf. Platform ini bertujuan untuk:
+**ConnectPreneur** adalah startup digital yang diinisiasi Perkumpulan Anak Muda Bandung, dengan keyakinan bahwa berwirausaha dapat memajukan ekonomi Indonesia. Platform ini bertujuan untuk:
 
 - Menampilkan katalog mitra bisnis dengan berbagai peluang kemitraan
 - Menghubungkan pelaku UMKM dengan calon mitra (reseller, agen, dropshipper, franchise, dll)
-- Memperluas jangkauan bisnis anggota melalui program Business Matching internal
+- Memperluas jangkauan bisnis melalui program Business Matching
 
 ## 🎯 Masalah yang Diselesaikan
 
 1. **Fragmentasi Informasi** - Menyatukan informasi peluang kemitraan dalam satu platform terpusat
-2. **Akses Terbatas** - Membuka akses informasi kemitraan ke puluhan ribu anggota BOEMKraf
+2. **Akses Terbatas** - Membuka akses informasi kemitraan ke lebih banyak pelaku usaha di Indonesia
 3. **Proses Manual** - Digitalisasi proses pendaftaran dan verifikasi mitra bisnis
 4. **Keterhubungan** - Memfasilitasi koneksi langsung antara pemilik bisnis dan calon mitra
 
@@ -58,7 +58,7 @@
 
 ### Overview
 
-ConnectPreneur menghubungkan tiga aktor utama: **Pemilik Bisnis** (UMKM), **Pengunjung** (calon mitra), dan **Admin** (pengelola platform dari BOEMKraf). Berikut alur sistem dari sisi bisnis:
+ConnectPreneur menghubungkan tiga aktor utama: **Pemilik Bisnis** (UMKM), **Pengunjung** (calon mitra), dan **Admin** (pengelola platform). Berikut alur sistem dari sisi bisnis:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -226,7 +226,7 @@ Calon Mitra ◀──── Browse/Search ◀─────── Katalog Publi
 - Matching otomatis / algoritma rekomendasi
 - Subscription / fitur premium
 
-Platform ini sepenuhnya **gratis** sebagai layanan ekosistem digital BOEMKraf untuk mendukung pertumbuhan UMKM.
+Platform ini sepenuhnya **gratis** sebagai layanan digital ConnectPreneur untuk mendukung pertumbuhan UMKM.
 
 ---
 
@@ -506,8 +506,8 @@ Free tier considerations:
 
 ## 📄 License
 
-Private project for BOEMKraf.
+Private project — ConnectPreneur.
 
 --- -->
 
-**BOEMKraf** - *Kreatif, Kolaboratif, Berdaya!*
+**ConnectPreneur** — *Startup Digital untuk Kemitraan Bisnis*

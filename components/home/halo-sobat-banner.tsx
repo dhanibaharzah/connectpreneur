@@ -27,9 +27,9 @@ export function HaloSobatBanner() {
               <span className="rounded bg-[#b13b0f] px-3 py-1.5 text-lg font-semibold text-[#fdede8]">
                 Business Matching
               </span>
-              <span>bersama komunitas</span>
+              <span>melalui platform</span>
               <span className="rounded bg-[#b13b0f] px-3 py-1.5 text-lg font-semibold text-[#fdede8]">
-                BOEMKraf
+                ConnectPreneur
               </span>
             </p>
           </div>

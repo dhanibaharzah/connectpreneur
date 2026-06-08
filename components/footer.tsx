@@ -78,7 +78,7 @@ export function Footer() {
           <p className="text-xs font-normal leading-snug text-white/95">
             ConnectPreneur hanya berfungsi sebagai platform penghubung antara pemilik bisnis dan calon mitra.
             Segala bentuk transaksi dan kerjasama yang terjadi merupakan tanggung jawab masing-masing pihak.
-            BOEMKraf tidak bertanggung jawab atas wanprestasi atau kerugian yang mungkin timbul dari kerjasama
+            ConnectPreneur tidak bertanggung jawab atas wanprestasi atau kerugian yang mungkin timbul dari kerjasama
             bisnis. Selalu berhati-hati dan lakukan verifikasi sebelum melakukan transaksi bisnis.
           </p>
         </div>

@@ -5,7 +5,7 @@ import { HaloSobatBanner } from "@/components/home/halo-sobat-banner"
 import { BusinessMatchingSection } from "@/components/home/business-matching-section"
 import { ExpandBusinessCta } from "@/components/home/expand-business-cta"
 import { AboutSection } from "@/components/about-section"
-import { BoemkrafBanner } from "@/components/home/boemkraf-banner"
+import { ConnectpreneurBanner } from "@/components/home/connectpreneur-banner"
 import { Footer } from "@/components/footer"
 
 export const dynamic = "force-dynamic"
@@ -23,7 +23,7 @@ export default function Home() {
         <BusinessMatchingSection />
         <ExpandBusinessCta />
         <AboutSection />
-        <BoemkrafBanner />
+        <ConnectpreneurBanner />
       </main>
 
       <Footer />
