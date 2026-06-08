@@ -3,11 +3,9 @@ export const KTP_OCR_ENABLED = false
 export const AKTA_OCR_ENABLED = false
 
 export function isKtpOcrEnabled(): boolean {
-  if (process.env.VERCEL === "1") return KTP_OCR_ENABLED
-  return true
+  return KTP_OCR_ENABLED
 }
 
 export function isAktaOcrEnabled(): boolean {
-  if (process.env.VERCEL === "1") return AKTA_OCR_ENABLED
-  return true
+  return AKTA_OCR_ENABLED
 }
