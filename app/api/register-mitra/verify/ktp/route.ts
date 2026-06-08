@@ -41,10 +41,19 @@ export async function POST(request: NextRequest) {
 
     const ext = detectedType.mime === "image/png" ? "png" : detectedType.mime === "image/webp" ? "webp" : "jpg"
     const filename = `documents/ktp/${Date.now()}-ktp.${ext}`
-    const blob = await put(filename, buffer, {
-      access: "public",
-      contentType: detectedType.mime,
-    })
+    let blob
+    try {
+      blob = await put(filename, buffer, {
+        access: "public",
+        contentType: detectedType.mime,
+      })
+    } catch (blobError) {
+      console.error("KTP blob upload error:", blobError)
+      return NextResponse.json(
+        { error: "Gagal menyimpan KTP. Periksa konfigurasi penyimpanan file." },
+        { status: 500 },
+      )
+    }
 
     if (verification.verified) {
       return NextResponse.json({

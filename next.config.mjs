@@ -1,6 +1,28 @@
+import path from "node:path"
+import { createRequire } from "node:module"
+
+const require = createRequire(import.meta.url)
+
+function tesseractTraceIncludes() {
+  const includes = ["./ind.traineddata", "./eng.traineddata"]
+  try {
+    const coreDir = path.dirname(require.resolve("tesseract.js-core/package.json"))
+    includes.push(`${path.relative(process.cwd(), coreDir).replace(/\\/g, "/")}/**/*`)
+  } catch {
+    includes.push("./node_modules/**/tesseract.js-core/**/*")
+  }
+  return includes
+}
+
+const ocrRouteAssets = tesseractTraceIncludes()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["tesseract.js", "pdf-parse"],
+  outputFileTracingIncludes: {
+    "/api/register-mitra/verify/ktp": ocrRouteAssets,
+    "/api/register-mitra/verify/akta": ocrRouteAssets,
+  },
   typescript: {
     // TODO: Set to false once TypeScript issues are fixed
     ignoreBuildErrors: true,

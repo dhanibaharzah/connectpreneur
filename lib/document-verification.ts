@@ -3,20 +3,36 @@ import { PDFParse } from "pdf-parse"
 import { createWorker, type Worker } from "tesseract.js"
 import { extractNameFromKtpText, allNameTokensFound, namesMatch } from "@/lib/name-matching"
 import { hasValidNik } from "@/lib/nik"
+import { getTesseractWorkerOptions } from "@/lib/tesseract-config"
 
 export type VerificationResult =
   | { verified: true }
   | { verified: false; reason: string }
 
 let ocrWorker: Worker | null = null
+let ocrWorkerInit: Promise<Worker> | null = null
 
 async function getOcrWorker(): Promise<Worker> {
-  if (!ocrWorker) {
-    ocrWorker = await createWorker("ind+eng", undefined, {
-      logger: () => {},
-    })
+  if (ocrWorker) return ocrWorker
+
+  if (!ocrWorkerInit) {
+    ocrWorkerInit = createWorker("ind+eng", undefined, getTesseractWorkerOptions())
+      .then((worker) => {
+        ocrWorker = worker
+        return worker
+      })
+      .catch((error) => {
+        ocrWorkerInit = null
+        throw error
+      })
   }
-  return ocrWorker
+
+  return ocrWorkerInit
+}
+
+function resetOcrWorker(): void {
+  ocrWorker = null
+  ocrWorkerInit = null
 }
 
 async function preprocessKtpImage(buffer: Buffer): Promise<Buffer> {
@@ -31,10 +47,15 @@ async function preprocessKtpImage(buffer: Buffer): Promise<Buffer> {
 }
 
 async function ocrImageBuffer(buffer: Buffer): Promise<string> {
-  const worker = await getOcrWorker()
-  const processed = await preprocessKtpImage(buffer)
-  const { data } = await worker.recognize(processed)
-  return data.text
+  try {
+    const worker = await getOcrWorker()
+    const processed = await preprocessKtpImage(buffer)
+    const { data } = await worker.recognize(processed)
+    return data.text
+  } catch (error) {
+    resetOcrWorker()
+    throw error
+  }
 }
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
