@@ -1,6 +1,6 @@
 import { extractNameFromKtpText, allNameTokensFound, namesMatch } from "@/lib/name-matching"
 import { hasValidNik } from "@/lib/nik"
-import { ocrImageBuffer } from "@/lib/ocr-image"
+import { isOcrTimeoutError, ocrImageBuffer } from "@/lib/ocr-image"
 
 export type VerificationResult =
   | { verified: true }
@@ -20,6 +20,13 @@ export async function verifyKtpDocument(
     ocrText = await ocrImageBuffer(imageBuffer)
   } catch (error) {
     console.error("KTP OCR error:", error)
+    if (isOcrTimeoutError(error)) {
+      return {
+        verified: false,
+        reason:
+          "Verifikasi otomatis membutuhkan waktu terlalu lama. Dokumen tetap disimpan dan akan direview admin.",
+      }
+    }
     return {
       verified: false,
       reason: "Gagal membaca KTP. Unggah ulang foto depan KTP yang lebih jelas.",

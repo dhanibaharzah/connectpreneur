@@ -4,6 +4,7 @@ import { sendRegistrationWhatsAppNotification } from "@/lib/gowa"
 import { verifyAktaDocument } from "@/lib/akta-verification"
 import { fetchDocumentBuffer } from "@/lib/document-fetch"
 import { verifyKtpDocument } from "@/lib/ktp-verification"
+import { isAktaOcrEnabled, isKtpOcrEnabled } from "@/lib/ocr-config"
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,8 +79,18 @@ export async function POST(request: NextRequest) {
     ])
 
     const [ktpVerification, aktaVerification] = await Promise.all([
-      verifyKtpDocument(ktpBuffer, nama_pic),
-      verifyAktaDocument(aktaBuffer, nama_pic),
+      isKtpOcrEnabled()
+        ? verifyKtpDocument(ktpBuffer, nama_pic)
+        : Promise.resolve({
+            verified: false as const,
+            reason: "Verifikasi otomatis KTP tidak dijalankan di server production.",
+          }),
+      isAktaOcrEnabled()
+        ? verifyAktaDocument(aktaBuffer, nama_pic)
+        : Promise.resolve({
+            verified: false as const,
+            reason: "Verifikasi otomatis akta tidak dijalankan di server production.",
+          }),
     ])
 
     const autoApproved = ktpVerification.verified && aktaVerification.verified

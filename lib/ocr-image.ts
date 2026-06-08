@@ -1,52 +1,52 @@
 import sharp from "sharp"
 import { createWorker, type Worker } from "tesseract.js"
 import { getTesseractWorkerOptions } from "@/lib/tesseract-config"
+import { TimeoutError, withTimeout } from "@/lib/with-timeout"
 
-let ocrWorker: Worker | null = null
-let ocrWorkerInit: Promise<Worker> | null = null
-
-async function getOcrWorker(): Promise<Worker> {
-  if (ocrWorker) return ocrWorker
-
-  if (!ocrWorkerInit) {
-    ocrWorkerInit = createWorker("ind+eng", undefined, getTesseractWorkerOptions())
-      .then((worker) => {
-        ocrWorker = worker
-        return worker
-      })
-      .catch((error) => {
-        ocrWorkerInit = null
-        throw error
-      })
-  }
-
-  return ocrWorkerInit
-}
-
-function resetOcrWorker(): void {
-  ocrWorker = null
-  ocrWorkerInit = null
-}
+const WORKER_INIT_TIMEOUT_MS = Number(process.env.OCR_WORKER_INIT_TIMEOUT_MS ?? 5_000)
+const RECOGNIZE_TIMEOUT_MS = Number(process.env.OCR_RECOGNIZE_TIMEOUT_MS ?? 6_000)
+const KTP_MAX_WIDTH = 1400
 
 async function preprocessKtpImage(buffer: Buffer): Promise<Buffer> {
   return sharp(buffer)
     .rotate()
     .grayscale()
     .normalize()
-    .sharpen()
-    .resize({ width: 2400, withoutEnlargement: false })
-    .jpeg({ quality: 92 })
+    .resize({ width: KTP_MAX_WIDTH, withoutEnlargement: true })
+    .jpeg({ quality: 85 })
     .toBuffer()
 }
 
-export async function ocrImageBuffer(buffer: Buffer): Promise<string> {
+/** OCR one image. Uses a fresh worker per call (safe on serverless). */
+export async function ocrImageBuffer(
+  buffer: Buffer,
+  options?: { languages?: string },
+): Promise<string> {
+  const languages = options?.languages ?? "ind"
+  let worker: Worker | null = null
+
   try {
-    const worker = await getOcrWorker()
+    worker = await withTimeout(
+      createWorker(languages, undefined, getTesseractWorkerOptions()),
+      WORKER_INIT_TIMEOUT_MS,
+      "OCR worker init",
+    )
+
     const processed = await preprocessKtpImage(buffer)
-    const { data } = await worker.recognize(processed)
+    const { data } = await withTimeout(
+      worker.recognize(processed),
+      RECOGNIZE_TIMEOUT_MS,
+      "OCR recognize",
+    )
+
     return data.text
-  } catch (error) {
-    resetOcrWorker()
-    throw error
+  } finally {
+    if (worker) {
+      await worker.terminate().catch(() => {})
+    }
   }
+}
+
+export function isOcrTimeoutError(error: unknown): boolean {
+  return error instanceof TimeoutError
 }
