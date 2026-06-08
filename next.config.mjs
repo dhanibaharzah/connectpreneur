@@ -18,7 +18,7 @@ const ocrRouteAssets = tesseractTraceIncludes()
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["tesseract.js", "pdf-parse"],
+  serverExternalPackages: ["tesseract.js"],
   outputFileTracingIncludes: {
     "/api/register-mitra/verify/ktp": ocrRouteAssets,
     "/api/register-mitra/verify/akta": ocrRouteAssets,

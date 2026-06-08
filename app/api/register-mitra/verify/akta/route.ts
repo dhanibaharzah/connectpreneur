@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 import { fileTypeFromBuffer } from "file-type"
-import { verifyAktaDocument } from "@/lib/document-verification"
+import { verifyAktaDocument } from "@/lib/akta-verification"
 
 const MAX_PDF_SIZE = 10 * 1024 * 1024
 

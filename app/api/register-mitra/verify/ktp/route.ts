@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 import { fileTypeFromBuffer } from "file-type"
-import { verifyKtpDocument } from "@/lib/document-verification"
+import { verifyKtpDocument } from "@/lib/ktp-verification"
 
 const MAX_KTP_SIZE = 5 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const

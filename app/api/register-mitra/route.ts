@@ -1,11 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
 import { sendRegistrationWhatsAppNotification } from "@/lib/gowa"
-import {
-  fetchDocumentBuffer,
-  verifyAktaDocument,
-  verifyKtpDocument,
-} from "@/lib/document-verification"
+import { verifyAktaDocument } from "@/lib/akta-verification"
+import { fetchDocumentBuffer } from "@/lib/document-fetch"
+import { verifyKtpDocument } from "@/lib/ktp-verification"
 
 export async function POST(request: NextRequest) {
   try {
