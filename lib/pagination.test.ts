@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 import {
   buildPaginationMeta,
   DEFAULT_TRANSACTION_PAGE_SIZE,
+  paginateArray,
+  PRODUCT_PAGE_SIZE,
   parseTransactionPagination,
 } from "@/lib/pagination"
 
@@ -34,5 +36,19 @@ describe("buildPaginationMeta", () => {
 
   it("handles empty total", () => {
     expect(buildPaginationMeta(1, 20, 0).totalPages).toBe(0)
+  })
+})
+
+describe("paginateArray", () => {
+  it("slices items by page", () => {
+    const items = [1, 2, 3, 4, 5, 6, 7]
+    const result = paginateArray(items, 2, PRODUCT_PAGE_SIZE)
+    expect(result.items).toEqual([6, 7])
+    expect(result.pagination).toEqual({
+      page: 2,
+      limit: PRODUCT_PAGE_SIZE,
+      total: 7,
+      totalPages: 2,
+    })
   })
 })

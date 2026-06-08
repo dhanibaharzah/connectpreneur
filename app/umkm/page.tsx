@@ -21,9 +21,11 @@ import {
   Settings,
   ArrowLeft,
   MessageCircle,
+  Package,
 } from "lucide-react"
 import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
 import { TransactionPagination } from "@/components/transaction-pagination"
+import { UmkmProductsPanel } from "@/components/umkm-products-panel"
 import { UmkmStoreQrCard } from "@/components/umkm-store-qr-card"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import type { PaginationMeta } from "@/lib/pagination"
@@ -38,7 +40,7 @@ import {
 } from "@/types/transaction"
 
 type Step = "phone" | "otp" | "dashboard"
-type DashboardTab = "transactions" | "settings"
+type DashboardTab = "transactions" | "products" | "settings"
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending_review: "secondary",
@@ -316,10 +318,16 @@ export default function UmkmPortalPage() {
           {step === "dashboard" && (
             <div className="flex items-center gap-1">
               {dashboardTab === "transactions" && (
-                <Button variant="ghost" size="sm" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("settings") }}>
-                  <Settings className="h-4 w-4 mr-1" />
-                  Pengaturan
-                </Button>
+                <>
+                  <Button variant="ghost" size="sm" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("products") }}>
+                    <Package className="h-4 w-4 mr-1" />
+                    Produk
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("settings") }}>
+                    <Settings className="h-4 w-4 mr-1" />
+                    Pengaturan
+                  </Button>
+                </>
               )}
               <Button variant="ghost" size="sm" onClick={() => { document.cookie = "umkm_session=; Max-Age=0; path=/"; setStep("phone"); setDashboardTab("transactions") }}>
                 <LogOut className="h-4 w-4 mr-1" />
@@ -375,6 +383,16 @@ export default function UmkmPortalPage() {
               </form>
             </CardContent>
           </Card>
+        )}
+
+        {step === "dashboard" && dashboardTab === "products" && (
+          <div className="space-y-6">
+            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("transactions") }}>
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Transaksi
+            </Button>
+            <UmkmProductsPanel businessName={businessName} />
+          </div>
         )}
 
         {step === "dashboard" && dashboardTab === "settings" && (

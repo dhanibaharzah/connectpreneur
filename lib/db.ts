@@ -1,5 +1,7 @@
 import type { Business } from "@/types/business"
+import type { BusinessProduct } from "@/types/business-product"
 import type { TrustTier } from "@/types/gamification"
+import { getProductsByBusinessId } from "@/lib/business-products"
 import { getOrUpdateScore } from "@/lib/connect-score"
 import { sql } from "@/lib/sql"
 
@@ -63,7 +65,8 @@ export interface DbLocation {
 export function transformDbToBusiness(
   dbBusiness: DbBusiness,
   productImages: { image_url: string }[] = [],
-  score?: { score: number; breakdown: Record<string, number> } | null
+  score?: { score: number; breakdown: Record<string, number> } | null,
+  products: BusinessProduct[] = [],
 ): Business {
   return {
     id: String(dbBusiness.id),
@@ -80,6 +83,7 @@ export function transformDbToBusiness(
     linkKemitraan: dbBusiness.link_kemitraan || "",
     logoUrl: dbBusiness.logo_url || "",
     produkUrls: productImages.map((img) => img.image_url),
+    products,
     linkGaleri: dbBusiness.link_galeri || "",
     website: dbBusiness.website || "",
     instagram: dbBusiness.instagram || "",
@@ -226,10 +230,17 @@ export async function getBusinessBySlug(slug: string): Promise<Business | null> 
       ORDER BY sort_order
     `
 
+    const products = await getProductsByBusinessId(business.id as number)
+
     // Lazy backfill ConnectScore
     const scoreResult = await getOrUpdateScore(business.id, business as any)
 
-    return transformDbToBusiness(business as DbBusiness, productImages as { image_url: string }[], scoreResult)
+    return transformDbToBusiness(
+      business as DbBusiness,
+      productImages as { image_url: string }[],
+      scoreResult,
+      products,
+    )
   } catch (error) {
     console.error("[v0] Error fetching business by slug:", error)
     return null

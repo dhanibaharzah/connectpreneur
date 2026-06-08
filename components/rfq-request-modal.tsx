@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import { CheckCircle2, Loader2, FileText } from "lucide-react"
 interface RfqRequestModalProps {
   businessSlug: string
   businessName: string
+  productName?: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmitted?: () => void
@@ -25,6 +26,7 @@ interface RfqRequestModalProps {
 export function RfqRequestModal({
   businessSlug,
   businessName,
+  productName,
   open,
   onOpenChange,
   onSubmitted,
@@ -36,6 +38,12 @@ export function RfqRequestModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState<{ message: string; referenceNo: string } | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setSuccess(null)
+    setError("")
+  }, [open, productName])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
@@ -59,7 +67,9 @@ export function RfqRequestModal({
           buyer_name: buyerName,
           buyer_phone: buyerPhone,
           quantity: Number(quantity),
-          notes,
+          notes: productName?.trim()
+            ? `Produk: ${productName.trim()}${notes.trim() ? `\n${notes.trim()}` : ""}`
+            : notes,
         }),
       })
 
@@ -113,10 +123,17 @@ export function RfqRequestModal({
         <DialogHeader>
           <DialogTitle>Minta Penawaran</DialogTitle>
           <DialogDescription>
-            Ajukan permintaan penawaran kemitraan ke <strong>{businessName}</strong>. Permintaan
-            akan masuk sebagai draft transaksi dan UMKM akan meninjau profil Anda.
+            Ajukan permintaan penawaran ke <strong>{businessName}</strong>. Permintaan akan masuk
+            sebagai draft transaksi dan UMKM akan meninjau profil Anda.
           </DialogDescription>
         </DialogHeader>
+
+        {productName?.trim() && (
+          <div className="rounded-lg border bg-muted/40 px-4 py-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Produk</p>
+            <p className="mt-1 font-semibold text-foreground">{productName.trim()}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

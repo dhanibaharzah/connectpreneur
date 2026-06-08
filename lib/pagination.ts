@@ -1,5 +1,6 @@
 export const DEFAULT_TRANSACTION_PAGE_SIZE = 20
 export const MAX_TRANSACTION_PAGE_SIZE = 50
+export const PRODUCT_PAGE_SIZE = 5
 
 export interface PaginationMeta {
   page: number
@@ -35,5 +36,17 @@ export function buildPaginationMeta(
     limit,
     total,
     totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+  }
+}
+
+export function paginateArray<T>(items: T[], page: number, limit: number): {
+  items: T[]
+  pagination: PaginationMeta
+} {
+  const pagination = buildPaginationMeta(page, limit, items.length)
+  const start = (page - 1) * limit
+  return {
+    items: items.slice(start, start + limit),
+    pagination,
   }
 }

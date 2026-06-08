@@ -27,6 +27,7 @@ import {
   FileText,
   Info,
 } from "lucide-react"
+import { BusinessProductsSection } from "@/components/business-products-section"
 import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
 import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
@@ -102,6 +103,7 @@ interface BusinessDetailContentProps {
 export function BusinessDetailContent({ business }: BusinessDetailContentProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [rfqOpen, setRfqOpen] = useState(false)
+  const [rfqProductName, setRfqProductName] = useState<string | null>(null)
 
   // Filter valid image URLs for carousel
   const validImages = business.produkUrls.filter((url) => isValidImageUrl(url))
@@ -138,6 +140,16 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
       businessId,
       metadata: platform ? { platform } : undefined,
     })
+  }
+
+  const openRfq = (productName?: string) => {
+    setRfqProductName(productName?.trim() || null)
+    setRfqOpen(true)
+  }
+
+  const handleRfqOpenChange = (open: boolean) => {
+    setRfqOpen(open)
+    if (!open) setRfqProductName(null)
   }
 
   return (
@@ -227,6 +239,11 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               ))}
             </div>
           )}
+
+          <BusinessProductsSection
+            products={business.products}
+            onRequestQuote={(productName) => openRfq(productName)}
+          />
         </div>
 
         {/* Right Column - Business Info */}
@@ -335,18 +352,11 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
               </div>
               <Button
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => setRfqOpen(true)}
+                onClick={() => openRfq()}
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Minta Penawaran
               </Button>
-              <RfqRequestModal
-                businessSlug={business.slug}
-                businessName={business.nama}
-                open={rfqOpen}
-                onOpenChange={setRfqOpen}
-                onSubmitted={trackRfqSubmit}
-              />
             </CardContent>
           </Card>
 
@@ -425,6 +435,15 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
 
         </div>
       </div>
+
+      <RfqRequestModal
+        businessSlug={business.slug}
+        businessName={business.nama}
+        productName={rfqProductName}
+        open={rfqOpen}
+        onOpenChange={handleRfqOpenChange}
+        onSubmitted={trackRfqSubmit}
+      />
     </div>
   )
 }

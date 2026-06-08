@@ -1,0 +1,119 @@
+import { del } from "@vercel/blob"
+import { type NextRequest, NextResponse } from "next/server"
+import {
+  isDeletableBlobUrl,
+  parseHargaMulai,
+  parseProductDeskripsi,
+  parseProductImageUrl,
+  parseProductName,
+  transformDbProduct,
+  type DbBusinessProduct,
+} from "@/lib/business-products"
+import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
+import { sql } from "@/lib/sql"
+
+async function deleteBlobIfNeeded(url: string | null | undefined) {
+  if (!url || !isDeletableBlobUrl(url)) return
+  try {
+    await del(url)
+  } catch (error) {
+    console.error("Failed to delete product image blob:", error)
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getUmkmSessionFromRequest(request)
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await params
+  const productId = Number.parseInt(id, 10)
+  if (Number.isNaN(productId)) {
+    return NextResponse.json({ error: "Produk tidak valid" }, { status: 400 })
+  }
+
+  const body = await request.json()
+  const nama = parseProductName(body.nama)
+  const deskripsi = parseProductDeskripsi(body.deskripsi)
+  const imageUrl = parseProductImageUrl(body.image_url)
+  const hargaMulai = parseHargaMulai(body.harga_mulai)
+
+  if (!nama) {
+    return NextResponse.json({ error: "Nama produk harus diisi (maks. 255 karakter)" }, { status: 400 })
+  }
+
+  if (deskripsi === null) {
+    return NextResponse.json({ error: "Deskripsi maksimal 1000 karakter" }, { status: 400 })
+  }
+
+  if (imageUrl === null) {
+    return NextResponse.json({ error: "URL foto produk tidak valid" }, { status: 400 })
+  }
+
+  if (hargaMulai === null) {
+    return NextResponse.json({ error: "Harga mulai harus berupa angka bulat positif" }, { status: 400 })
+  }
+
+  const existing = await sql`
+    SELECT image_url FROM business_products
+    WHERE id = ${productId} AND business_id = ${session.businessId}
+  `
+
+  if (existing.length === 0) {
+    return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 })
+  }
+
+  const previousImageUrl = existing[0].image_url as string | null
+
+  const rows = await sql`
+    UPDATE business_products
+    SET
+      nama = ${nama},
+      deskripsi = ${deskripsi || null},
+      image_url = ${imageUrl || null},
+      harga_mulai = ${hargaMulai},
+      updated_at = NOW()
+    WHERE id = ${productId} AND business_id = ${session.businessId}
+    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, sort_order, is_active
+  `
+
+  if (previousImageUrl && previousImageUrl !== (imageUrl || null)) {
+    await deleteBlobIfNeeded(previousImageUrl)
+  }
+
+  return NextResponse.json({ product: transformDbProduct(rows[0] as DbBusinessProduct) })
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getUmkmSessionFromRequest(request)
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await params
+  const productId = Number.parseInt(id, 10)
+  if (Number.isNaN(productId)) {
+    return NextResponse.json({ error: "Produk tidak valid" }, { status: 400 })
+  }
+
+  const rows = await sql`
+    DELETE FROM business_products
+    WHERE id = ${productId} AND business_id = ${session.businessId}
+    RETURNING image_url
+  `
+
+  if (rows.length === 0) {
+    return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 })
+  }
+
+  await deleteBlobIfNeeded(rows[0].image_url as string | null)
+
+  return NextResponse.json({ success: true })
+}

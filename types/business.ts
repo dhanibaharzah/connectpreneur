@@ -1,3 +1,4 @@
+import type { BusinessProduct } from "@/types/business-product"
 import type { TrustTier } from "@/types/gamification"
 
 export interface Business {
@@ -11,6 +12,7 @@ export interface Business {
   jumlahCabang: string
   logoUrl: string
   produkUrls: string[]
+  products: BusinessProduct[]
   linkGaleri: string
   website: string
   instagram: string
