@@ -1,14 +1,13 @@
-/** OCR (Tesseract) is disabled on Vercel by default — enable explicitly on Pro plan. */
+/** Ubah nilai lalu redeploy. Di Vercel Hobby tetap false (batas 10s); Pro bisa true. */
+export const KTP_OCR_ENABLED = false
+export const AKTA_OCR_ENABLED = false
+
 export function isKtpOcrEnabled(): boolean {
-  return (
-    process.env.KTP_OCR_ENABLED === "true" ||
-    (process.env.KTP_OCR_ENABLED !== "false" && process.env.VERCEL !== "1")
-  )
+  if (process.env.VERCEL === "1") return KTP_OCR_ENABLED
+  return true
 }
 
 export function isAktaOcrEnabled(): boolean {
-  return (
-    process.env.AKTA_OCR_ENABLED === "true" ||
-    (process.env.AKTA_OCR_ENABLED !== "false" && process.env.VERCEL !== "1")
-  )
+  if (process.env.VERCEL === "1") return AKTA_OCR_ENABLED
+  return true
 }
