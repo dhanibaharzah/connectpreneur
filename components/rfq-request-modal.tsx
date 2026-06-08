@@ -101,7 +101,7 @@ export function RfqRequestModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
         {success ? (
           <div className="space-y-4 py-2 text-center">
             <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
@@ -139,7 +139,9 @@ export function RfqRequestModal({
             {productDeskripsi?.trim() && (
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Deskripsi</p>
-                <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{productDeskripsi.trim()}</p>
+                <p className="mt-1 max-h-28 overflow-y-auto text-sm text-muted-foreground whitespace-pre-wrap">
+                  {productDeskripsi.trim()}
+                </p>
               </div>
             )}
           </div>
