@@ -1,5 +1,5 @@
 import { sql } from "@/lib/sql"
-import type { BusinessProduct } from "@/types/business-product"
+import type { BusinessProduct, ProductTipeBisnis } from "@/types/business-product"
 
 export interface DbBusinessProduct {
   id: number
@@ -8,6 +8,7 @@ export interface DbBusinessProduct {
   deskripsi: string | null
   image_url: string | null
   harga_mulai: number
+  tipe_bisnis: ProductTipeBisnis
   sort_order: number
   is_active: boolean
 }
@@ -40,12 +41,13 @@ export function transformDbProduct(row: DbBusinessProduct): BusinessProduct {
     deskripsi: row.deskripsi?.trim() ?? "",
     imageUrl: row.image_url?.trim() ?? "",
     hargaMulai: Number(row.harga_mulai),
+    tipeBisnis: row.tipe_bisnis === "jasa" ? "jasa" : "produk",
   }
 }
 
 export async function getProductsByBusinessId(businessId: number): Promise<BusinessProduct[]> {
   const rows = await sql`
-    SELECT id, business_id, nama, deskripsi, image_url, harga_mulai, sort_order, is_active
+    SELECT id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
     FROM business_products
     WHERE business_id = ${businessId} AND is_active = true
     ORDER BY sort_order ASC, id ASC
@@ -55,7 +57,7 @@ export async function getProductsByBusinessId(businessId: number): Promise<Busin
 
 export async function getProductsForUmkm(businessId: number): Promise<BusinessProduct[]> {
   const rows = await sql`
-    SELECT id, business_id, nama, deskripsi, image_url, harga_mulai, sort_order, is_active
+    SELECT id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
     FROM business_products
     WHERE business_id = ${businessId}
     ORDER BY sort_order ASC, id ASC
@@ -93,6 +95,11 @@ export function parseProductImageUrl(value: unknown): string | null {
   if (!trimmed) return ""
   if (!isValidProductImageUrl(trimmed)) return null
   return trimmed
+}
+
+export function parseProductTipeBisnis(value: unknown): ProductTipeBisnis | null {
+  if (value === "produk" || value === "jasa") return value
+  return null
 }
 
 export function isDeletableBlobUrl(url: string): boolean {

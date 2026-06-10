@@ -6,6 +6,7 @@ import {
   parseProductDeskripsi,
   parseProductImageUrl,
   parseProductName,
+  parseProductTipeBisnis,
   transformDbProduct,
   type DbBusinessProduct,
 } from "@/lib/business-products"
@@ -41,6 +42,7 @@ export async function PUT(
   const deskripsi = parseProductDeskripsi(body.deskripsi)
   const imageUrl = parseProductImageUrl(body.image_url)
   const hargaMulai = parseHargaMulai(body.harga_mulai)
+  const tipeBisnis = parseProductTipeBisnis(body.tipe_bisnis)
 
   if (!nama) {
     return NextResponse.json({ error: "Nama produk harus diisi (maks. 255 karakter)" }, { status: 400 })
@@ -56,6 +58,10 @@ export async function PUT(
 
   if (hargaMulai === null) {
     return NextResponse.json({ error: "Harga mulai harus berupa angka bulat positif" }, { status: 400 })
+  }
+
+  if (!tipeBisnis) {
+    return NextResponse.json({ error: "Tipe bisnis wajib dipilih (produk atau jasa)" }, { status: 400 })
   }
 
   const existing = await sql`
@@ -76,9 +82,10 @@ export async function PUT(
       deskripsi = ${deskripsi || null},
       image_url = ${imageUrl || null},
       harga_mulai = ${hargaMulai},
+      tipe_bisnis = ${tipeBisnis},
       updated_at = NOW()
     WHERE id = ${productId} AND business_id = ${session.businessId}
-    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, sort_order, is_active
+    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
   `
 
   if (previousImageUrl && previousImageUrl !== (imageUrl || null)) {

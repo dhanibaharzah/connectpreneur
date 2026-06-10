@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, Package, FileText } from "lucide-react"
 import type { BusinessProduct } from "@/types/business-product"
+import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ProductListPagination } from "@/components/product-list-pagination"
@@ -98,6 +99,9 @@ function ProductListContent({
                 >
                   {product.nama}
                 </button>
+                <span className="inline-block mt-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                  {PRODUCT_TIPE_LABELS[product.tipeBisnis]}
+                </span>
                 {product.deskripsi && <ProductDescription text={product.deskripsi} />}
                 <p className="text-sm font-semibold text-primary mt-2">
                   Mulai dari Rp {product.hargaMulai.toLocaleString("id-ID")}

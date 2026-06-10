@@ -77,17 +77,25 @@ export function calculateScore(business: BusinessData, productImageCount: number
  * Lazily compute and cache the ConnectScore for a business.
  * Returns cached score if still fresh, otherwise recalculates.
  */
-export async function getOrUpdateScore(businessId: number, businessData?: BusinessData): Promise<ScoreResult | null> {
+export async function getOrUpdateScore(
+  businessId: number,
+  businessData?: BusinessData,
+  options?: { force?: boolean },
+): Promise<ScoreResult | null> {
   try {
     let data = businessData
-    let updatedAt: string | null = null
+
+    // Partial rows (e.g. only legalitas fields) must not be used for scoring
+    if (data && !("deskripsi" in data)) {
+      data = undefined
+    }
 
     if (!data) {
       const rows = await sql`SELECT * FROM businesses WHERE id = ${businessId}`
       if (rows.length === 0) return null
       data = rows[0] as BusinessData
     }
-    updatedAt = data.updated_at || null
+    const updatedAt = data.updated_at || null
 
     // Check if we have a fresh cached score
     const cached = await sql`
@@ -96,7 +104,7 @@ export async function getOrUpdateScore(businessId: number, businessData?: Busine
       WHERE business_id = ${businessId}
     `
 
-    if (cached.length > 0 && updatedAt) {
+    if (!options?.force && cached.length > 0 && updatedAt) {
       const calcAt = new Date(cached[0].calculated_at).getTime()
       const updAt = new Date(updatedAt).getTime()
       if (calcAt >= updAt) {

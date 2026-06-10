@@ -5,6 +5,7 @@ import {
   parseProductDeskripsi,
   parseProductImageUrl,
   parseProductName,
+  parseProductTipeBisnis,
   transformDbProduct,
   type DbBusinessProduct,
 } from "@/lib/business-products"
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
   const deskripsi = parseProductDeskripsi(body.deskripsi)
   const imageUrl = parseProductImageUrl(body.image_url)
   const hargaMulai = parseHargaMulai(body.harga_mulai)
+  const tipeBisnis = parseProductTipeBisnis(body.tipe_bisnis)
 
   if (!nama) {
     return NextResponse.json({ error: "Nama produk harus diisi (maks. 255 karakter)" }, { status: 400 })
@@ -51,6 +53,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Harga mulai harus berupa angka bulat positif" }, { status: 400 })
   }
 
+  if (!tipeBisnis) {
+    return NextResponse.json({ error: "Tipe bisnis wajib dipilih (produk atau jasa)" }, { status: 400 })
+  }
+
   const [{ count }] = await sql`
     SELECT COUNT(*)::int AS count FROM business_products WHERE business_id = ${session.businessId}
   `
@@ -66,9 +72,9 @@ export async function POST(request: NextRequest) {
   `
 
   const rows = await sql`
-    INSERT INTO business_products (business_id, nama, deskripsi, image_url, harga_mulai, sort_order)
-    VALUES (${session.businessId}, ${nama}, ${deskripsi || null}, ${imageUrl || null}, ${hargaMulai}, ${(max_order as number) + 1})
-    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, sort_order, is_active
+    INSERT INTO business_products (business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order)
+    VALUES (${session.businessId}, ${nama}, ${deskripsi || null}, ${imageUrl || null}, ${hargaMulai}, ${tipeBisnis}, ${(max_order as number) + 1})
+    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
   `
 
   return NextResponse.json(

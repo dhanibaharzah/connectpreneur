@@ -22,10 +22,13 @@ import {
   ArrowLeft,
   MessageCircle,
   Package,
+  Users,
 } from "lucide-react"
 import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
 import { TransactionPagination } from "@/components/transaction-pagination"
 import { UmkmProductsPanel } from "@/components/umkm-products-panel"
+import { UmkmCustomersPanel } from "@/components/umkm-customers-panel"
+import { UmkmLegalitasPanel } from "@/components/umkm-legalitas-panel"
 import { UmkmStoreQrCard } from "@/components/umkm-store-qr-card"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import type { PaginationMeta } from "@/lib/pagination"
@@ -40,7 +43,7 @@ import {
 } from "@/types/transaction"
 
 type Step = "phone" | "otp" | "dashboard"
-type DashboardTab = "transactions" | "products" | "settings"
+type DashboardTab = "transactions" | "products" | "customers" | "settings"
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending_review: "secondary",
@@ -323,6 +326,10 @@ export default function UmkmPortalPage() {
                     <Package className="h-4 w-4 mr-1" />
                     Produk
                   </Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("customers") }}>
+                    <Users className="h-4 w-4 mr-1" />
+                    Pelanggan
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("settings") }}>
                     <Settings className="h-4 w-4 mr-1" />
                     Pengaturan
@@ -395,6 +402,16 @@ export default function UmkmPortalPage() {
           </div>
         )}
 
+        {step === "dashboard" && dashboardTab === "customers" && (
+          <div className="space-y-6">
+            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => { setError(""); setBankMessage(""); setDashboardTab("transactions") }}>
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Transaksi
+            </Button>
+            <UmkmCustomersPanel businessName={businessName} />
+          </div>
+        )}
+
         {step === "dashboard" && dashboardTab === "settings" && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
@@ -450,6 +467,8 @@ export default function UmkmPortalPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            <UmkmLegalitasPanel />
 
             <UmkmStoreQrCard />
           </div>

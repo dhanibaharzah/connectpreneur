@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { ImagePlus, Loader2, Package, Pencil, Plus, Trash2, X, Check } from "lucide-react"
-import type { BusinessProduct } from "@/types/business-product"
+import type { BusinessProduct, ProductTipeBisnis } from "@/types/business-product"
+import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import { ProductListPagination } from "@/components/product-list-pagination"
 import { paginateArray, PRODUCT_PAGE_SIZE } from "@/lib/pagination"
 
@@ -21,6 +22,7 @@ type ProductForm = {
   deskripsi: string
   image_url: string
   harga_mulai: string
+  tipe_bisnis: ProductTipeBisnis | ""
 }
 
 const emptyForm = (): ProductForm => ({
@@ -28,6 +30,7 @@ const emptyForm = (): ProductForm => ({
   deskripsi: "",
   image_url: "",
   harga_mulai: "",
+  tipe_bisnis: "",
 })
 
 function formatRupiah(value: number): string {
@@ -205,6 +208,10 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
 
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.tipe_bisnis) {
+      setError("Tipe bisnis wajib dipilih (Produk atau Jasa)")
+      return
+    }
     setSaving(true)
     setError("")
     setMessage("")
@@ -236,6 +243,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
       deskripsi: product.deskripsi,
       image_url: product.imageUrl,
       harga_mulai: String(product.hargaMulai),
+      tipe_bisnis: product.tipeBisnis,
     })
     setError("")
     setMessage("")
@@ -247,6 +255,10 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
   }
 
   const saveEdit = async (productId: string) => {
+    if (!editForm.tipe_bisnis) {
+      setError("Tipe bisnis wajib dipilih (Produk atau Jasa)")
+      return
+    }
     setSaving(true)
     setError("")
     setMessage("")
@@ -293,10 +305,10 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Produk Tersedia</h1>
+        <h1 className="text-2xl font-bold">Produk & Jasa</h1>
         <p className="text-muted-foreground text-sm">{businessName}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Daftar produk ini akan tampil di halaman detail katalog bisnis Anda. Detail lainnya dapat didiskusikan via WhatsApp.
+          Daftar produk atau jasa ini akan tampil di halaman detail katalog bisnis Anda.
         </p>
       </div>
 
@@ -304,9 +316,23 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Plus className="h-5 w-5 text-primary" />
-            <h2 className="font-semibold">Tambah Produk</h2>
+            <h2 className="font-semibold">Tambah Produk / Jasa</h2>
           </div>
           <form onSubmit={addProduct} className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="product-tipe">Tipe Bisnis *</Label>
+              <select
+                id="product-tipe"
+                value={form.tipe_bisnis}
+                onChange={(e) => setForm({ ...form, tipe_bisnis: e.target.value as ProductTipeBisnis | "" })}
+                required
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Pilih tipe...</option>
+                <option value="produk">Produk</option>
+                <option value="jasa">Jasa</option>
+              </select>
+            </div>
             <ProductImageField
               imageUrl={form.image_url}
               uploading={uploadingImage}
@@ -315,7 +341,9 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
               inputId="product-image-add"
             />
             <div className="space-y-2">
-              <Label htmlFor="product-nama">Nama Produk</Label>
+              <Label htmlFor="product-nama">
+                Nama {form.tipe_bisnis === "jasa" ? "Jasa" : form.tipe_bisnis === "produk" ? "Produk" : "Produk/Jasa"}
+              </Label>
               <Input
                 id="product-nama"
                 placeholder="Contoh: Kopi Arabica 250gr"
@@ -350,7 +378,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
               />
             </div>
             <Button type="submit" disabled={saving || uploadingImage}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tambah Produk"}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tambah"}
             </Button>
           </form>
         </CardContent>
@@ -362,7 +390,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold">Daftar Produk ({products.length})</h2>
+          <h2 className="font-semibold">Daftar Produk & Jasa ({products.length})</h2>
         </div>
 
         {loading ? (
@@ -389,16 +417,25 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                         onRemove={removeEditImage}
                         inputId={`product-image-edit-${product.id}`}
                       />
+                      <select
+                        value={editForm.tipe_bisnis}
+                        onChange={(e) => setEditForm({ ...editForm, tipe_bisnis: e.target.value as ProductTipeBisnis | "" })}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        <option value="">Pilih tipe...</option>
+                        <option value="produk">Produk</option>
+                        <option value="jasa">Jasa</option>
+                      </select>
                       <Input
                         value={editForm.nama}
                         onChange={(e) => setEditForm({ ...editForm, nama: e.target.value })}
-                        placeholder="Nama produk"
+                        placeholder="Nama produk/jasa"
                         maxLength={255}
                       />
                       <Textarea
                         value={editForm.deskripsi}
                         onChange={(e) => setEditForm({ ...editForm, deskripsi: e.target.value })}
-                        placeholder="Deskripsi produk"
+                        placeholder="Deskripsi produk/jasa"
                         rows={3}
                         maxLength={1000}
                       />
@@ -428,7 +465,12 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                           </div>
                         ) : null}
                         <div className="min-w-0">
-                          <p className="font-medium">{product.nama}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium">{product.nama}</p>
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                              {PRODUCT_TIPE_LABELS[product.tipeBisnis]}
+                            </span>
+                          </div>
                           {product.deskripsi && (
                             <p className="text-sm text-muted-foreground mt-1">{product.deskripsi}</p>
                           )}

@@ -316,6 +316,18 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           </div>
                         </div>
                       </TableHead>
+                      <TableHead className="text-center overflow-visible">
+                        <div className="flex items-center justify-center gap-1">
+                          ConnectScore
+                          <div className="relative group">
+                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                            <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-[100] w-64 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
+                              Skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya.
+                              <div className="absolute bottom-full right-3 border-4 border-transparent border-b-foreground" />
+                            </div>
+                          </div>
+                        </div>
+                      </TableHead>
                       <TableHead className="text-center">Featured</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="w-20">Aksi</TableHead>
@@ -324,7 +336,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <TableBody>
                     {businesses.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                           Belum ada data bisnis
                         </TableCell>
                       </TableRow>
@@ -366,19 +378,19 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                                   isVerified: business.is_active,
                                 })
 
-                              if (!tier && business.connect_score == null) {
+                              if (!tier) {
                                 return <span className="text-xs text-muted-foreground">—</span>
                               }
 
-                              return (
-                                <div className="flex flex-col items-center gap-1">
-                                  {tier && <ConnectScoreTierBadge tier={tier} />}
-                                  {business.connect_score != null && (
-                                    <ConnectScoreBadge score={business.connect_score} />
-                                  )}
-                                </div>
-                              )
+                              return <ConnectScoreTierBadge tier={tier} />
                             })()}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {business.connect_score != null ? (
+                              <ConnectScoreBadge score={business.connect_score} />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">
                             <Button variant="ghost" size="sm" onClick={() => handleToggleFeatured(business)}>
