@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, Star, StarOff, Loader2, CheckCircle, Clock, XCircle, Info } from "lucide-react"
 import BusinessFormModal from "./business-form-modal"
 import BusinessViewModal from "./business-view-modal"
@@ -213,6 +214,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   return (
     <AdminShell user={user}>
+      <TooltipProvider>
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
@@ -304,28 +306,34 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                       <TableHead>Nama Bisnis</TableHead>
                       <TableHead>Kategori</TableHead>
                       <TableHead>Lokasi</TableHead>
-                      <TableHead className="text-center overflow-visible">
+                      <TableHead className="text-center">
                         <div className="flex items-center justify-center gap-1">
                           Badge UMKM
-                          <div className="relative group">
-                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                            <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-[100] w-72 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button type="button" className="inline-flex cursor-help text-muted-foreground">
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs text-left font-normal">
                               UMKM Unggulan (90–100), UMKM Berkualitas (70–89), UMKM Dasar (60–69 atau terverifikasi tanpa legalitas), atau Wajib Perbaikan (score &lt; 60 atau belum ada akta & legalitas).
-                              <div className="absolute bottom-full right-3 border-4 border-transparent border-b-foreground" />
-                            </div>
-                          </div>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableHead>
-                      <TableHead className="text-center overflow-visible">
+                      <TableHead className="text-center">
                         <div className="flex items-center justify-center gap-1">
                           ConnectScore
-                          <div className="relative group">
-                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                            <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-[100] w-64 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button type="button" className="inline-flex cursor-help text-muted-foreground">
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs text-left font-normal">
                               Skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya.
-                              <div className="absolute bottom-full right-3 border-4 border-transparent border-b-foreground" />
-                            </div>
-                          </div>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableHead>
                       <TableHead className="text-center">Featured</TableHead>
@@ -539,6 +547,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </TooltipProvider>
     </AdminShell>
   )
 }
