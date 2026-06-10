@@ -68,6 +68,9 @@ export default function DaftarMitraPage() {
   const [productImages, setProductImages] = useState<ProductImage[]>([])
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
+  const isRichTextEmpty = (html: string) =>
+    !html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
+
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
@@ -403,24 +406,37 @@ export default function DaftarMitraPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
+    if (!form.nama.trim()) {
+      alert("Nama Bisnis harus diisi (tab Dasar)")
+      return
+    }
+    if (isRichTextEmpty(form.deskripsi)) {
+      alert("Deskripsi Bisnis harus diisi (tab Dasar)")
+      return
+    }
     if (!form.category_id) {
-      alert("Kategori harus dipilih")
+      alert("Kategori harus dipilih (tab Dasar)")
       return
     }
-
+    if (!form.alamat.trim()) {
+      alert("Alamat Lengkap harus diisi (tab Detail)")
+      return
+    }
+    if (!form.location_id) {
+      alert("Kabupaten/Kota dan Kecamatan harus dipilih (tab Detail)")
+      return
+    }
+    if (!form.nama_pic.trim()) {
+      alert("Nama PIC / Pemilik harus diisi (tab Kontak)")
+      return
+    }
+    if (!form.kontak_pic.trim()) {
+      alert("Nomor WhatsApp harus diisi (tab Kontak)")
+      return
+    }
     if (!form.ktp_url) {
-      alert("KTP harus diupload")
-      return
-    }
-
-    if (!form.akta_pendirian_url) {
-      alert("Akta Pendirian harus diupload")
-      return
-    }
-
-    if (!form.legalitas_url) {
-      alert("Legalitas Perusahaan harus diupload")
+      alert("Foto KTP harus diupload (tab Kontak)")
       return
     }
 
@@ -477,7 +493,10 @@ export default function DaftarMitraPage() {
             <p className="text-muted-foreground mb-6">{successMessage}</p>
             {!autoApproved && (
               <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
-                Verifikasi dokumen otomatis perlu pengecekan manual. Tim admin akan review KTP dan akta Anda.
+                Verifikasi KTP akan direview oleh tim admin. Status bisnis Anda saat ini under review.
+                {(!form.akta_pendirian_url || !form.legalitas_url) && (
+                  <> Dokumen legalitas yang belum diupload dapat dilengkapi kemudian.</>
+                )}
               </p>
             )}
             <p className="text-sm text-muted-foreground mb-6">
@@ -530,7 +549,7 @@ export default function DaftarMitraPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate>
                 <Tabs defaultValue="basic" className="w-full">
                   <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="basic">Dasar</TabsTrigger>
@@ -804,7 +823,7 @@ export default function DaftarMitraPage() {
 
                   <TabsContent value="legalitas" forceMount className="data-[state=inactive]:hidden space-y-6 mt-6">
                     <div className="space-y-2">
-                      <Label>Akta Pendirian Perusahaan beserta Perubahannya *</Label>
+                      <Label>Akta Pendirian Perusahaan beserta Perubahannya</Label>
                       <p className="text-xs text-muted-foreground">
                         Nama pemilik di akta harus cocok dengan Nama PIC yang sudah diverifikasi di KTP.
                       </p>
@@ -867,7 +886,7 @@ export default function DaftarMitraPage() {
 
                     {/* Legalitas Perusahaan */}
                     <div className="space-y-2">
-                      <Label>Legalitas Perusahaan *</Label>
+                      <Label>Legalitas Perusahaan</Label>
                       <p className="text-xs text-muted-foreground">
                         SIUP, TDP, NIB, Domisili Perusahaan, SKT, NPWP Perusahaan, HAKI — <strong>Jadikan dalam 1 file PDF</strong>
                       </p>
@@ -1017,14 +1036,14 @@ export default function DaftarMitraPage() {
                 <div className="mt-8 pt-6 border-t">
                   <div className="bg-muted/50 rounded-lg p-4 mb-6">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Catatan:</strong> KTP dan akta akan dicoba verifikasi otomatis. Jika gagal, pendaftaran tetap bisa disubmit dan akan direview admin.
-                      Legalitas perusahaan diupload tanpa verifikasi otomatis.
+                      <strong>Catatan:</strong> KTP wajib diupload. Akta dan legalitas perusahaan bersifat opsional saat pendaftaran awal.
+                      Verifikasi KTP akan direview admin dan status bisnis akan under review hingga diverifikasi.
                     </p>
                   </div>
                   <Button
                     type="submit"
                     className="w-full bg-primary hover:bg-primary/90"
-                    disabled={loading || !form.ktp_url || !form.akta_pendirian_url}
+                    disabled={loading || !form.ktp_url}
                   >
                     {loading ? (
                       <>
@@ -1047,6 +1066,10 @@ export default function DaftarMitraPage() {
         onClose={() => setShowConfirmDialog(false)}
         onConfirm={doSubmit}
         loading={loading}
+        registrationContext={{
+          hasAktaDocument: Boolean(form.akta_pendirian_url),
+          hasLegalitasDocument: Boolean(form.legalitas_url),
+        }}
       />
 
       {/* Footer */}

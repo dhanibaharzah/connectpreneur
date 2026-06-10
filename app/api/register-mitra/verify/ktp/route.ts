@@ -11,7 +11,7 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
 const HANDLER_DEADLINE_MS = Number(process.env.KTP_HANDLER_DEADLINE_MS ?? 9_000)
 const MIN_OCR_BUDGET_MS = Number(process.env.KTP_MIN_OCR_BUDGET_MS ?? 6_000)
 const OCR_SKIPPED_REASON =
-  "Dokumen KTP tersimpan. Verifikasi otomatis tidak dijalankan (batas waktu server). Admin akan mereview."
+  "Dokumen KTP tersimpan. Verifikasi otomatis tidak berhasil. Admin akan mereview."
 
 export async function POST(request: NextRequest) {
   const startedAt = Date.now()

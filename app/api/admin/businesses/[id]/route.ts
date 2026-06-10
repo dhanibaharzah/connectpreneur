@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
 import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
 import { getOrUpdateScore } from "@/lib/connect-score"
+import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 import { del } from "@vercel/blob"
 
 // Check if admin has access to a specific business based on location scope
@@ -53,6 +54,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         product_images: productImages,
         connect_score: scoreResult?.score ?? null,
         connect_score_breakdown: scoreResult?.breakdown ?? null,
+        connect_score_tier: getConnectScoreTier(scoreResult?.score ?? null, {
+          hasAkta: hasDocument(businesses[0].akta_pendirian_url),
+          hasLegalitas: hasDocument(businesses[0].legalitas_url),
+          isVerified: businesses[0].is_active === true,
+        }),
       },
     })
   } catch (error) {

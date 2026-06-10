@@ -60,38 +60,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "KTP harus diupload" }, { status: 400 })
     }
 
-    if (!akta_pendirian_url) {
-      return NextResponse.json({ error: "Akta Pendirian harus diupload" }, { status: 400 })
-    }
-
-    if (!legalitas_url) {
-      return NextResponse.json({ error: "Legalitas Perusahaan harus diupload" }, { status: 400 })
-    }
-
     const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug}`
     if (existingSlug.length > 0) {
       return NextResponse.json({ error: "Slug sudah digunakan, silakan pilih nama lain" }, { status: 400 })
     }
 
-    const [ktpBuffer, aktaBuffer] = await Promise.all([
-      fetchDocumentBuffer(ktp_url),
-      fetchDocumentBuffer(akta_pendirian_url),
-    ])
+    const ktpBuffer = await fetchDocumentBuffer(ktp_url)
 
-    const [ktpVerification, aktaVerification] = await Promise.all([
-      isKtpOcrEnabled()
-        ? verifyKtpDocument(ktpBuffer, nama_pic)
-        : Promise.resolve({
-            verified: false as const,
-            reason: "Verifikasi otomatis KTP tidak dijalankan di server production.",
-          }),
-      isAktaOcrEnabled()
-        ? verifyAktaDocument(aktaBuffer, nama_pic)
-        : Promise.resolve({
+    const ktpVerification = isKtpOcrEnabled()
+      ? await verifyKtpDocument(ktpBuffer, nama_pic)
+      : {
+          verified: false as const,
+          reason: "Verifikasi otomatis KTP tidak dijalankan di server production.",
+        }
+
+    const aktaVerification = akta_pendirian_url
+      ? isAktaOcrEnabled()
+        ? await verifyAktaDocument(await fetchDocumentBuffer(akta_pendirian_url), nama_pic)
+        : {
             verified: false as const,
             reason: "Verifikasi otomatis akta tidak dijalankan di server production.",
-          }),
-    ])
+          }
+      : {
+          verified: false as const,
+          reason: "Akta Pendirian belum diupload.",
+        }
 
     const autoApproved = ktpVerification.verified && aktaVerification.verified
 
@@ -166,7 +159,7 @@ export async function POST(request: NextRequest) {
         auto_approved: autoApproved,
         message: autoApproved
           ? "Pendaftaran berhasil! Bisnis Anda sudah aktif di ConnectPreneur."
-          : "Pendaftaran berhasil! Data Anda akan direview admin karena verifikasi dokumen otomatis perlu pengecekan manual.",
+          : "Pendaftaran berhasil! Verifikasi KTP akan direview admin. Status bisnis Anda saat ini under review.",
         business: { id: business.id, nama: business.nama },
       },
       { status: 201 },

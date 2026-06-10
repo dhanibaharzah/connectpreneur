@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
 import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
+import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +15,11 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "20")
     const search = searchParams.get("search") || ""
     const status = searchParams.get("status") || "all"
+    const tierFilter = searchParams.get("tier") || "all"
+    const useTierFilter = tierFilter !== "all"
     const offset = (page - 1) * limit
+    const queryLimit = useTierFilter ? 10000 : limit
+    const queryOffset = useTierFilter ? 0 : offset
 
     // Get admin's location scope
     const locationScope = await getAdminLocationScope(user)
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
             WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = false
               AND b.location_id = ANY(${locationScope})
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses
@@ -64,7 +69,7 @@ export async function GET(request: NextRequest) {
             WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = true
               AND b.location_id = ANY(${locationScope})
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses
@@ -80,7 +85,7 @@ export async function GET(request: NextRequest) {
             WHERE b.nama ILIKE ${"%" + search + "%"}
               AND b.location_id = ANY(${locationScope})
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses
@@ -97,7 +102,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.is_active = false AND b.location_id = ANY(${locationScope})
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses 
@@ -111,7 +116,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.is_active = true AND b.location_id = ANY(${locationScope})
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses 
@@ -125,7 +130,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.location_id = ANY(${locationScope})
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses 
@@ -144,7 +149,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = false
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses
@@ -158,7 +163,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.nama ILIKE ${"%" + search + "%"} AND b.is_active = true
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses
@@ -172,7 +177,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.nama ILIKE ${"%" + search + "%"}
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`
             SELECT COUNT(*) as count FROM businesses
@@ -188,7 +193,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.is_active = false
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = false`
           total = Number.parseInt(countResult[0].count)
@@ -199,7 +204,7 @@ export async function GET(request: NextRequest) {
             LEFT JOIN categories c ON b.category_id = c.id
             WHERE b.is_active = true
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`SELECT COUNT(*) as count FROM businesses WHERE is_active = true`
           total = Number.parseInt(countResult[0].count)
@@ -209,7 +214,7 @@ export async function GET(request: NextRequest) {
             FROM businesses b
             LEFT JOIN categories c ON b.category_id = c.id
             ORDER BY b.is_featured DESC, b.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${queryLimit} OFFSET ${queryOffset}
           `
           const countResult = await sql`SELECT COUNT(*) as count FROM businesses`
           total = Number.parseInt(countResult[0].count)
@@ -235,16 +240,29 @@ export async function GET(request: NextRequest) {
           WHERE business_id = ${b.id}
           ORDER BY sort_order
         `
+        const connect_score = scoresMap.get(b.id) ?? null
         return {
           ...b,
           product_images: productImages,
-          connect_score: scoresMap.get(b.id) ?? null,
+          connect_score,
+          connect_score_tier: getConnectScoreTier(connect_score, {
+            hasAkta: hasDocument(b.akta_pendirian_url),
+            hasLegalitas: hasDocument(b.legalitas_url),
+            isVerified: b.is_active === true,
+          }),
         }
       }),
     )
 
+    let filteredBusinesses = businessesWithImages
+    if (useTierFilter) {
+      filteredBusinesses = businessesWithImages.filter((b) => b.connect_score_tier === tierFilter)
+      total = filteredBusinesses.length
+      filteredBusinesses = filteredBusinesses.slice(offset, offset + limit)
+    }
+
     return NextResponse.json({
-      businesses: businessesWithImages,
+      businesses: filteredBusinesses,
       pagination: {
         page,
         limit,

@@ -3,9 +3,14 @@
 import { useState, useMemo, useEffect } from "react"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import { CategoryFilter } from "@/components/category-filter"
+import { ConnectScoreTierFilter } from "@/components/connect-score-tier-filter"
 import { BusinessCard } from "@/components/business-card"
 import { Button } from "@/components/ui/button"
 import type { Business } from "@/types/business"
+import {
+  CONNECT_SCORE_TIER_ALL,
+  type ConnectScoreTierFilter as ConnectScoreTierFilterValue,
+} from "@/lib/connect-score-tier"
 
 const ITEMS_PER_PAGE = 10
 
@@ -23,6 +28,7 @@ interface KatalogClientProps {
 export function KatalogClient({ businesses, categories }: KatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Semua")
+  const [selectedTier, setSelectedTier] = useState<ConnectScoreTierFilterValue>(CONNECT_SCORE_TIER_ALL)
   const [currentPage, setCurrentPage] = useState(1)
 
   // Calculate business count per category
@@ -31,6 +37,17 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
     businesses.forEach(business => {
       const cat = business.jenisUsaha
       counts[cat] = (counts[cat] || 0) + 1
+    })
+    return counts
+  }, [businesses])
+
+  const tierCounts = useMemo(() => {
+    const counts: Partial<Record<ConnectScoreTierFilterValue, number>> = {
+      [CONNECT_SCORE_TIER_ALL]: businesses.length,
+    }
+    businesses.forEach((business) => {
+      if (!business.connectScoreTier) return
+      counts[business.connectScoreTier] = (counts[business.connectScoreTier] || 0) + 1
     })
     return counts
   }, [businesses])
@@ -44,14 +61,16 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
         business.jenisUsaha.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesCategory = selectedCategory === "Semua" || business.jenisUsaha === selectedCategory
+      const matchesTier =
+        selectedTier === CONNECT_SCORE_TIER_ALL || business.connectScoreTier === selectedTier
 
-      return matchesSearch && matchesCategory
+      return matchesSearch && matchesCategory && matchesTier
     })
-  }, [businesses, searchQuery, selectedCategory])
+  }, [businesses, searchQuery, selectedCategory, selectedTier])
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, selectedCategory])
+  }, [searchQuery, selectedCategory, selectedTier])
 
   const totalPages = Math.ceil(filteredBusinesses.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
@@ -96,6 +115,16 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
           businessCounts={businessCounts}
+        />
+      </div>
+
+      {/* ConnectScore Tier Filter */}
+      <div className="mb-8">
+        <p className="text-sm font-medium text-center text-muted-foreground mb-3">Filter ConnectScore</p>
+        <ConnectScoreTierFilter
+          selectedTier={selectedTier}
+          onTierChange={setSelectedTier}
+          tierCounts={tierCounts}
         />
       </div>
 

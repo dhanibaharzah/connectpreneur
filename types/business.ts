@@ -1,5 +1,6 @@
 import type { BusinessProduct } from "@/types/business-product"
 import type { TrustTier } from "@/types/gamification"
+import type { ConnectScoreTier } from "@/lib/connect-score-tier"
 
 export interface Business {
   id: string
@@ -27,5 +28,6 @@ export interface Business {
   kontakPIC: string
   connectScore?: number | null
   connectScoreBreakdown?: Record<string, number> | null
+  connectScoreTier?: ConnectScoreTier | null
   trustTier?: TrustTier | null
 }

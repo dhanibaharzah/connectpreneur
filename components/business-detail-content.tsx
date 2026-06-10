@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { BusinessProductsSection, type RfqProductSelection } from "@/components/business-products-section"
 import { ConnectScoreBadge, ConnectScoreDetail } from "@/components/connect-score-badge"
+import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
 import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import { trackEvent } from "@/lib/analytics/client"
@@ -60,7 +61,15 @@ function TikTokIcon({ className }: { className?: string }) {
   )
 }
 
-function ConnectScoreCollapsible({ score, breakdown }: { score: number; breakdown?: Record<string, number> | null }) {
+function ConnectScoreCollapsible({
+  score,
+  breakdown,
+  tier,
+}: {
+  score: number
+  breakdown?: Record<string, number> | null
+  tier?: Business["connectScoreTier"]
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -71,8 +80,9 @@ function ConnectScoreCollapsible({ score, breakdown }: { score: number; breakdow
           onClick={() => breakdown && setOpen(!open)}
           className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors rounded-lg"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className="font-semibold text-foreground">ConnectScore</span>
+            {tier && <ConnectScoreTierBadge tier={tier} size="md" />}
             <ConnectScoreBadge score={score} size="md" />
             <div className="relative group">
               <Info className="h-4 w-4 text-muted-foreground cursor-help" />
@@ -257,6 +267,9 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <VerifiedSellerBadge size="md" />
               {business.trustTier && <UmkmTrustBadge tier={business.trustTier} size="md" />}
+              {business.connectScoreTier && (
+                <ConnectScoreTierBadge tier={business.connectScoreTier} size="md" showScore={business.connectScore} />
+              )}
               <Badge className="bg-primary text-white">{business.jenisUsaha}</Badge>
               {business.jenisPeluang && (
                 <Badge variant="outline" className="border-primary text-primary">{business.jenisPeluang}</Badge>
@@ -274,6 +287,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
             <ConnectScoreCollapsible
               score={business.connectScore}
               breakdown={business.connectScoreBreakdown}
+              tier={business.connectScoreTier}
             />
           )}
 

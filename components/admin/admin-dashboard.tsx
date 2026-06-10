@@ -14,7 +14,16 @@ import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, Star, StarOff, Loade
 import BusinessFormModal from "./business-form-modal"
 import BusinessViewModal from "./business-view-modal"
 import { ConnectScoreBadge } from "@/components/connect-score-badge"
+import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
+import { ConnectScoreTierFilter } from "@/components/connect-score-tier-filter"
 import AdminShell, { getAdminAuthHeaders, type AdminUser } from "./admin-shell"
+import {
+  CONNECT_SCORE_TIER_ALL,
+  getConnectScoreTier,
+  hasDocument,
+  type ConnectScoreTier,
+  type ConnectScoreTierFilter as ConnectScoreTierFilterValue,
+} from "@/lib/connect-score-tier"
 
 interface Business {
   id: number
@@ -27,6 +36,9 @@ interface Business {
   is_active: boolean
   created_at: string
   connect_score: number | null
+  connect_score_tier?: ConnectScoreTier | null
+  akta_pendirian_url?: string | null
+  legalitas_url?: string | null
 }
 
 interface AdminDashboardProps {
@@ -42,6 +54,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "active">("all")
+  const [tierFilter, setTierFilter] = useState<ConnectScoreTierFilterValue>(CONNECT_SCORE_TIER_ALL)
   const [pendingCount, setPendingCount] = useState(0)
   const [showFormModal, setShowFormModal] = useState(false)
   const [editingBusiness, setEditingBusiness] = useState<any>(null)
@@ -58,6 +71,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       })
       if (search) params.set("search", search)
       if (statusFilter !== "all") params.set("status", statusFilter)
+      if (tierFilter !== CONNECT_SCORE_TIER_ALL) params.set("tier", tierFilter)
 
       const res = await fetch(`/api/admin/businesses?${params}`, {
         credentials: "include",
@@ -88,7 +102,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   useEffect(() => {
     fetchBusinesses()
-  }, [page, perPage, statusFilter])
+  }, [page, perPage, statusFilter, tierFilter])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -263,6 +277,18 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
             </Button>
           </div>
 
+          {/* ConnectScore Tier Filter */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Filter ConnectScore</p>
+            <ConnectScoreTierFilter
+              selectedTier={tierFilter}
+              onTierChange={(tier) => {
+                setTierFilter(tier)
+                setPage(1)
+              }}
+            />
+          </div>
+
           {/* Table */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -280,11 +306,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                       <TableHead>Lokasi</TableHead>
                       <TableHead className="text-center overflow-visible">
                         <div className="flex items-center justify-center gap-1">
-                          ConnectScore
+                          Badge UMKM
                           <div className="relative group">
                             <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                            <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-[100] w-64 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
-                              ConnectScore adalah skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya. Skor ini membantu admin menilai kesiapan profil mitra untuk dipublikasikan.
+                            <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-[100] w-72 p-2.5 text-xs font-normal text-left bg-foreground text-background rounded-lg shadow-lg">
+                              UMKM Unggulan (90–100), UMKM Berkualitas (70–89), UMKM Dasar (60–69 atau terverifikasi tanpa legalitas), atau Wajib Perbaikan (score &lt; 60 atau belum ada akta & legalitas).
                               <div className="absolute bottom-full right-3 border-4 border-transparent border-b-foreground" />
                             </div>
                           </div>
@@ -331,11 +357,28 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           <TableCell>{business.category_name || "-"}</TableCell>
                           <TableCell>{business.kota_provinsi || "-"}</TableCell>
                           <TableCell className="text-center">
-                            {business.connect_score != null ? (
-                              <ConnectScoreBadge score={business.connect_score} />
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
+                            {(() => {
+                              const tier =
+                                business.connect_score_tier ??
+                                getConnectScoreTier(business.connect_score, {
+                                  hasAkta: hasDocument(business.akta_pendirian_url),
+                                  hasLegalitas: hasDocument(business.legalitas_url),
+                                  isVerified: business.is_active,
+                                })
+
+                              if (!tier && business.connect_score == null) {
+                                return <span className="text-xs text-muted-foreground">—</span>
+                              }
+
+                              return (
+                                <div className="flex flex-col items-center gap-1">
+                                  {tier && <ConnectScoreTierBadge tier={tier} />}
+                                  {business.connect_score != null && (
+                                    <ConnectScoreBadge score={business.connect_score} />
+                                  )}
+                                </div>
+                              )
+                            })()}
                           </TableCell>
                           <TableCell className="text-center">
                             <Button variant="ghost" size="sm" onClick={() => handleToggleFeatured(business)}>

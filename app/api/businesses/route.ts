@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db"
 import { stripSensitiveBusinessFields } from "@/lib/strip-sensitive-business-fields"
+import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 import { type NextRequest, NextResponse } from "next/server"
 
 // GET /api/businesses - Get all businesses with optional filtering
@@ -156,6 +157,11 @@ export async function GET(request: NextRequest) {
         ...business,
         product_images: productImages.filter((img) => img.business_id === business.id),
         connect_score: scoreMap.get(business.id) ?? null,
+        connect_score_tier: getConnectScoreTier(scoreMap.get(business.id) ?? null, {
+          hasAkta: hasDocument(business.akta_pendirian_url as string | null),
+          hasLegalitas: hasDocument(business.legalitas_url as string | null),
+          isVerified: business.is_active === true,
+        }),
       }),
     )
 

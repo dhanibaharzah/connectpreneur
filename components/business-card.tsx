@@ -5,6 +5,7 @@ import { MapPin, Clock, Building2, Handshake, ArrowUpRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { ConnectScoreBadge } from "@/components/connect-score-badge"
+import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
 import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
 import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 
@@ -63,9 +64,14 @@ export function BusinessCard({ business }: BusinessCardProps) {
             </div>
           </div>
         )}
-        {business.connectScore != null && (
-          <div className="absolute right-2 top-2 z-[1]">
-            <ConnectScoreBadge score={business.connectScore} />
+        {(business.connectScoreTier || business.connectScore != null) && (
+          <div className="absolute right-2 top-2 z-[1] flex flex-col items-end gap-1">
+            {business.connectScoreTier && (
+              <ConnectScoreTierBadge tier={business.connectScoreTier} />
+            )}
+            {business.connectScore != null && (
+              <ConnectScoreBadge score={business.connectScore} />
+            )}
           </div>
         )}
       </Link>

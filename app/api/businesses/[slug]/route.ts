@@ -2,6 +2,7 @@ import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 import { getSessionFromRequest } from "@/lib/auth"
 import { getOrUpdateScore } from "@/lib/connect-score"
+import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 import { stripSensitiveBusinessFields } from "@/lib/strip-sensitive-business-fields"
 
 // GET /api/businesses/[slug] - Get single business by slug (PUBLIC)
@@ -45,6 +46,11 @@ export async function GET(
         product_images: productImages,
         connect_score: scoreResult?.score ?? null,
         connect_score_breakdown: scoreResult?.breakdown ?? null,
+        connect_score_tier: getConnectScoreTier(scoreResult?.score ?? null, {
+          hasAkta: hasDocument(business.akta_pendirian_url),
+          hasLegalitas: hasDocument(business.legalitas_url),
+          isVerified: business.is_active === true,
+        }),
       }),
     })
   } catch (error) {

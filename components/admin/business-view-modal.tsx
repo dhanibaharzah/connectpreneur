@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { sanitizeHTML } from "@/lib/sanitize"
 import { MapPin, Clock, Building2, Globe, Phone, User, Briefcase, Instagram, Facebook, Handshake, FileText, ExternalLink } from "lucide-react"
 import { ConnectScoreDetail } from "@/components/connect-score-badge"
+import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
+import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 
 interface BusinessViewModalProps {
   business: any
@@ -91,6 +93,13 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
   if (!business) return null
 
   const productImages = business.product_images || []
+  const connectScoreTier =
+    business.connect_score_tier ??
+    getConnectScoreTier(business.connect_score, {
+      hasAkta: hasDocument(business.akta_pendirian_url),
+      hasLegalitas: hasDocument(business.legalitas_url),
+      isVerified: business.is_active === true,
+    })
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -108,12 +117,15 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
             )}
             <div>
               <span>{business.nama}</span>
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-1 flex-wrap">
                 <Badge variant={business.is_active ? "default" : "secondary"}>
                   {business.is_active ? "Terverifikasi" : "Menunggu Verifikasi"}
                 </Badge>
                 {business.is_featured && (
                   <Badge className="bg-yellow-500">Featured</Badge>
+                )}
+                {connectScoreTier && (
+                  <ConnectScoreTierBadge tier={connectScoreTier} size="md" showScore={business.connect_score} />
                 )}
               </div>
             </div>
@@ -364,8 +376,13 @@ export default function BusinessViewModal({ business, onClose }: BusinessViewMod
 
           <TabsContent value="score" className="mt-4 space-y-4">
             <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-              ConnectScore adalah skor kelengkapan data mitra (0–100). Semakin lengkap data yang diisi, semakin tinggi skornya. Skor ini membantu admin menilai kesiapan profil mitra untuk dipublikasikan.
+              ConnectScore adalah skor kelengkapan data mitra (0–100). Badge UMKM: Unggulan (90–100), Berkualitas (70–89), Dasar (60–69 atau terverifikasi tanpa legalitas), Wajib Perbaikan (score &lt; 60 atau belum ada akta & legalitas).
             </div>
+            {connectScoreTier && (
+              <div className="flex items-center gap-2">
+                <ConnectScoreTierBadge tier={connectScoreTier} size="md" showScore={business.connect_score} />
+              </div>
+            )}
             {business.connect_score != null && business.connect_score_breakdown ? (
               <ConnectScoreDetail
                 score={business.connect_score}

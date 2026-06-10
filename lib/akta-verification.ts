@@ -51,7 +51,7 @@ export async function verifyAktaDocument(
     console.error("Akta text extraction error:", error)
     return {
       verified: false,
-      reason: "Gagal membaca akta. Unggah ulang PDF akta yang lebih jelas.",
+      reason: "Dokumen Akta tersimpan. Verifikasi otomatis tidak berhasil. Admin akan mereview.",
     }
   }
 

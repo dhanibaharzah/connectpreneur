@@ -49,7 +49,7 @@ export async function verifyKtpDocument(
   if (!nameMatched) {
     return {
       verified: false,
-      reason: "Nama di KTP tidak cocok dengan Nama PIC yang Anda isi. Periksa kembali dan unggah ulang.",
+      reason: "Dokumen KTP tersimpan. Verifikasi otomatis tidak berhasil. Admin akan mereview.",
     }
   }
 

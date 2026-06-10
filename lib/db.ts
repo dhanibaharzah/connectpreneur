@@ -3,6 +3,7 @@ import type { BusinessProduct } from "@/types/business-product"
 import type { TrustTier } from "@/types/gamification"
 import { getProductsByBusinessId } from "@/lib/business-products"
 import { getOrUpdateScore } from "@/lib/connect-score"
+import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 import { sql } from "@/lib/sql"
 
 export { sql }
@@ -36,6 +37,8 @@ export interface DbBusiness {
   is_featured: boolean
   is_active: boolean
   trust_tier: string | null
+  akta_pendirian_url?: string | null
+  legalitas_url?: string | null
   created_at: string
   updated_at: string
 }
@@ -94,6 +97,11 @@ export function transformDbToBusiness(
     kontakPIC: dbBusiness.kontak_pic || "",
     connectScore: score?.score ?? null,
     connectScoreBreakdown: score?.breakdown ?? null,
+    connectScoreTier: getConnectScoreTier(score?.score ?? null, {
+      hasAkta: hasDocument(dbBusiness.akta_pendirian_url),
+      hasLegalitas: hasDocument(dbBusiness.legalitas_url),
+      isVerified: dbBusiness.is_active === true,
+    }),
     trustTier: (dbBusiness.trust_tier as TrustTier | null) ?? null,
   }
 }
