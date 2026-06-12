@@ -27,29 +27,92 @@ interface BusinessProductsSectionProps {
   products: BusinessProduct[]
   onRequestQuote: (product: RfqProductSelection) => void
   collapsible?: boolean
+  layout?: "compact" | "detail"
   className?: string
 }
 
 const DESKRIPSI_PREVIEW_LENGTH = 100
 
-function ProductDescription({ text }: { text: string }) {
+function ProductDescription({ text, className }: { text: string; className?: string }) {
   const [expanded, setExpanded] = useState(false)
   const needsToggle = text.length > DESKRIPSI_PREVIEW_LENGTH
 
   if (!needsToggle) {
-    return <p className="text-sm text-muted-foreground mt-1">{text}</p>
+    return <p className={cn("text-sm text-muted-foreground", className)}>{text}</p>
+  }
+
+  if (!expanded) {
+    return (
+      <p className={cn("text-sm text-muted-foreground", className)}>
+        {text.slice(0, DESKRIPSI_PREVIEW_LENGTH).trim()}…{" "}
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="font-medium text-primary hover:underline"
+        >
+          Lihat selengkapnya
+        </button>
+      </p>
+    )
   }
 
   return (
-    <div className="mt-1">
-      <p className={cn("text-sm text-muted-foreground", !expanded && "line-clamp-2")}>{text}</p>
+    <div className={className}>
+      <p className="text-sm text-muted-foreground">{text}</p>
       <button
         type="button"
-        onClick={() => setExpanded((prev) => !prev)}
+        onClick={() => setExpanded(false)}
         className="mt-1 text-xs font-medium text-primary hover:underline"
       >
-        {expanded ? "Tampilkan lebih sedikit" : "Lihat selengkapnya"}
+        Tampilkan lebih sedikit
       </button>
+    </div>
+  )
+}
+
+function DetailProductCard({
+  product,
+  onRequestQuote,
+}: {
+  product: BusinessProduct
+  onRequestQuote: (product: RfqProductSelection) => void
+}) {
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
+        {product.imageUrl && isValidImageUrl(product.imageUrl) ? (
+          <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-lg border bg-muted sm:h-28 sm:w-40">
+            <Image src={product.imageUrl} alt={product.nama} fill className="object-cover" />
+          </div>
+        ) : (
+          <div className="flex h-36 w-full shrink-0 items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground sm:h-28 sm:w-40">
+            Tanpa foto
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="font-semibold text-foreground">{product.nama}</h4>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+              {PRODUCT_TIPE_LABELS[product.tipeBisnis]}
+            </span>
+          </div>
+          {product.deskripsi && <ProductDescription text={product.deskripsi} className="mt-2" />}
+          <p className="mt-2 text-base font-bold text-primary">
+            Mulai dari Rp {product.hargaMulai.toLocaleString("id-ID")}
+          </p>
+          <div className="mt-3">
+            <Button
+              type="button"
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => onRequestQuote({ nama: product.nama, deskripsi: product.deskripsi })}
+            >
+              <FileText className="h-4 w-4 mr-1.5" />
+              Minta Penawaran
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -57,9 +120,11 @@ function ProductDescription({ text }: { text: string }) {
 function ProductListContent({
   products,
   onRequestQuote,
+  layout = "compact",
 }: {
   products: BusinessProduct[]
   onRequestQuote: (product: RfqProductSelection) => void
+  layout?: "compact" | "detail"
 }) {
   const [page, setPage] = useState(1)
 
@@ -69,6 +134,37 @@ function ProductListContent({
   }, [products.length, page])
 
   const { items: visibleProducts, pagination } = paginateArray(products, page, PRODUCT_PAGE_SIZE)
+
+  if (layout === "detail") {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-4">
+          {visibleProducts.map((product) => (
+            <DetailProductCard key={product.id} product={product} onRequestQuote={onRequestQuote} />
+          ))}
+        </div>
+
+        <ProductListPagination pagination={pagination} onPageChange={setPage} />
+
+        {pagination.totalPages > 1 && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full bg-transparent"
+            onClick={() => setPage((p) => Math.min(p + 1, pagination.totalPages))}
+            disabled={page >= pagination.totalPages}
+          >
+            Lihat semua produk
+          </Button>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          Harga bersifat indikatif. Detail spesifikasi, varian, dan negosiasi dapat didiskusikan langsung via
+          WhatsApp. Harap tetap berhati-hati pada tiap transaksi, jangan lupa untuk crosscheck mitra.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -88,9 +184,7 @@ function ProductListContent({
               <div className="min-w-0 flex-1">
                 <button
                   type="button"
-                  onClick={() =>
-                    onRequestQuote({ nama: product.nama, deskripsi: product.deskripsi })
-                  }
+                  onClick={() => onRequestQuote({ nama: product.nama, deskripsi: product.deskripsi })}
                   className="text-left font-medium text-foreground leading-snug hover:text-primary transition-colors"
                 >
                   {product.nama}
@@ -109,9 +203,7 @@ function ProductListContent({
                   size="icon"
                   variant="outline"
                   className="h-9 w-9 border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800"
-                  onClick={() =>
-                    onRequestQuote({ nama: product.nama, deskripsi: product.deskripsi })
-                  }
+                  onClick={() => onRequestQuote({ nama: product.nama, deskripsi: product.deskripsi })}
                   aria-label="Minta penawaran"
                 >
                   <FileText className="h-4 w-4" />
@@ -140,11 +232,24 @@ export function BusinessProductsSection({
   products,
   onRequestQuote,
   collapsible = false,
+  layout = "compact",
   className,
 }: BusinessProductsSectionProps) {
   const [open, setOpen] = useState(false)
 
   if (products.length === 0) return null
+
+  if (layout === "detail") {
+    return (
+      <div className={className}>
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-foreground">Produk & Layanan</h2>
+          <p className="text-sm text-muted-foreground">{products.length} produk tersedia</p>
+        </div>
+        <ProductListContent products={products} onRequestQuote={onRequestQuote} layout="detail" />
+      </div>
+    )
+  }
 
   if (collapsible) {
     return (

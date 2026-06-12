@@ -1,13 +1,11 @@
 "use client"
 
 import type { Business } from "@/types/business"
-import { MapPin, Clock, Building2, Handshake, ArrowUpRight } from "lucide-react"
+import { MapPin, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { ConnectScoreBadge } from "@/components/connect-score-badge"
 import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
-import { VerifiedSellerBadge } from "@/components/verified-seller-badge"
-import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
+import { cn } from "@/lib/utils"
 import { isAllowedImageHost } from "@/lib/storage-urls"
 
 interface BusinessCardProps {
@@ -20,13 +18,6 @@ function isValidImageUrl(url: string): boolean {
   return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
-function shouldShowBranch(jumlahCabang: string | undefined): boolean {
-  if (!jumlahCabang) return false
-  if (jumlahCabang === "-" || jumlahCabang === "0") return false
-  if (jumlahCabang.toLowerCase().includes("tidak ada")) return false
-  return true
-}
-
 function stripHtml(html: string): string {
   if (!html) return ""
   return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
@@ -36,97 +27,75 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const logoUrl = business.logoUrl
   const hasValidLogo = isValidImageUrl(logoUrl)
   const detailHref = `/bisnis/${business.slug}`
+  const description = stripHtml(business.deskripsi)
 
   return (
-    <div className="group flex h-full flex-col gap-4 rounded-2xl p-2">
-      <Link
-        href={detailHref}
-        className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-[0_0_4px_rgba(0,0,0,0.1)] transition-shadow hover:shadow-[0_0_8px_rgba(212,70,18,0.15)]"
-      >
+    <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="relative aspect-[4/3] bg-white">
+        {business.connectScoreTier && (
+          <div className="absolute right-2 top-2 z-[1]">
+            <ConnectScoreTierBadge tier={business.connectScoreTier} size="sm" />
+          </div>
+        )}
+
         {hasValidLogo ? (
           <Image
             src={logoUrl || "/placeholder.svg"}
             alt={business.nama}
             fill
-            className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-contain p-6"
+            sizes="(max-width: 640px) 100vw, 25vw"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#fdede8]/60 to-white p-6">
-            <div className="text-center">
-              <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
-                <span className="text-2xl font-bold text-primary">{business.nama.charAt(0).toUpperCase()}</span>
-              </div>
-              <p className="line-clamp-2 text-xs font-medium text-[#838383]">{business.nama}</p>
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/15">
+              <span className="text-3xl font-bold text-primary">{business.nama.charAt(0).toUpperCase()}</span>
             </div>
           </div>
         )}
-        {(business.connectScoreTier || business.connectScore != null) && (
-          <div className="absolute right-2 top-2 z-[1] flex flex-col items-end gap-1">
-            {business.connectScoreTier && (
-              <ConnectScoreTierBadge tier={business.connectScoreTier} />
-            )}
-            {business.connectScore != null && (
-              <ConnectScoreBadge score={business.connectScore} />
-            )}
-          </div>
-        )}
-      </Link>
+      </div>
 
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="flex flex-wrap items-start gap-2">
-          <h3 className="min-w-0 flex-1 text-sm font-semibold leading-tight line-clamp-2">
-            <Link
-              href={detailHref}
-              className="text-[#1f1f1f] transition hover:text-[#d44612]"
-            >
-              {business.nama}
-            </Link>
-          </h3>
-          <div className="flex shrink-0 items-center gap-1">
-            <VerifiedSellerBadge variant="icon" />
-            {business.trustTier && <UmkmTrustBadge tier={business.trustTier} variant="icon" />}
-          </div>
-        </div>
+      <div className="flex flex-1 flex-col gap-2.5 p-4">
+        <h3 className="text-base font-bold leading-snug text-foreground line-clamp-2">
+          <Link href={detailHref} className="transition hover:text-primary">
+            {business.nama}
+          </Link>
+        </h3>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-[#fdede8] px-3 py-1 text-[10px] font-medium text-[#b13b0f]">
-            {business.jenisUsaha}
-          </span>
-        </div>
+        <span className="w-fit rounded-full bg-[#fdede8] px-3 py-1 text-[10px] font-medium text-[#b13b0f]">
+          {business.jenisUsaha}
+        </span>
 
-        <p className="line-clamp-2 text-xs font-medium text-[#838383]">{stripHtml(business.deskripsi)}</p>
-
-        <div className="space-y-2 text-xs font-medium text-[#838383]">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 shrink-0 text-[#838383]" aria-hidden />
+        {business.kotaProvinsi && (
+          <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
             <span className="line-clamp-2">{business.kotaProvinsi}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 shrink-0 text-[#838383]" aria-hidden />
-            <span>{business.lamaUsaha}</span>
-          </div>
-          {shouldShowBranch(business.jumlahCabang) && (
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 shrink-0 text-[#838383]" aria-hidden />
-              <span>{business.jumlahCabang} Cabang</span>
-            </div>
-          )}
-          {business.jenisPeluang && (
-            <div className="flex items-center gap-2">
-              <Handshake className="h-5 w-5 shrink-0 text-[#838383]" aria-hidden />
-              <span className="line-clamp-2">{business.jenisPeluang}</span>
-            </div>
-          )}
-        </div>
+        )}
+
+        {description && (
+          <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">{description}</p>
+        )}
+
+        {(business.connectScore != null || business.lamaUsaha) && (
+          <p className="text-xs font-semibold text-green-600">
+            {business.connectScore != null && <>ConnectScore {business.connectScore}/100</>}
+            {business.connectScore != null && business.lamaUsaha && " · "}
+            {business.lamaUsaha}
+          </p>
+        )}
 
         <Link
           href={detailHref}
-          className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-[#d44612] transition hover:text-[#b13b0f]"
+          className={cn(
+            "mt-auto flex w-full items-center justify-center gap-1 rounded-lg border border-border py-2.5",
+            "text-sm font-semibold text-foreground transition hover:bg-muted/50",
+          )}
         >
-          Lihat Detail
-          <ArrowUpRight className="h-4 w-4" aria-hidden />
+          Lihat Profil
+          <ChevronRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
-    </div>
+    </article>
   )
 }
