@@ -443,7 +443,6 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
     if (!open) setRfqProduct(null)
   }
 
-  const locationText = [business.alamat, business.kotaProvinsi].filter(Boolean).join(", ")
   const primarySocial = getPrimarySocialMedia(business)
 
   return (
@@ -625,8 +624,11 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                     <SidebarInfoRow icon={Clock} label="Lama Usaha" value={business.lamaUsaha} />
                   )}
                   <SidebarInfoRow icon={Briefcase} label="Bidang Usaha" value={business.jenisUsaha} />
-                  {locationText && (
-                    <SidebarInfoRow icon={MapPin} label="Alamat" value={locationText} />
+                  {business.alamat && (
+                    <SidebarInfoRow icon={MapPin} label="Alamat" value={business.alamat} />
+                  )}
+                  {business.kotaProvinsi && (
+                    <SidebarInfoRow icon={MapPin} label="Area" value={business.kotaProvinsi} />
                   )}
                   {shouldShowBranch(business.jumlahCabang) && (
                     <SidebarInfoRow icon={Building2} label="Jumlah Cabang" value={`${business.jumlahCabang} Cabang`} />
@@ -650,8 +652,11 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                   {business.jabatanPIC && (
                     <SidebarInfoRow icon={Briefcase} label="Jabatan" value={business.jabatanPIC} />
                   )}
-                  {locationText && (
-                    <SidebarInfoRow icon={MapPin} label="Alamat" value={locationText} />
+                  {business.alamat && (
+                    <SidebarInfoRow icon={MapPin} label="Alamat" value={business.alamat} />
+                  )}
+                  {business.kotaProvinsi && (
+                    <SidebarInfoRow icon={MapPin} label="Area" value={business.kotaProvinsi} />
                   )}
                   {business.website && sanitizeURL(business.website) && (
                     <SidebarInfoRow
