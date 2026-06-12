@@ -1,7 +1,6 @@
-import { del } from "@vercel/blob"
 import { type NextRequest, NextResponse } from "next/server"
+import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
 import {
-  isDeletableBlobUrl,
   parseHargaMulai,
   parseProductDeskripsi,
   parseProductImageUrl,
@@ -13,12 +12,12 @@ import {
 import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
 import { sql } from "@/lib/sql"
 
-async function deleteBlobIfNeeded(url: string | null | undefined) {
-  if (!url || !isDeletableBlobUrl(url)) return
+async function deleteStoredFileIfNeeded(url: string | null | undefined) {
+  if (!url || !isDeletableStorageUrl(url)) return
   try {
-    await del(url)
+    await deleteObject(url)
   } catch (error) {
-    console.error("Failed to delete product image blob:", error)
+    console.error("Failed to delete product image:", error)
   }
 }
 
@@ -89,7 +88,7 @@ export async function PUT(
   `
 
   if (previousImageUrl && previousImageUrl !== (imageUrl || null)) {
-    await deleteBlobIfNeeded(previousImageUrl)
+    await deleteStoredFileIfNeeded(previousImageUrl)
   }
 
   return NextResponse.json({ product: transformDbProduct(rows[0] as DbBusinessProduct) })
@@ -120,7 +119,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 })
   }
 
-  await deleteBlobIfNeeded(rows[0].image_url as string | null)
+  await deleteStoredFileIfNeeded(rows[0].image_url as string | null)
 
   return NextResponse.json({ success: true })
 }

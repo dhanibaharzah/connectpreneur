@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
 import sharp from "sharp"
+import { uploadObject } from "@/lib/storage"
 import { fileTypeFromBuffer } from "file-type"
 import { getValidToken, markTokenUsed } from "@/lib/transaction-tokens"
 import { getTransactionById, uploadPaymentProof } from "@/lib/transactions"
@@ -82,12 +82,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       output = await sharp(buffer).jpeg({ quality: 80 }).toBuffer()
     }
 
-    const blob = await put(`transaksi/bukti-${transaction.referenceNo}-${Date.now()}.jpg`, output, {
-      access: "public",
-      contentType: "image/jpeg",
-    })
+    const key = `transaksi/bukti-${transaction.referenceNo}-${Date.now()}.jpg`
+    const uploaded = await uploadObject(key, output, "image/jpeg")
 
-    const updated = await uploadPaymentProof(transaction.id, blob.url)
+    const updated = await uploadPaymentProof(transaction.id, uploaded.url)
     if (!updated) {
       return NextResponse.json({ error: "Gagal menyimpan bukti transfer" }, { status: 500 })
     }
@@ -109,7 +107,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       console.error("Payment proof notification error:", err)
     }
 
-    return NextResponse.json({ success: true, payment_proof_url: blob.url })
+    return NextResponse.json({ success: true, payment_proof_url: uploaded.url })
   } catch (error) {
     console.error("Payment proof upload error:", error)
     if (isDbConnectionError(error)) {

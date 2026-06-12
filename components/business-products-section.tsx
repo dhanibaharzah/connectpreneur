@@ -10,16 +10,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ProductListPagination } from "@/components/product-list-pagination"
 import { paginateArray, PRODUCT_PAGE_SIZE } from "@/lib/pagination"
 import { cn } from "@/lib/utils"
+import { isAllowedImageHost } from "@/lib/storage-urls"
 
 function isValidImageUrl(url: string): boolean {
   if (!url) return false
-  const isDirectImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
-  const isBlobUrl =
-    url.includes("blob.v0.app") || url.includes("blob.vercel-storage.com") || url.includes("vusercontent.net")
-  const isPlaceholder = url.includes("placeholder.svg")
-  const isLocalImage = url.startsWith("/images/") || url.startsWith("/public/") || url.startsWith("/")
-
-  return isDirectImage || isBlobUrl || isPlaceholder || isLocalImage
+  if (isAllowedImageHost(url)) return true
+  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
 export interface RfqProductSelection {

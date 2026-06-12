@@ -13,6 +13,7 @@
     "db:backfill-gamification": "tsx scripts/backfill-gamification.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1065.0",
     "@hookform/resolvers": "^3.10.0",
     "@neondatabase/serverless": "1.0.2",
     "@radix-ui/react-accordion": "1.2.2",

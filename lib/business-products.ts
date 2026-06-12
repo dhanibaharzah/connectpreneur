@@ -13,25 +13,10 @@ export interface DbBusinessProduct {
   is_active: boolean
 }
 
-const ALLOWED_IMAGE_HOSTS = ["blob.vercel-storage.com", "blob.v0.app", "vusercontent.net"]
+import { isAllowedImageHost, isDeletableStorageUrl } from "@/lib/storage-urls"
 
 export function isValidProductImageUrl(url: string): boolean {
-  if (!url) return false
-  if (url.includes("..")) return false
-  if (url.startsWith("/")) {
-    return url.startsWith("/images/") || url.startsWith("/public/") || url === "/placeholder.svg"
-  }
-  if (url.includes("placeholder.svg")) return true
-
-  try {
-    const parsed = new URL(url)
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false
-    return ALLOWED_IMAGE_HOSTS.some(
-      (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`),
-    )
-  } catch {
-    return false
-  }
+  return isAllowedImageHost(url)
 }
 
 export function transformDbProduct(row: DbBusinessProduct): BusinessProduct {
@@ -102,12 +87,9 @@ export function parseProductTipeBisnis(value: unknown): ProductTipeBisnis | null
   return null
 }
 
+/** @deprecated Use isDeletableStorageUrl from @/lib/storage-urls */
 export function isDeletableBlobUrl(url: string): boolean {
-  if (!url.includes("blob.vercel-storage.com")) return false
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === "https:" && !parsed.pathname.includes("..")
-  } catch {
-    return false
-  }
+  return isDeletableStorageUrl(url)
 }
+
+export { isDeletableStorageUrl } from "@/lib/storage-urls"

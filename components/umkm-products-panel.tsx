@@ -12,6 +12,7 @@ import type { BusinessProduct, ProductTipeBisnis } from "@/types/business-produc
 import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import { ProductListPagination } from "@/components/product-list-pagination"
 import { paginateArray, PRODUCT_PAGE_SIZE } from "@/lib/pagination"
+import { isDeletableStorageUrl } from "@/lib/storage-urls"
 
 interface UmkmProductsPanelProps {
   businessName: string
@@ -188,7 +189,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
   }
 
   const removeFormImage = async () => {
-    if (form.image_url.includes("blob.vercel-storage.com")) {
+    if (isDeletableStorageUrl(form.image_url)) {
       try {
         await fetch("/api/register-mitra/upload/delete", {
           method: "POST",

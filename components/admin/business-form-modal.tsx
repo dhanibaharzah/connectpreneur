@@ -16,6 +16,7 @@ import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
 import LegalitasConfirmDialog from "@/components/legalitas-confirm-dialog"
+import { isDeletableStorageUrl } from "@/lib/storage-urls"
 
 interface BusinessFormModalProps {
   business?: any
@@ -268,7 +269,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
     // Delete from blob storage if it's a blob URL
     if (imageToRemove && (imageToRemove.url || imageToRemove.image_url)) {
       const url = imageToRemove.url || imageToRemove.image_url
-      if (url && url.includes("blob.vercel-storage.com")) {
+      if (url && isDeletableStorageUrl(url)) {
         try {
           await fetch("/api/admin/upload", {
             method: "DELETE",
@@ -286,7 +287,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
 
   const handleRemoveLogo = async () => {
     // Delete from blob storage if it's a blob URL
-    if (form.logo_url && form.logo_url.includes("blob.vercel-storage.com")) {
+    if (form.logo_url && isDeletableStorageUrl(form.logo_url)) {
       try {
         await fetch("/api/admin/upload", {
           method: "DELETE",
@@ -350,7 +351,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
 
   const handleRemovePdf = async (field: "akta_pendirian_url" | "legalitas_url") => {
     const url = form[field]
-    if (url && url.includes("blob.vercel-storage.com")) {
+    if (url && isDeletableStorageUrl(url)) {
       try {
         await fetch("/api/admin/upload", {
           method: "DELETE",
@@ -358,7 +359,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
           body: JSON.stringify({ url }),
         })
       } catch (error) {
-        console.error("Failed to delete PDF blob:", error)
+        console.error("Failed to delete PDF:", error)
       }
     }
     setForm((prev) => ({ ...prev, [field]: "" }))

@@ -239,7 +239,7 @@ Platform ini sepenuhnya **gratis** sebagai layanan digital ConnectPreneur untuk 
 | Styling | [Tailwind CSS 4](https://tailwindcss.com/) |
 | UI Components | [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://radix-ui.com/) |
 | Database | [Neon PostgreSQL](https://neon.tech/) (Serverless) |
-| Image Storage | [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) |
+| File Storage | [Cloudflare R2](https://developers.cloudflare.com/r2/) (`pub-*.r2.dev` atau subdomain custom); legacy [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) read-only |
 | Image Processing | [Sharp](https://sharp.pixelplumbing.com/) (auto-compress) |
 | Authentication | JWT (jose) |
 | Deployment | [Vercel](https://vercel.com/) |
@@ -295,12 +295,37 @@ Buat file `.env.local` di root project:
 # Database - Neon PostgreSQL
 DATABASE_URL="postgresql://username:password@host/database?sslmode=require"
 
-# Vercel Blob Storage
+# Cloudflare R2 (upload baru)
+R2_ACCOUNT_ID="ca1b52f7509ff48a7e77adb47beb31c3"
+R2_ACCESS_KEY_ID="your-r2-access-key-id"
+R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
+R2_BUCKET_NAME="connectpreneur-bucket-storage"
+# URL PUBLIK untuk tampil file di browser (BUKAN S3 API endpoint)
+R2_PUBLIC_BASE_URL="https://pub-xxxxxxxx.r2.dev"
+NEXT_PUBLIC_R2_PUBLIC_BASE_URL="https://pub-xxxxxxxx.r2.dev"
+
+# Vercel Blob (legacy — hanya untuk hapus file lama)
 BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxxxx"
 
 # JWT Secret (generate: openssl rand -base64 32)
 JWT_SECRET="your-secret-key-here"
 ```
+
+**Cloudflare R2 — dua URL berbeda:**
+| Variabel | Contoh | Fungsi |
+|----------|--------|--------|
+| S3 API (otomatis dari `R2_ACCOUNT_ID`) | `https://ca1b52f....r2.cloudflarestorage.com` | Upload/delete dari server — **jangan** dipakai di `<img>` |
+| `R2_PUBLIC_BASE_URL` | `https://pub-xxxxxxxx.r2.dev` | URL yang disimpan di DB & ditampilkan ke user |
+
+**Setup R2 (domain di Hostinger — tanpa Cloudflare DNS):**
+1. Buat bucket R2 (`connectpreneur-bucket-storage`)
+2. R2 → Manage R2 API Tokens → token Object Read & Write
+3. Bucket → Settings → **Public access** → Enable → salin URL `https://pub-xxxxxxxx.r2.dev`
+4. Set `R2_PUBLIC_BASE_URL` dan `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` ke URL `pub-*.r2.dev` tersebut
+5. File lama di Vercel Blob **tidak perlu dimigrasi**
+
+**Opsional — subdomain custom via Hostinger (mis. `files.connectpreneur.id`):**
+Di Cloudflare R2 bucket → Public access → Custom domain → Cloudflare beri target CNAME. Tambahkan record CNAME di **Hostinger DNS** (domain tidak harus pindah ke Cloudflare). Lalu set `R2_PUBLIC_BASE_URL=https://files.connectpreneur.id`.
 
 **Cara mendapatkan env dari Vercel:**
 ```bash
@@ -417,7 +442,9 @@ Buka [http://localhost:3000](http://localhost:3000)
 2. Import project di [Vercel Dashboard](https://vercel.com/new)
 3. Set environment variables di Vercel:
    - `DATABASE_URL`
-   - `BLOB_READ_WRITE_TOKEN`
+   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`
+   - `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` (sama dengan `R2_PUBLIC_BASE_URL`)
+   - `BLOB_READ_WRITE_TOKEN` (legacy delete untuk file Vercel lama)
    - `JWT_SECRET`
 4. Deploy!
 

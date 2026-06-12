@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
 import { fileTypeFromBuffer } from "file-type"
+import { uploadObject } from "@/lib/storage"
 import { verifyAktaDocument } from "@/lib/akta-verification"
 import { isAktaOcrEnabled } from "@/lib/ocr-config"
 import { TimeoutError, withTimeout } from "@/lib/with-timeout"
@@ -41,14 +41,11 @@ export async function POST(request: NextRequest) {
     const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80)
     const filename = `documents/${Date.now()}-${baseName || "akta"}.pdf`
 
-    let blob
+    let uploaded
     try {
-      blob = await put(filename, buffer, {
-        access: "public",
-        contentType: "application/pdf",
-      })
+      uploaded = await uploadObject(filename, buffer, "application/pdf")
     } catch (blobError) {
-      console.error("Akta blob upload error:", blobError)
+      console.error("Akta storage upload error:", blobError)
       return NextResponse.json(
         { error: "Gagal menyimpan akta. Periksa konfigurasi penyimpanan file." },
         { status: 500 },
@@ -86,14 +83,14 @@ export async function POST(request: NextRequest) {
     if (verification.verified) {
       return NextResponse.json({
         verified: true,
-        url: blob.url,
+        url: uploaded.url,
         message: "Akta berhasil diverifikasi otomatis",
       })
     }
 
     return NextResponse.json({
       verified: false,
-      url: blob.url,
+      url: uploaded.url,
       warning:
         verification.reason ||
         "Verifikasi otomatis akta gagal. Dokumen tetap disimpan dan akan direview admin.",

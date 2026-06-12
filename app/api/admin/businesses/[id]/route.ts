@@ -3,7 +3,7 @@ import { sql } from "@/lib/sql"
 import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
 import { getOrUpdateScore } from "@/lib/connect-score"
 import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
-import { del } from "@vercel/blob"
+import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
 
 // Check if admin has access to a specific business based on location scope
 async function checkBusinessAccess(user: any, businessLocationId: number | null): Promise<boolean> {
@@ -260,23 +260,21 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // Get product images
     const productImages = await sql`SELECT * FROM product_images WHERE business_id = ${id}`
 
-    // Delete images from blob storage
     const imagesToDelete: string[] = []
-    if (business.logo_url && business.logo_url.includes("blob.vercel-storage.com")) {
+    if (business.logo_url && isDeletableStorageUrl(business.logo_url)) {
       imagesToDelete.push(business.logo_url)
     }
     for (const img of productImages) {
-      if (img.image_url && img.image_url.includes("blob.vercel-storage.com")) {
+      if (img.image_url && isDeletableStorageUrl(img.image_url)) {
         imagesToDelete.push(img.image_url)
       }
     }
 
-    // Delete from blob storage (best effort)
     for (const url of imagesToDelete) {
       try {
-        await del(url)
+        await deleteObject(url)
       } catch (e) {
-        console.error("Failed to delete blob:", url, e)
+        console.error("Failed to delete stored file:", url, e)
       }
     }
 
