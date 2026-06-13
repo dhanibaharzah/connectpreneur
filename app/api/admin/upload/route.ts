@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put, del } from "@vercel/blob"
 import { getSessionFromRequest } from "@/lib/auth"
+import { deleteObject, isDeletableStorageUrl, uploadObject } from "@/lib/storage"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 
@@ -18,11 +18,6 @@ type AllowedFolder = typeof ALLOWED_FOLDERS[number]
 // Allowed MIME types (validated by magic bytes)
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const
 const ALLOWED_PDF_TYPE = "application/pdf"
-
-// Whitelist of allowed blob storage hostnames
-const ALLOWED_HOSTS = [
-  "blob.vercel-storage.com",
-]
 
 function sanitizeFolder(folder: string): AllowedFolder {
   // Remove any path traversal attempts
@@ -42,35 +37,6 @@ function sanitizeFilename(filename: string): string {
   const baseName = filename.replace(/\.[^/.]+$/, "")
   // Only allow alphanumeric, underscore, hyphen
   return baseName.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 100)
-}
-
-function isValidBlobUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    
-    // Check protocol
-    if (parsed.protocol !== "https:") {
-      return false
-    }
-    
-    // Check hostname - must end with allowed host (handles subdomains)
-    const isAllowedHost = ALLOWED_HOSTS.some(host => 
-      parsed.hostname === host || parsed.hostname.endsWith(`.${host}`)
-    )
-    
-    if (!isAllowedHost) {
-      return false
-    }
-    
-    // Check for path traversal attempts
-    if (parsed.pathname.includes("..")) {
-      return false
-    }
-    
-    return true
-  } catch {
-    return false
-  }
 }
 
 async function compressImage(buffer: Buffer, mimeType: string): Promise<Buffer> {
@@ -148,16 +114,13 @@ export async function POST(request: NextRequest) {
       // PDF: upload directly without compression
       const filename = `${folder}/${Date.now()}-${baseName}.pdf`
 
-      const blob = await put(filename, buffer, {
-        access: "public",
-        contentType: "application/pdf",
-      })
+      const uploaded = await uploadObject(filename, buffer, "application/pdf")
 
       console.log(`[Upload] PDF: ${(file.size / 1024).toFixed(1)}KB`)
 
       return NextResponse.json({
         success: true,
-        url: blob.url,
+        url: uploaded.url,
         filename: filename,
         originalSize: file.size,
       })
@@ -170,16 +133,14 @@ export async function POST(request: NextRequest) {
     const outputExt = detectedType.mime === "image/png" ? ".webp" : ".jpg"
     const filename = `${folder}/${Date.now()}-${baseName}${outputExt}`
 
-    const blob = await put(filename, compressedBuffer, {
-      access: "public",
-      contentType: detectedType.mime === "image/png" ? "image/webp" : "image/jpeg",
-    })
+    const contentType = detectedType.mime === "image/png" ? "image/webp" : "image/jpeg"
+    const uploaded = await uploadObject(filename, compressedBuffer, contentType)
 
     console.log(`[Upload] Original: ${(file.size / 1024).toFixed(1)}KB -> Compressed: ${(compressedBuffer.length / 1024).toFixed(1)}KB`)
 
     return NextResponse.json({
       success: true,
-      url: blob.url,
+      url: uploaded.url,
       filename: filename,
       originalSize: file.size,
       compressedSize: compressedBuffer.length,
@@ -203,12 +164,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "URL tidak ditemukan" }, { status: 400 })
     }
 
-    // Validate URL properly
-    if (!isValidBlobUrl(url)) {
+    if (!isDeletableStorageUrl(url)) {
       return NextResponse.json({ error: "URL tidak valid" }, { status: 400 })
     }
 
-    await del(url)
+    await deleteObject(url)
 
     return NextResponse.json({ success: true })
   } catch (error) {

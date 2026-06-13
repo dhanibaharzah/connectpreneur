@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
+import { uploadObject } from "@/lib/storage"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 
@@ -108,16 +108,13 @@ export async function POST(request: NextRequest) {
       // PDF: upload directly without compression
       const filename = `${folder}/${Date.now()}-${baseName}.pdf`
 
-      const blob = await put(filename, buffer, {
-        access: "public",
-        contentType: "application/pdf",
-      })
+      const uploaded = await uploadObject(filename, buffer, "application/pdf")
 
       console.log(`[Upload] PDF: ${(file.size / 1024).toFixed(1)}KB`)
 
       return NextResponse.json({
         success: true,
-        url: blob.url,
+        url: uploaded.url,
         filename: filename,
         originalSize: file.size,
       })
@@ -130,16 +127,14 @@ export async function POST(request: NextRequest) {
     const outputExt = detectedType.mime === "image/png" ? ".webp" : ".jpg"
     const filename = `${folder}/${Date.now()}-${baseName}${outputExt}`
 
-    const blob = await put(filename, compressedBuffer, {
-      access: "public",
-      contentType: detectedType.mime === "image/png" ? "image/webp" : "image/jpeg",
-    })
+    const contentType = detectedType.mime === "image/png" ? "image/webp" : "image/jpeg"
+    const uploaded = await uploadObject(filename, compressedBuffer, contentType)
 
     console.log(`[Upload] Original: ${(file.size / 1024).toFixed(1)}KB -> Compressed: ${(compressedBuffer.length / 1024).toFixed(1)}KB`)
 
     return NextResponse.json({
       success: true,
-      url: blob.url,
+      url: uploaded.url,
       filename: filename,
       originalSize: file.size,
       compressedSize: compressedBuffer.length,

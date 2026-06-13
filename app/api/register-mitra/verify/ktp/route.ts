@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
 import { fileTypeFromBuffer } from "file-type"
+import { uploadObject } from "@/lib/storage"
 import { verifyKtpDocument } from "@/lib/ktp-verification"
 import { isKtpOcrEnabled } from "@/lib/ocr-config"
 import { TimeoutError, withTimeout } from "@/lib/with-timeout"
@@ -49,14 +49,11 @@ export async function POST(request: NextRequest) {
     const ext = detectedType.mime === "image/png" ? "png" : detectedType.mime === "image/webp" ? "webp" : "jpg"
     const filename = `documents/ktp/${Date.now()}-ktp.${ext}`
 
-    let blob
+    let uploaded
     try {
-      blob = await put(filename, buffer, {
-        access: "public",
-        contentType: detectedType.mime,
-      })
+      uploaded = await uploadObject(filename, buffer, detectedType.mime)
     } catch (blobError) {
-      console.error("KTP blob upload error:", blobError)
+      console.error("KTP storage upload error:", blobError)
       return NextResponse.json(
         { error: "Gagal menyimpan KTP. Periksa konfigurasi penyimpanan file." },
         { status: 500 },
@@ -94,14 +91,14 @@ export async function POST(request: NextRequest) {
     if (verification.verified) {
       return NextResponse.json({
         verified: true,
-        url: blob.url,
+        url: uploaded.url,
         message: "KTP berhasil diverifikasi otomatis",
       })
     }
 
     return NextResponse.json({
       verified: false,
-      url: blob.url,
+      url: uploaded.url,
       warning:
         verification.reason ||
         "Verifikasi otomatis KTP gagal. Dokumen tetap disimpan dan akan direview admin.",

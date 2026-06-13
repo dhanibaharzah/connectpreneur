@@ -41,18 +41,14 @@ import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import { trackEvent } from "@/lib/analytics/client"
 import { RfqRequestModal } from "@/components/rfq-request-modal"
 import { cn } from "@/lib/utils"
+import { isAllowedImageHost } from "@/lib/storage-urls"
 
 type DetailTab = "products" | "about" | "gallery" | "info" | "contact" | "kemitraan"
 
 function isValidImageUrl(url: string): boolean {
   if (!url) return false
-  const isDirectImage = url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
-  const isBlobUrl =
-    url.includes("blob.v0.app") || url.includes("blob.vercel-storage.com") || url.includes("vusercontent.net")
-  const isPlaceholder = url.includes("placeholder.svg")
-  const isLocalImage = url.startsWith("/images/") || url.startsWith("/public/") || url.startsWith("/")
-
-  return isDirectImage || isBlobUrl || isPlaceholder || isLocalImage
+  if (isAllowedImageHost(url)) return true
+  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
 function shouldShowBranch(jumlahCabang: string | undefined): boolean {

@@ -15,6 +15,7 @@ import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
 import LegalitasConfirmDialog from "@/components/legalitas-confirm-dialog"
+import { isDeletableStorageUrl } from "@/lib/storage-urls"
 
 interface ProductImage {
   url: string
@@ -173,7 +174,7 @@ export default function DaftarMitraPage() {
     const imageToRemove = productImages[index]
     
     // Delete from blob storage if it's a blob URL
-    if (imageToRemove && imageToRemove.url && imageToRemove.url.includes("blob.vercel-storage.com")) {
+    if (imageToRemove && imageToRemove.url && isDeletableStorageUrl(imageToRemove.url)) {
       try {
         await fetch("/api/register-mitra/upload/delete", {
           method: "POST",
@@ -190,7 +191,7 @@ export default function DaftarMitraPage() {
 
   const handleRemoveLogo = async () => {
     // Delete from blob storage if it's a blob URL
-    if (form.logo_url && form.logo_url.includes("blob.vercel-storage.com")) {
+    if (form.logo_url && isDeletableStorageUrl(form.logo_url)) {
       try {
         await fetch("/api/register-mitra/upload/delete", {
           method: "POST",
@@ -268,7 +269,7 @@ export default function DaftarMitraPage() {
   }
 
   const handleRemoveKtp = async () => {
-    if (form.ktp_url && form.ktp_url.includes("blob.vercel-storage.com")) {
+    if (form.ktp_url && isDeletableStorageUrl(form.ktp_url)) {
       try {
         await fetch("/api/register-mitra/upload/delete", {
           method: "POST",
@@ -390,7 +391,7 @@ export default function DaftarMitraPage() {
 
   const handleRemovePdf = async (field: "akta_pendirian_url" | "legalitas_url") => {
     const url = form[field]
-    if (url && url.includes("blob.vercel-storage.com")) {
+    if (url && isDeletableStorageUrl(url)) {
       try {
         await fetch("/api/register-mitra/upload/delete", {
           method: "POST",

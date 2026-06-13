@@ -35,9 +35,12 @@ describe("parseProductImageUrl", () => {
     expect(parseProductImageUrl(null)).toBe("")
   })
 
-  it("validates blob urls", () => {
+  it("validates managed storage urls", () => {
     expect(
       isValidProductImageUrl("https://abc.blob.vercel-storage.com/products/test.jpg"),
+    ).toBe(true)
+    expect(
+      isValidProductImageUrl("https://pub-abc123.r2.dev/products/test.jpg"),
     ).toBe(true)
     expect(parseProductImageUrl("https://evil.example.com/x.jpg")).toBeNull()
   })
