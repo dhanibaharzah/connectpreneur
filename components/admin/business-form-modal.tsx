@@ -15,7 +15,6 @@ import { Upload, X, Loader2, Plus } from "lucide-react"
 import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
-import LegalitasConfirmDialog from "@/components/legalitas-confirm-dialog"
 import { isDeletableStorageUrl } from "@/lib/storage-urls"
 
 interface BusinessFormModalProps {
@@ -56,7 +55,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
   const [uploadingProduct, setUploadingProduct] = useState(false)
   const [uploadingAkta, setUploadingAkta] = useState(false)
   const [uploadingLegalitas, setUploadingLegalitas] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const productInputRef = useRef<HTMLInputElement>(null)
   const aktaInputRef = useRef<HTMLInputElement>(null)
@@ -373,7 +371,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       return
     }
 
-    setShowConfirmDialog(true)
+    doSubmit()
   }
 
   const doSubmit = async () => {
@@ -403,7 +401,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       const data = await res.json()
 
       if (res.ok) {
-        setShowConfirmDialog(false)
         onSuccess()
       } else {
         alert(data.error || "Gagal menyimpan bisnis")
@@ -863,13 +860,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
           </DialogFooter>
         </form>
       </DialogContent>
-
-      <LegalitasConfirmDialog
-        open={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
-        onConfirm={doSubmit}
-        loading={loading}
-      />
     </Dialog>
   )
 }

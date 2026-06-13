@@ -7,6 +7,7 @@ import Link from "next/link"
 import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
 import { cn } from "@/lib/utils"
 import { isAllowedImageHost } from "@/lib/storage-urls"
+import { htmlToPlainText } from "@/lib/html-text"
 
 interface BusinessCardProps {
   business: Business
@@ -18,16 +19,11 @@ function isValidImageUrl(url: string): boolean {
   return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
-function stripHtml(html: string): string {
-  if (!html) return ""
-  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
-}
-
 export function BusinessCard({ business }: BusinessCardProps) {
   const logoUrl = business.logoUrl
   const hasValidLogo = isValidImageUrl(logoUrl)
   const detailHref = `/bisnis/${business.slug}`
-  const description = stripHtml(business.deskripsi)
+  const description = htmlToPlainText(business.deskripsi)
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">

@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { sanitizeHTML, sanitizeURL } from "@/lib/sanitize"
+import { htmlToPlainText } from "@/lib/html-text"
 import {
   MapPin,
   Clock,
@@ -56,11 +57,6 @@ function shouldShowBranch(jumlahCabang: string | undefined): boolean {
   if (jumlahCabang === "-" || jumlahCabang === "0") return false
   if (jumlahCabang.toLowerCase().includes("tidak ada")) return false
   return true
-}
-
-function stripHtml(html: string): string {
-  if (!html) return ""
-  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
 }
 
 function formatSocialDisplay(url: string): string {
@@ -134,7 +130,7 @@ function BusinessDescriptionPreview({ html }: { html: string }) {
     return () => window.removeEventListener("resize", checkOverflow)
   }, [html, expanded])
 
-  if (!stripHtml(html)) return null
+  if (!htmlToPlainText(html)) return null
 
   return (
     <div>
@@ -390,7 +386,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
   const galleryImages = hasValidLogo ? [business.logoUrl, ...validImages] : validImages
   const hasGallery = galleryImages.length > 0
   const hasProducts = business.products.length > 0
-  const hasKemitraan = Boolean(stripHtml(business.deskripsiKemitraan) || business.linkKemitraan)
+  const hasKemitraan = Boolean(htmlToPlainText(business.deskripsiKemitraan) || business.linkKemitraan)
   const hasContact =
     Boolean(business.namaPIC || business.jabatanPIC) ||
     Boolean(business.website && sanitizeURL(business.website)) ||
@@ -710,7 +706,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
                   <Handshake className="h-5 w-5 text-primary" />
                   <h2 className="text-xl font-bold text-foreground">Program Kemitraan</h2>
                 </div>
-                {stripHtml(business.deskripsiKemitraan) && (
+                {htmlToPlainText(business.deskripsiKemitraan) && (
                   <>
                     <div
                       className={cn(

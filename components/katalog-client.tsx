@@ -24,6 +24,7 @@ import {
   type ConnectScoreTierFilter as ConnectScoreTierFilterValue,
 } from "@/lib/connect-score-tier"
 import { cn } from "@/lib/utils"
+import { htmlToPlainText } from "@/lib/html-text"
 
 const MOBILE_PAGE_SIZE = 5
 const DESKTOP_PAGE_SIZE = 12
@@ -48,11 +49,6 @@ const SORT_LABELS: Record<SortOption, string> = {
   default: "Urutkan",
   name_asc: "Nama A–Z",
   score_desc: "ConnectScore Tertinggi",
-}
-
-function stripHtml(html: string): string {
-  if (!html) return ""
-  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
 }
 
 const FilterDropdownTrigger = forwardRef<
@@ -132,7 +128,7 @@ export function KatalogClient({ businesses, categories }: KatalogClientProps) {
     const list = businesses.filter((business) => {
       const matchesSearch =
         business.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        stripHtml(business.deskripsi).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        htmlToPlainText(business.deskripsi).toLowerCase().includes(searchQuery.toLowerCase()) ||
         business.kotaProvinsi.toLowerCase().includes(searchQuery.toLowerCase()) ||
         business.jenisUsaha.toLowerCase().includes(searchQuery.toLowerCase())
 
