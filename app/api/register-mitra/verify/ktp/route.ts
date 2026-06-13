@@ -3,19 +3,14 @@ import { fileTypeFromBuffer } from "file-type"
 import { uploadObject } from "@/lib/storage"
 import { verifyKtpDocument } from "@/lib/ktp-verification"
 import { isKtpOcrEnabled } from "@/lib/ocr-config"
-import { TimeoutError, withTimeout } from "@/lib/with-timeout"
+import { isOcrServiceConfigured } from "@/lib/ocr-service"
 
 const MAX_KTP_SIZE = 5 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
-/** Stay under Vercel Hobby 10s wall; Pro can raise via KTP_HANDLER_DEADLINE_MS */
-const HANDLER_DEADLINE_MS = Number(process.env.KTP_HANDLER_DEADLINE_MS ?? 9_000)
-const MIN_OCR_BUDGET_MS = Number(process.env.KTP_MIN_OCR_BUDGET_MS ?? 6_000)
 const OCR_SKIPPED_REASON =
   "Dokumen KTP tersimpan. Verifikasi otomatis tidak berhasil. Admin akan mereview."
 
 export async function POST(request: NextRequest) {
-  const startedAt = Date.now()
-
   try {
     const formData = await request.formData()
     const file = formData.get("file")
@@ -47,45 +42,31 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = detectedType.mime === "image/png" ? "png" : detectedType.mime === "image/webp" ? "webp" : "jpg"
-    const filename = `documents/ktp/${Date.now()}-ktp.${ext}`
+    const storagePath = `documents/ktp/${Date.now()}-ktp.${ext}`
+    const ocrEnabled = isKtpOcrEnabled() && isOcrServiceConfigured()
 
-    let uploaded
+    let uploaded: Awaited<ReturnType<typeof uploadObject>>
+    let verification: Awaited<ReturnType<typeof verifyKtpDocument>>
+
     try {
-      uploaded = await uploadObject(filename, buffer, detectedType.mime)
+      if (ocrEnabled) {
+        ;[uploaded, verification] = await Promise.all([
+          uploadObject(storagePath, buffer, detectedType.mime),
+          verifyKtpDocument(buffer, namaPic, {
+            mimeType: detectedType.mime,
+            filename: `ktp.${ext}`,
+          }),
+        ])
+      } else {
+        uploaded = await uploadObject(storagePath, buffer, detectedType.mime)
+        verification = { verified: false, reason: OCR_SKIPPED_REASON }
+      }
     } catch (blobError) {
       console.error("KTP storage upload error:", blobError)
       return NextResponse.json(
         { error: "Gagal menyimpan KTP. Periksa konfigurasi penyimpanan file." },
         { status: 500 },
       )
-    }
-
-    const ocrEnabled = isKtpOcrEnabled()
-    const ocrBudget = HANDLER_DEADLINE_MS - (Date.now() - startedAt) - 400
-
-    let verification: Awaited<ReturnType<typeof verifyKtpDocument>>
-    if (!ocrEnabled || ocrBudget < MIN_OCR_BUDGET_MS) {
-      console.warn(
-        `KTP OCR skipped (enabled=${ocrEnabled}, budgetMs=${ocrBudget}, min=${MIN_OCR_BUDGET_MS})`,
-      )
-      verification = { verified: false, reason: OCR_SKIPPED_REASON }
-    } else {
-      try {
-        verification = await withTimeout(
-          verifyKtpDocument(buffer, namaPic),
-          ocrBudget,
-          "KTP verify",
-        )
-      } catch (error) {
-        console.error("KTP verify timeout:", error)
-        verification = {
-          verified: false,
-          reason:
-            error instanceof TimeoutError
-              ? "Verifikasi otomatis membutuhkan waktu terlalu lama. Dokumen tetap disimpan dan akan direview admin."
-              : "Gagal membaca KTP. Dokumen tetap disimpan dan akan direview admin.",
-        }
-      }
     }
 
     if (verification.verified) {
@@ -111,5 +92,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
-export const maxDuration = 60

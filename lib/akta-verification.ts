@@ -1,75 +1,59 @@
-import { ensureDomPolyfills } from "@/lib/dom-polyfills"
-import { namesMatch } from "@/lib/name-matching"
-import { ocrImageBuffer } from "@/lib/ocr-image"
+import {
+  isOcrServiceConfigured,
+  isOcrServiceTimeoutError,
+  OcrServiceError,
+  verifyDocumentWithOcrService,
+} from "@/lib/ocr-service"
 
 export type VerificationResult =
   | { verified: true }
   | { verified: false; reason: string }
 
-async function extractPdfText(buffer: Buffer): Promise<string> {
-  ensureDomPolyfills()
-  const { PDFParse } = await import("pdf-parse")
-
-  const parser = new PDFParse({ data: new Uint8Array(buffer) })
-  try {
-    const result = await parser.getText({ first: 5 })
-    const text = result.text?.trim() ?? ""
-    if (text.length >= 30) return text
-
-    const screenshot = await parser.getScreenshot({
-      first: 3,
-      scale: 2,
-      imageBuffer: true,
-    })
-
-    const ocrChunks: string[] = []
-    for (const page of screenshot.pages) {
-      if (page.data) {
-        ocrChunks.push(await ocrImageBuffer(Buffer.from(page.data)))
-      }
-    }
-
-    return [text, ...ocrChunks].filter(Boolean).join("\n")
-  } finally {
-    await parser.destroy()
-  }
-}
+const AKTA_VERIFY_FAIL_REASON =
+  "Dokumen Akta tersimpan. Verifikasi otomatis tidak berhasil. Admin akan mereview."
 
 export async function verifyAktaDocument(
   pdfBuffer: Buffer,
   expectedOwnerName: string,
+  options?: { filename?: string },
 ): Promise<VerificationResult> {
   const trimmedName = expectedOwnerName.trim()
   if (!trimmedName) {
     return { verified: false, reason: "Nama PIC harus diisi sebelum verifikasi akta" }
   }
 
-  let text: string
+  if (!isOcrServiceConfigured()) {
+    return {
+      verified: false,
+      reason: "Verifikasi otomatis akta belum dikonfigurasi di server.",
+    }
+  }
+
   try {
-    text = await extractPdfText(pdfBuffer)
+    const result = await verifyDocumentWithOcrService({
+      buffer: pdfBuffer,
+      expectedText: trimmedName,
+      filename: options?.filename ?? "akta.pdf",
+      mimeType: "application/pdf",
+    })
+
+    if (!result.verified) {
+      return { verified: false, reason: AKTA_VERIFY_FAIL_REASON }
+    }
+
+    return { verified: true }
   } catch (error) {
-    console.error("Akta text extraction error:", error)
-    return {
-      verified: false,
-      reason: "Dokumen Akta tersimpan. Verifikasi otomatis tidak berhasil. Admin akan mereview.",
+    console.error("Akta OCR service error:", error)
+    if (isOcrServiceTimeoutError(error)) {
+      return {
+        verified: false,
+        reason:
+          "Verifikasi otomatis membutuhkan waktu terlalu lama. Dokumen tetap disimpan dan akan direview admin.",
+      }
     }
-  }
-
-  if (text.trim().length < 20) {
-    return {
-      verified: false,
-      reason:
-        "Teks akta tidak terbaca. Unggah PDF dengan kualitas scan lebih baik atau file yang memiliki teks dapat dibaca.",
+    if (error instanceof OcrServiceError) {
+      return { verified: false, reason: AKTA_VERIFY_FAIL_REASON }
     }
+    return { verified: false, reason: AKTA_VERIFY_FAIL_REASON }
   }
-
-  if (!namesMatch(trimmedName, text)) {
-    return {
-      verified: false,
-      reason:
-        "Nama pemilik di akta tidak cocok dengan Nama PIC. Pastikan akta sesuai dan Nama PIC sama dengan KTP.",
-    }
-  }
-
-  return { verified: true }
 }

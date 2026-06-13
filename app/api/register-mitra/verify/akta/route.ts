@@ -3,17 +3,13 @@ import { fileTypeFromBuffer } from "file-type"
 import { uploadObject } from "@/lib/storage"
 import { verifyAktaDocument } from "@/lib/akta-verification"
 import { isAktaOcrEnabled } from "@/lib/ocr-config"
-import { TimeoutError, withTimeout } from "@/lib/with-timeout"
+import { isOcrServiceConfigured } from "@/lib/ocr-service"
 
 const MAX_PDF_SIZE = 10 * 1024 * 1024
-const HANDLER_DEADLINE_MS = Number(process.env.AKTA_HANDLER_DEADLINE_MS ?? 25_000)
-const MIN_OCR_BUDGET_MS = Number(process.env.AKTA_MIN_OCR_BUDGET_MS ?? 8_000)
 const OCR_SKIPPED_REASON =
   "Dokumen akta tersimpan. Verifikasi otomatis tidak dijalankan (batas waktu server). Admin akan mereview."
 
 export async function POST(request: NextRequest) {
-  const startedAt = Date.now()
-
   try {
     const formData = await request.formData()
     const file = formData.get("file")
@@ -39,45 +35,30 @@ export async function POST(request: NextRequest) {
     }
 
     const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80)
-    const filename = `documents/${Date.now()}-${baseName || "akta"}.pdf`
+    const storagePath = `documents/${Date.now()}-${baseName || "akta"}.pdf`
+    const ocrEnabled = isAktaOcrEnabled() && isOcrServiceConfigured()
 
-    let uploaded
+    let uploaded: Awaited<ReturnType<typeof uploadObject>>
+    let verification: Awaited<ReturnType<typeof verifyAktaDocument>>
+
     try {
-      uploaded = await uploadObject(filename, buffer, "application/pdf")
+      if (ocrEnabled) {
+        ;[uploaded, verification] = await Promise.all([
+          uploadObject(storagePath, buffer, "application/pdf"),
+          verifyAktaDocument(buffer, namaPic, {
+            filename: `${baseName || "akta"}.pdf`,
+          }),
+        ])
+      } else {
+        uploaded = await uploadObject(storagePath, buffer, "application/pdf")
+        verification = { verified: false, reason: OCR_SKIPPED_REASON }
+      }
     } catch (blobError) {
       console.error("Akta storage upload error:", blobError)
       return NextResponse.json(
         { error: "Gagal menyimpan akta. Periksa konfigurasi penyimpanan file." },
         { status: 500 },
       )
-    }
-
-    const ocrEnabled = isAktaOcrEnabled()
-    const ocrBudget = HANDLER_DEADLINE_MS - (Date.now() - startedAt) - 400
-
-    let verification: Awaited<ReturnType<typeof verifyAktaDocument>>
-    if (!ocrEnabled || ocrBudget < MIN_OCR_BUDGET_MS) {
-      console.warn(
-        `Akta OCR skipped (enabled=${ocrEnabled}, budgetMs=${ocrBudget}, min=${MIN_OCR_BUDGET_MS})`,
-      )
-      verification = { verified: false, reason: OCR_SKIPPED_REASON }
-    } else {
-      try {
-        verification = await withTimeout(
-          verifyAktaDocument(buffer, namaPic),
-          ocrBudget,
-          "Akta verify",
-        )
-      } catch (error) {
-        console.error("Akta verify timeout:", error)
-        verification = {
-          verified: false,
-          reason:
-            error instanceof TimeoutError
-              ? "Verifikasi otomatis membutuhkan waktu terlalu lama. Dokumen tetap disimpan dan akan direview admin."
-              : "Gagal membaca akta. Dokumen tetap disimpan dan akan direview admin.",
-        }
-      }
     }
 
     if (verification.verified) {
@@ -103,5 +84,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
-export const maxDuration = 60

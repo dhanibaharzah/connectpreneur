@@ -1,4 +1,4 @@
-/** Ubah nilai lalu redeploy. Di Vercel Hobby tetap false (batas 10s); Pro bisa true. */
+/** Ubah nilai lalu redeploy. OCR memakai OCR_SERVICE_URL + OCR_SERVICE_API_KEY. */
 export const KTP_OCR_ENABLED = true
 export const AKTA_OCR_ENABLED = true
 
