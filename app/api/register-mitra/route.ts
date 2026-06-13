@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
       ktp_url,
       akta_pendirian_url,
       legalitas_url,
+      ktp_ocr_verified: clientKtpOcrVerified,
+      akta_ocr_verified: clientAktaOcrVerified,
     } = body
 
     if (!nama || !slug) {
@@ -65,28 +67,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Slug sudah digunakan, silakan pilih nama lain" }, { status: 400 })
     }
 
-    const ktpBuffer = await fetchDocumentBuffer(ktp_url)
+    const ktpVerification =
+      clientKtpOcrVerified === true
+        ? ({ verified: true } as const)
+        : isKtpOcrEnabled()
+          ? await verifyKtpDocument(await fetchDocumentBuffer(ktp_url), nama_pic)
+          : {
+              verified: false as const,
+              reason: "Verifikasi otomatis KTP tidak dijalankan di server production.",
+            }
 
-    const ktpVerification = isKtpOcrEnabled()
-      ? await verifyKtpDocument(ktpBuffer, nama_pic)
-      : {
-          verified: false as const,
-          reason: "Verifikasi otomatis KTP tidak dijalankan di server production.",
-        }
-
-    const aktaVerification = akta_pendirian_url
-      ? isAktaOcrEnabled()
-        ? await verifyAktaDocument(await fetchDocumentBuffer(akta_pendirian_url), nama_pic)
-        : {
-            verified: false as const,
-            reason: "Verifikasi otomatis akta tidak dijalankan di server production.",
-          }
-      : {
+    const aktaVerification = !akta_pendirian_url
+      ? {
           verified: false as const,
           reason: "Akta Pendirian belum diupload.",
         }
+      : clientAktaOcrVerified === true
+        ? ({ verified: true } as const)
+        : isAktaOcrEnabled()
+          ? await verifyAktaDocument(await fetchDocumentBuffer(akta_pendirian_url), nama_pic)
+          : {
+              verified: false as const,
+              reason: "Verifikasi otomatis akta tidak dijalankan di server production.",
+            }
 
-    const autoApproved = ktpVerification.verified && aktaVerification.verified
+    const autoApproved =
+      ktpVerification.verified && (!akta_pendirian_url || aktaVerification.verified)
 
     const result = await sql`
       INSERT INTO businesses (

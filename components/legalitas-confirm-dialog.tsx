@@ -7,6 +7,8 @@ import { Loader2 } from "lucide-react"
 interface RegistrationContext {
   hasAktaDocument: boolean
   hasLegalitasDocument: boolean
+  ktpOcrVerified: boolean
+  aktaOcrVerified: boolean
 }
 
 interface LegalitasConfirmDialogProps {
@@ -24,6 +26,11 @@ export default function LegalitasConfirmDialog({
   loading = false,
   registrationContext,
 }: LegalitasConfirmDialogProps) {
+  const ktpVerified = registrationContext?.ktpOcrVerified ?? false
+  const aktaVerified = registrationContext?.aktaOcrVerified ?? false
+  const hasAkta = registrationContext?.hasAktaDocument ?? false
+  const docsAutoVerified = ktpVerified && (!hasAkta || aktaVerified)
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
@@ -46,10 +53,18 @@ export default function LegalitasConfirmDialog({
               </div>
             )}
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 space-y-1">
-            <p>• Verifikasi KTP akan direview oleh tim admin.</p>
-            <p>• Status bisnis Anda akan <strong>under review</strong> hingga proses verifikasi selesai.</p>
-          </div>
+          {docsAutoVerified ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 space-y-1">
+              <p>• KTP{hasAkta ? " dan Akta" : ""} sudah terverifikasi otomatis.</p>
+              <p>• Bisnis Anda akan <strong>langsung aktif</strong> setelah pendaftaran dikirim.</p>
+            </div>
+          ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 space-y-1">
+              {!ktpVerified && <p>• Verifikasi KTP akan direview oleh tim admin.</p>}
+              {hasAkta && !aktaVerified && <p>• Verifikasi Akta akan direview oleh tim admin.</p>}
+              <p>• Status bisnis Anda akan <strong>under review</strong> hingga proses verifikasi selesai.</p>
+            </div>
+          )}
 
           <p className="text-sm text-muted-foreground">
             Pastikan data yang Anda isi sudah benar, lalu klik Kirim untuk menyelesaikan pendaftaran.

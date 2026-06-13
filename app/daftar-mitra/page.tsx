@@ -456,6 +456,8 @@ export default function DaftarMitraPage() {
         instagram: usernameToUrl(form.instagram, "instagram"),
         facebook: usernameToUrl(form.facebook, "facebook"),
         tiktok: usernameToUrl(form.tiktok, "tiktok"),
+        ktp_ocr_verified: ktpOcrVerified,
+        akta_ocr_verified: aktaOcrVerified,
       }
 
       const res = await fetch("/api/register-mitra", {
@@ -1038,7 +1040,9 @@ export default function DaftarMitraPage() {
                   <div className="bg-muted/50 rounded-lg p-4 mb-6">
                     <p className="text-sm text-muted-foreground">
                       <strong>Catatan:</strong> KTP wajib diupload. Akta dan legalitas perusahaan bersifat opsional saat pendaftaran awal.
-                      Verifikasi KTP akan direview admin dan status bisnis akan under review hingga diverifikasi.
+                      {ktpOcrVerified && (!form.akta_pendirian_url || aktaOcrVerified)
+                        ? " Jika verifikasi otomatis berhasil, bisnis langsung aktif setelah daftar."
+                        : " Jika verifikasi otomatis gagal, status bisnis under review hingga admin menyetujui."}
                     </p>
                   </div>
                   <Button
@@ -1070,6 +1074,8 @@ export default function DaftarMitraPage() {
         registrationContext={{
           hasAktaDocument: Boolean(form.akta_pendirian_url),
           hasLegalitasDocument: Boolean(form.legalitas_url),
+          ktpOcrVerified,
+          aktaOcrVerified,
         }}
       />
 
