@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { uploadObject } from "@/lib/storage"
+import { newStorageObjectId, uploadObject } from "@/lib/storage"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     if (isPDF) {
       // PDF: upload directly without compression
-      const filename = `${folder}/${Date.now()}-${baseName}.pdf`
+      const filename = `${folder}/${newStorageObjectId()}-${baseName}.pdf`
 
       const uploaded = await uploadObject(filename, buffer, "application/pdf")
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     
     // Determine output extension based on actual processing
     const outputExt = detectedType.mime === "image/png" ? ".webp" : ".jpg"
-    const filename = `${folder}/${Date.now()}-${baseName}${outputExt}`
+    const filename = `${folder}/${newStorageObjectId()}-${baseName}${outputExt}`
 
     const contentType = detectedType.mime === "image/png" ? "image/webp" : "image/jpeg"
     const uploaded = await uploadObject(filename, compressedBuffer, contentType)

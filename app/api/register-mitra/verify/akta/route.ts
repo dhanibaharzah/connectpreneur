@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { fileTypeFromBuffer } from "file-type"
-import { uploadObject } from "@/lib/storage"
+import { newStorageObjectId, uploadObject } from "@/lib/storage"
 import { verifyAktaDocument } from "@/lib/akta-verification"
 import { isAktaOcrEnabled } from "@/lib/ocr-config"
 import { isOcrServiceConfigured } from "@/lib/ocr-service"
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80)
-    const storagePath = `documents/${Date.now()}-${baseName || "akta"}.pdf`
+    const storagePath = `documents/${newStorageObjectId()}-${baseName || "akta"}.pdf`
     const ocrEnabled = isAktaOcrEnabled() && isOcrServiceConfigured()
 
     let uploaded: Awaited<ReturnType<typeof uploadObject>>

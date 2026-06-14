@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { del as deleteVercelBlob } from "@vercel/blob"
 import {
@@ -8,6 +9,10 @@ import {
 } from "@/lib/storage-urls"
 
 export { isDeletableStorageUrl, isManagedStorageUrl } from "@/lib/storage-urls"
+
+export function newStorageObjectId(): string {
+  return randomUUID()
+}
 
 function getR2Config() {
   const accountId = process.env.R2_ACCOUNT_ID

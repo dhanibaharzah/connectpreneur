@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import sharp from "sharp"
-import { uploadObject } from "@/lib/storage"
+import { newStorageObjectId, uploadObject } from "@/lib/storage"
 import { fileTypeFromBuffer } from "file-type"
 import { getValidToken, markTokenUsed } from "@/lib/transaction-tokens"
 import { getTransactionById, uploadPaymentProof } from "@/lib/transactions"
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       output = await sharp(buffer).jpeg({ quality: 80 }).toBuffer()
     }
 
-    const key = `transaksi/bukti-${transaction.referenceNo}-${Date.now()}.jpg`
+    const key = `transaksi/bukti-${transaction.referenceNo}-${newStorageObjectId()}.jpg`
     const uploaded = await uploadObject(key, output, "image/jpeg")
 
     const updated = await uploadPaymentProof(transaction.id, uploaded.url)

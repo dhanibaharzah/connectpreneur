@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { fileTypeFromBuffer } from "file-type"
-import { uploadObject } from "@/lib/storage"
+import { newStorageObjectId, uploadObject } from "@/lib/storage"
 import { verifyKtpDocument } from "@/lib/ktp-verification"
 import { isKtpOcrEnabled } from "@/lib/ocr-config"
 import { isOcrServiceConfigured } from "@/lib/ocr-service"
@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = detectedType.mime === "image/png" ? "png" : detectedType.mime === "image/webp" ? "webp" : "jpg"
-    const storagePath = `documents/ktp/${Date.now()}-ktp.${ext}`
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80)
+    const storagePath = `documents/ktp/${newStorageObjectId()}-${baseName || "ktp"}.${ext}`
     const ocrEnabled = isKtpOcrEnabled() && isOcrServiceConfigured()
 
     let uploaded: Awaited<ReturnType<typeof uploadObject>>
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
           uploadObject(storagePath, buffer, detectedType.mime),
           verifyKtpDocument(buffer, namaPic, {
             mimeType: detectedType.mime,
-            filename: `ktp.${ext}`,
+            filename: `${baseName || "ktp"}.${ext}`,
           }),
         ])
       } else {
