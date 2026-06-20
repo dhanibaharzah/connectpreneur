@@ -1,15 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
 import {
+  buyerHasTransactions,
   createPembeliSession,
-  findTransactionsByPhone,
   pembeliSessionCookieOptions,
+  resolveBuyerDisplayName,
   verifyPembeliOtpChallenge,
 } from "@/lib/pembeli-auth"
-import { getOrCreateBuyerProfileFromTransactions } from "@/lib/gamification"
+import { ensureBuyerProfile, getOrCreateBuyerProfileFromTransactions } from "@/lib/gamification"
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, otp } = await request.json()
+    const { phone, otp, displayName } = await request.json()
 
     if (!phone?.trim() || !otp?.trim()) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 })
@@ -20,21 +21,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "OTP tidak valid atau sudah kedaluwarsa" }, { status: 401 })
     }
 
-    const transactions = await findTransactionsByPhone(phone)
-    if (transactions.length === 0) {
-      return NextResponse.json({ error: "Transaksi tidak ditemukan" }, { status: 404 })
+    const hasTransactions = await buyerHasTransactions(phone)
+    let profile
+
+    if (hasTransactions) {
+      const resolvedName = await resolveBuyerDisplayName(phone, displayName)
+      profile = await getOrCreateBuyerProfileFromTransactions(phone)
+      profile = {
+        ...profile,
+        displayName: resolvedName || profile.displayName,
+      }
+    } else {
+      profile = await ensureBuyerProfile(phone, displayName?.trim() || null)
     }
 
-    const profile = await getOrCreateBuyerProfileFromTransactions(phone)
-    const displayName = profile.displayName ?? transactions[0].buyerName
-
-    const token = await createPembeliSession({ phone, displayName })
+    const sessionDisplayName = profile.displayName?.trim() || null
+    const token = await createPembeliSession({ phone, displayName: sessionDisplayName })
 
     const response = NextResponse.json({
       success: true,
       profile: {
         phone: profile.phone,
-        displayName,
+        displayName: sessionDisplayName,
         totalPoints: profile.totalPoints,
         badgeLevel: profile.badgeLevel,
         completedOrders: profile.completedOrders,

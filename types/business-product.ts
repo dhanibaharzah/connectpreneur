@@ -2,6 +2,7 @@ export type ProductTipeBisnis = "produk" | "jasa"
 
 export interface BusinessProduct {
   id: string
+  slug: string
   nama: string
   deskripsi: string
   imageUrl: string

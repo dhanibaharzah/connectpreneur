@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import {
+  generateUniqueProductSlug,
   getProductsForUmkm,
   parseHargaMulai,
   parseProductDeskripsi,
@@ -71,10 +72,12 @@ export async function POST(request: NextRequest) {
     WHERE business_id = ${session.businessId}
   `
 
+  const slug = await generateUniqueProductSlug(nama)
+
   const rows = await sql`
-    INSERT INTO business_products (business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order)
-    VALUES (${session.businessId}, ${nama}, ${deskripsi || null}, ${imageUrl || null}, ${hargaMulai}, ${tipeBisnis}, ${(max_order as number) + 1})
-    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
+    INSERT INTO business_products (business_id, slug, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order)
+    VALUES (${session.businessId}, ${slug}, ${nama}, ${deskripsi || null}, ${imageUrl || null}, ${hargaMulai}, ${tipeBisnis}, ${(max_order as number) + 1})
+    RETURNING id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
   `
 
   return NextResponse.json(

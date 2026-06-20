@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
 import {
+  generateUniqueProductSlug,
   parseHargaMulai,
   parseProductDeskripsi,
   parseProductImageUrl,
@@ -64,7 +65,7 @@ export async function PUT(
   }
 
   const existing = await sql`
-    SELECT image_url FROM business_products
+    SELECT nama, image_url FROM business_products
     WHERE id = ${productId} AND business_id = ${session.businessId}
   `
 
@@ -73,19 +74,38 @@ export async function PUT(
   }
 
   const previousImageUrl = existing[0].image_url as string | null
+  const previousNama = (existing[0].nama as string).trim()
+  const slug =
+    previousNama === nama
+      ? undefined
+      : await generateUniqueProductSlug(nama, productId)
 
-  const rows = await sql`
-    UPDATE business_products
-    SET
-      nama = ${nama},
-      deskripsi = ${deskripsi || null},
-      image_url = ${imageUrl || null},
-      harga_mulai = ${hargaMulai},
-      tipe_bisnis = ${tipeBisnis},
-      updated_at = NOW()
-    WHERE id = ${productId} AND business_id = ${session.businessId}
-    RETURNING id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
-  `
+  const rows = slug
+    ? await sql`
+        UPDATE business_products
+        SET
+          slug = ${slug},
+          nama = ${nama},
+          deskripsi = ${deskripsi || null},
+          image_url = ${imageUrl || null},
+          harga_mulai = ${hargaMulai},
+          tipe_bisnis = ${tipeBisnis},
+          updated_at = NOW()
+        WHERE id = ${productId} AND business_id = ${session.businessId}
+        RETURNING id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
+      `
+    : await sql`
+        UPDATE business_products
+        SET
+          nama = ${nama},
+          deskripsi = ${deskripsi || null},
+          image_url = ${imageUrl || null},
+          harga_mulai = ${hargaMulai},
+          tipe_bisnis = ${tipeBisnis},
+          updated_at = NOW()
+        WHERE id = ${productId} AND business_id = ${session.businessId}
+        RETURNING id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
+      `
 
   if (previousImageUrl && previousImageUrl !== (imageUrl || null)) {
     await deleteStoredFileIfNeeded(previousImageUrl)

@@ -1,4 +1,4 @@
-import { buyerPortalUrl, mitraPortalUrl } from "@/lib/app-url"
+import { belanjaPortalUrl, mitraPortalUrl } from "@/lib/app-url"
 import { formatCurrency } from "@/lib/transactions"
 import { normalizePhoneDigits } from "@/lib/phone"
 
@@ -200,7 +200,7 @@ export async function sendPointsEarnedToBuyer(params: {
 }): Promise<void> {
   const portalLine = params.portalUrl
     ? `\n\nLihat poin & transaksi: ${params.portalUrl}`
-    : `\n\nPortal pembeli: ${buyerPortalUrl()}`
+    : `\n\nPortal belanja: ${belanjaPortalUrl("/akun")}`
   const message = `Halo ${params.buyerName},
 
 Transaksi *${params.referenceNo}* selesai! Anda mendapat *+${params.pointsEarned} poin*.
@@ -237,7 +237,7 @@ export async function sendBuyerBadgeLevelUp(params: {
 
 Selamat! Badge Anda naik menjadi *${params.badgeLabel}* di ConnectPreneur.
 
-Portal pembeli: ${buyerPortalUrl()}`
+Portal belanja: ${belanjaPortalUrl("/akun")}`
 
   await sendWhatsAppMessage(params.phone, message)
 }

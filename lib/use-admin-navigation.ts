@@ -45,3 +45,7 @@ export function getMembersPath(): string {
 export function getTransaksiPath(): string {
   return getAdminPath("/admin/transaksi")
 }
+
+export function getBannerPath(): string {
+  return getAdminPath("/admin/banner")
+}

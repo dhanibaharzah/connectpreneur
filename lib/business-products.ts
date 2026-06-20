@@ -1,8 +1,10 @@
 import { sql } from "@/lib/sql"
+import { slugifyNameOrFallback } from "@/lib/slug"
 import type { BusinessProduct, ProductTipeBisnis } from "@/types/business-product"
 
 export interface DbBusinessProduct {
   id: number
+  slug: string
   business_id: number
   nama: string
   deskripsi: string | null
@@ -22,6 +24,7 @@ export function isValidProductImageUrl(url: string): boolean {
 export function transformDbProduct(row: DbBusinessProduct): BusinessProduct {
   return {
     id: String(row.id),
+    slug: row.slug,
     nama: row.nama,
     deskripsi: row.deskripsi?.trim() ?? "",
     imageUrl: row.image_url?.trim() ?? "",
@@ -30,9 +33,34 @@ export function transformDbProduct(row: DbBusinessProduct): BusinessProduct {
   }
 }
 
+export async function generateUniqueProductSlug(
+  nama: string,
+  excludeProductId?: number,
+): Promise<string> {
+  const base = slugifyNameOrFallback(nama, "produk")
+  let candidate = base
+  let suffix = 2
+
+  while (true) {
+    const rows =
+      excludeProductId != null
+        ? await sql`
+            SELECT 1 FROM business_products
+            WHERE slug = ${candidate} AND id <> ${excludeProductId}
+            LIMIT 1
+          `
+        : await sql`
+            SELECT 1 FROM business_products WHERE slug = ${candidate} LIMIT 1
+          `
+    if (rows.length === 0) return candidate
+    candidate = `${base}-${suffix}`
+    suffix += 1
+  }
+}
+
 export async function getProductsByBusinessId(businessId: number): Promise<BusinessProduct[]> {
   const rows = await sql`
-    SELECT id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
+    SELECT id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
     FROM business_products
     WHERE business_id = ${businessId} AND is_active = true
     ORDER BY sort_order ASC, id ASC
@@ -42,7 +70,7 @@ export async function getProductsByBusinessId(businessId: number): Promise<Busin
 
 export async function getProductsForUmkm(businessId: number): Promise<BusinessProduct[]> {
   const rows = await sql`
-    SELECT id, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
+    SELECT id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
     FROM business_products
     WHERE business_id = ${businessId}
     ORDER BY sort_order ASC, id ASC

@@ -12,7 +12,7 @@ const TARGET_HEIGHT = 800
 const JPEG_QUALITY = 75
 
 // Whitelist of allowed folders to prevent path traversal
-const ALLOWED_FOLDERS = ["uploads", "logos", "products", "mitra", "documents"] as const
+const ALLOWED_FOLDERS = ["uploads", "logos", "products", "mitra", "documents", "banners"] as const
 type AllowedFolder = typeof ALLOWED_FOLDERS[number]
 
 // Allowed MIME types (validated by magic bytes)

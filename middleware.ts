@@ -33,9 +33,29 @@ function redirectToMainSite(request: NextRequest): NextResponse {
   return NextResponse.redirect(target)
 }
 
+function redirectToBelanjaPortal(request: NextRequest): NextResponse {
+  const explicit = process.env.NEXT_PUBLIC_BELANJA_PORTAL_URL?.replace(/\/$/, "")
+  let belanjaBase = explicit
+  if (!belanjaBase) {
+    try {
+      const main = new URL(process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://connectpreneur.id")
+      const host = main.hostname.replace(/^www\./, "")
+      main.hostname = `belanja.${host}`
+      belanjaBase = main.origin
+    } catch {
+      belanjaBase = "https://belanja.connectpreneur.id"
+    }
+  }
+
+  const pathname = request.nextUrl.pathname
+  const targetPath = pathname === "/pembeli" || pathname === "/" ? "/akun" : pathname
+  const target = new URL(targetPath + request.nextUrl.search, belanjaBase)
+  return NextResponse.redirect(target, 301)
+}
+
 function handlePortalSubdomain(
   request: NextRequest,
-  portalPath: "/pembeli" | "/umkm",
+  portalPath: "/umkm",
   extraPaths: string[] = [],
 ): NextResponse | null {
   const url = request.nextUrl.clone()
@@ -67,20 +87,64 @@ function handlePortalSubdomain(
   return redirectToMainSite(request)
 }
 
+function handleBelanjaSubdomain(request: NextRequest): NextResponse | null {
+  const url = request.nextUrl.clone()
+  const pathname = url.pathname
+
+  if (shouldPassthrough(pathname)) {
+    return null
+  }
+
+  if (pathname === "/belanja") {
+    url.pathname = "/"
+    return NextResponse.redirect(url)
+  }
+
+  if (pathname === "/belanja/akun") {
+    url.pathname = "/akun"
+    return NextResponse.redirect(url)
+  }
+
+  if (pathname.startsWith("/belanja/produk/")) {
+    url.pathname = pathname.replace("/belanja", "")
+    return NextResponse.redirect(url)
+  }
+
+  if (pathname === "/akun") {
+    url.pathname = "/belanja/akun"
+    return NextResponse.rewrite(url)
+  }
+
+  if (pathname.startsWith("/produk/")) {
+    url.pathname = `/belanja${pathname}`
+    return NextResponse.rewrite(url)
+  }
+
+  if (pathname === "/") {
+    url.pathname = "/belanja"
+    return NextResponse.rewrite(url)
+  }
+
+  return redirectToMainSite(request)
+}
+
 export function middleware(request: NextRequest) {
   const hostname = getHostname(request)
   const url = request.nextUrl.clone()
   const isAdminSubdomain = hostname.startsWith("admin.")
-  const isBuyerSubdomain = hostname.startsWith("buyer.")
   const isMitraSubdomain = hostname.startsWith("mitra.")
 
-  if (isBuyerSubdomain) {
-    const response = handlePortalSubdomain(request, "/pembeli")
-    if (response) return response
+  if (hostname.startsWith("buyer.")) {
+    return redirectToBelanjaPortal(request)
   }
 
   if (isMitraSubdomain) {
     const response = handlePortalSubdomain(request, "/umkm", ["/cetak-qr"])
+    if (response) return response
+  }
+
+  if (hostname.startsWith("belanja.")) {
+    const response = handleBelanjaSubdomain(request)
     if (response) return response
   }
 

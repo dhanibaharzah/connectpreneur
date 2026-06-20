@@ -47,7 +47,21 @@ export function resolveDatabaseUrl(): string {
   return url
 }
 
-export const sql = neon(resolveDatabaseUrl())
+type SqlClient = ReturnType<typeof neon>
+
+let sqlClient: SqlClient | null = null
+
+function getSqlClient(): SqlClient {
+  if (!sqlClient) {
+    sqlClient = neon(resolveDatabaseUrl())
+  }
+  return sqlClient
+}
+
+/** Lazy-init so importing this module on the client does not throw at load time. */
+export function sql(strings: TemplateStringsArray, ...values: unknown[]) {
+  return getSqlClient()(strings, ...values)
+}
 
 export function isDbConnectionError(error: unknown): boolean {
   if (!(error instanceof Error)) return false

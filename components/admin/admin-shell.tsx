@@ -6,9 +6,9 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { LayoutDashboard, Building2, Users, LogOut, Receipt } from "lucide-react"
+import { LayoutDashboard, Building2, Users, LogOut, Receipt, ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getLoginPath, getDashboardPath, getMitraPath, getMembersPath, getTransaksiPath } from "@/lib/use-admin-navigation"
+import { getLoginPath, getDashboardPath, getMitraPath, getMembersPath, getTransaksiPath, getBannerPath } from "@/lib/use-admin-navigation"
 
 export interface AdminUser {
   id: number
@@ -28,6 +28,7 @@ function getNavItems(userRole: string) {
     { href: getDashboardPath(), label: "Dashboard", icon: LayoutDashboard, match: "/dashboard" },
     { href: getMitraPath(), label: "Mitra Bisnis", icon: Building2, match: "/mitra" },
     { href: getTransaksiPath(), label: "Transaksi", icon: Receipt, match: "/transaksi" },
+    { href: getBannerPath(), label: "Banner Belanja", icon: ImageIcon, match: "/banner" },
   ]
   if (userRole === "superadmin") {
     items.push({ href: getMembersPath(), label: "Anggota", icon: Users, match: "/members" })

@@ -300,7 +300,13 @@ export default function UmkmPortalPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       await loadDashboard(txPage)
-      closeTransactionPanel()
+      if (actionName === "approve") {
+        setExpandedId(id)
+        setRejectingId(null)
+        setInvoiceEditId(null)
+      } else {
+        closeTransactionPanel()
+      }
       setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
       setRejectReason("")
     } catch (err) {

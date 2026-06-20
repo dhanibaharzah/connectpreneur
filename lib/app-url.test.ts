@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest"
 import {
   appUrl,
+  belanjaPortalUrl,
   buyerPortalUrl,
   getAppBaseUrl,
+  getBelanjaPortalUrl,
   getBuyerPortalUrl,
   getMitraPortalUrl,
   mitraPortalUrl,
@@ -13,6 +15,7 @@ describe("getAppBaseUrl", () => {
     delete process.env.NEXT_PUBLIC_APP_URL
     delete process.env.NEXT_PUBLIC_BUYER_PORTAL_URL
     delete process.env.NEXT_PUBLIC_MITRA_PORTAL_URL
+    delete process.env.NEXT_PUBLIC_BELANJA_PORTAL_URL
   })
 
   it("uses NEXT_PUBLIC_APP_URL when set", () => {
@@ -41,11 +44,19 @@ describe("portal URLs", () => {
     delete process.env.NEXT_PUBLIC_APP_URL
     delete process.env.NEXT_PUBLIC_BUYER_PORTAL_URL
     delete process.env.NEXT_PUBLIC_MITRA_PORTAL_URL
+    delete process.env.NEXT_PUBLIC_BELANJA_PORTAL_URL
   })
 
-  it("derives buyer portal from main app URL", () => {
-    expect(getBuyerPortalUrl()).toBe("https://buyer.connectpreneur.id")
-    expect(buyerPortalUrl()).toBe("https://buyer.connectpreneur.id")
+  it("derives belanja portal from main app URL", () => {
+    expect(getBelanjaPortalUrl()).toBe("https://belanja.connectpreneur.id")
+    expect(belanjaPortalUrl()).toBe("https://belanja.connectpreneur.id")
+    expect(belanjaPortalUrl("/akun")).toBe("https://belanja.connectpreneur.id/akun")
+  })
+
+  it("aliases buyer portal to belanja", () => {
+    expect(getBuyerPortalUrl()).toBe("https://belanja.connectpreneur.id")
+    expect(buyerPortalUrl()).toBe("https://belanja.connectpreneur.id/akun")
+    expect(buyerPortalUrl("/akun")).toBe("https://belanja.connectpreneur.id/akun")
   })
 
   it("derives mitra portal from main app URL", () => {
@@ -54,9 +65,10 @@ describe("portal URLs", () => {
   })
 
   it("uses explicit portal env when set", () => {
-    process.env.NEXT_PUBLIC_BUYER_PORTAL_URL = "https://buyer.example.com/"
+    process.env.NEXT_PUBLIC_BELANJA_PORTAL_URL = "https://shop.example.com/"
     process.env.NEXT_PUBLIC_MITRA_PORTAL_URL = "https://mitra.example.com"
-    expect(buyerPortalUrl()).toBe("https://buyer.example.com")
+    expect(belanjaPortalUrl("/akun")).toBe("https://shop.example.com/akun")
+    expect(buyerPortalUrl()).toBe("https://shop.example.com/akun")
     expect(mitraPortalUrl()).toBe("https://mitra.example.com")
   })
 })

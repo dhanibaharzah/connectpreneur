@@ -1,10 +1,13 @@
 import { sql } from "@/lib/sql"
 import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
-import { cookies } from "next/headers"
 import type { NextRequest } from "next/server"
 import { normalizePhoneDigits, getBuyerPhoneQueryVariants } from "@/lib/phone"
 import { checkOtpRateLimit } from "@/lib/umkm-auth"
+import {
+  ensureBuyerProfile,
+  getOrCreateBuyerProfileFromTransactions,
+} from "@/lib/gamification"
 import { transformTransactionRow, type TransactionRow } from "@/types/transaction"
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -29,6 +32,39 @@ export async function buyerHasTransactions(phone: string): Promise<boolean> {
     WHERE buyer_phone = ANY(${variants})
   `
   return ((row?.total as number) ?? 0) > 0
+}
+
+export function pickBuyerDisplayName(params: {
+  hasTransactions: boolean
+  profileDisplayName: string | null
+  latestTransactionBuyerName: string | null
+  formName?: string
+}): string {
+  if (params.hasTransactions) {
+    return (
+      params.profileDisplayName?.trim() ||
+      params.latestTransactionBuyerName?.trim() ||
+      params.formName?.trim() ||
+      ""
+    )
+  }
+  return params.formName?.trim() || ""
+}
+
+export async function resolveBuyerDisplayName(phone: string, formName?: string): Promise<string> {
+  const hasTransactions = await buyerHasTransactions(phone)
+  if (!hasTransactions) {
+    return formName?.trim() || ""
+  }
+
+  const profile = await getOrCreateBuyerProfileFromTransactions(phone)
+  const transactions = await findTransactionsByPhone(phone)
+  return pickBuyerDisplayName({
+    hasTransactions: true,
+    profileDisplayName: profile.displayName,
+    latestTransactionBuyerName: transactions[0]?.buyerName ?? null,
+    formName,
+  })
 }
 
 export async function findTransactionsByPhone(phone: string) {

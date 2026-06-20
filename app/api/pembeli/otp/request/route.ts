@@ -1,9 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import {
-  buyerHasTransactions,
-  checkOtpRateLimit,
-  createPembeliOtpChallenge,
-} from "@/lib/pembeli-auth"
+import { checkOtpRateLimit, createPembeliOtpChallenge } from "@/lib/pembeli-auth"
 import { sendPembeliOtp } from "@/lib/gowa"
 
 export async function POST(request: NextRequest) {
@@ -18,14 +14,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Terlalu banyak permintaan OTP. Coba lagi dalam 15 menit." },
         { status: 429 },
-      )
-    }
-
-    const hasTransactions = await buyerHasTransactions(phone)
-    if (!hasTransactions) {
-      return NextResponse.json(
-        { error: "Belum ada transaksi dengan nomor WhatsApp ini" },
-        { status: 404 },
       )
     }
 

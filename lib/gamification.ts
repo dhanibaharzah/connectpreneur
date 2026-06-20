@@ -196,6 +196,34 @@ export async function getOrCreateBuyerProfileFromTransactions(
   }
 }
 
+/** Create or update buyer profile without requiring prior transactions. */
+export async function ensureBuyerProfile(
+  phone: string,
+  displayName?: string | null,
+): Promise<BuyerProfile> {
+  const normalized = normalizePhoneDigits(phone)
+  const trimmedName = displayName?.trim() || null
+
+  await sql`
+    INSERT INTO buyer_profiles (phone, display_name, total_points, badge_level, completed_orders)
+    VALUES (${normalized}, ${trimmedName}, 0, 'new', 0)
+    ON CONFLICT (phone) DO UPDATE SET
+      display_name = COALESCE(buyer_profiles.display_name, EXCLUDED.display_name),
+      updated_at = NOW()
+  `
+
+  const profile = await getBuyerProfile(normalized)
+  if (profile) return profile
+
+  return {
+    phone: normalized,
+    displayName: trimmedName,
+    totalPoints: 0,
+    badgeLevel: "new",
+    completedOrders: 0,
+  }
+}
+
 export async function getPointLedgerForBuyer(phone: string): Promise<PointLedgerEntry[]> {
   const normalized = normalizePhoneDigits(phone)
   const rows = await sql`

@@ -24,7 +24,7 @@ function resolvePortalBaseUrl(envKey: string, subdomain: string): string {
 }
 
 export function getBuyerPortalUrl(): string {
-  return resolvePortalBaseUrl("NEXT_PUBLIC_BUYER_PORTAL_URL", "buyer")
+  return getBelanjaPortalUrl()
 }
 
 export function getMitraPortalUrl(): string {
@@ -32,13 +32,22 @@ export function getMitraPortalUrl(): string {
 }
 
 export function buyerPortalUrl(path = "/"): string {
-  const base = getBuyerPortalUrl()
-  if (!path || path === "/") return base
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`
+  const normalized = !path || path === "/" ? "/akun" : path
+  return belanjaPortalUrl(normalized)
 }
 
 export function mitraPortalUrl(path = "/"): string {
   const base = getMitraPortalUrl()
+  if (!path || path === "/") return base
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`
+}
+
+export function getBelanjaPortalUrl(): string {
+  return resolvePortalBaseUrl("NEXT_PUBLIC_BELANJA_PORTAL_URL", "belanja")
+}
+
+export function belanjaPortalUrl(path = "/"): string {
+  const base = getBelanjaPortalUrl()
   if (!path || path === "/") return base
   return `${base}${path.startsWith("/") ? path : `/${path}`}`
 }
