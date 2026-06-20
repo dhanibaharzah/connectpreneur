@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { getSessionFromRequest } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
 import {
   getBannerById,
@@ -17,10 +17,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
     const bannerId = Number(id)
@@ -45,10 +43,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
     const bannerId = Number(id)
@@ -131,10 +127,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
     const bannerId = Number(id)

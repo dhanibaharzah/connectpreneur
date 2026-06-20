@@ -2,10 +2,23 @@ import { describe, expect, it } from "vitest"
 import {
   buildPaginationMeta,
   DEFAULT_TRANSACTION_PAGE_SIZE,
+  MAX_TRANSACTION_PAGE_SIZE,
   paginateArray,
   PRODUCT_PAGE_SIZE,
+  parsePageLimit,
   parseTransactionPagination,
 } from "@/lib/pagination"
+
+describe("parsePageLimit", () => {
+  it("clamps page and limit", () => {
+    expect(
+      parsePageLimit(new URLSearchParams("page=0&limit=999"), {
+        defaultLimit: 20,
+        maxLimit: 50,
+      }),
+    ).toEqual({ page: 1, limit: 50 })
+  })
+})
 
 describe("parseTransactionPagination", () => {
   it("defaults to page 1 and 20 items", () => {

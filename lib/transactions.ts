@@ -5,6 +5,12 @@ import {
   transformTransactionRow,
 } from "@/types/transaction"
 
+/** Field aliases shared by getTransactionById and listTransactionsForAdmin location joins. */
+export const TRANSACTION_ADMIN_LOCATION_FIELD_ALIASES = [
+  "location_name",
+  "kabupaten_name",
+] as const
+
 export async function generateReferenceNo(): Promise<string> {
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, "")
   const prefix = `CP-${today}-`
@@ -44,21 +50,33 @@ export async function createTransaction(params: {
   return transformTransactionRow(row as TransactionRow)
 }
 
-export async function getTransactionById(id: number): Promise<Transaction | null> {
-  const rows = await sql`
-    SELECT t.*,
-      b.nama AS business_name,
-      b.slug AS business_slug,
-      loc.name AS location_name,
-      kab.name AS kabupaten_name
-    FROM transactions t
-    JOIN businesses b ON b.id = t.business_id
+function transactionLocationSelectSql() {
+  return sql`
+    loc.name AS location_name,
+    kab.name AS kabupaten_name
+  `
+}
+
+function transactionLocationJoinSql() {
+  return sql`
     LEFT JOIN locations loc ON loc.id = t.location_id
     LEFT JOIN locations kab ON kab.id = CASE
       WHEN loc.level = 'kecamatan' THEN loc.parent_id
       WHEN loc.level = 'kabupaten_kota' THEN loc.id
       ELSE NULL
     END
+  `
+}
+
+export async function getTransactionById(id: number): Promise<Transaction | null> {
+  const rows = await sql`
+    SELECT t.*,
+      b.nama AS business_name,
+      b.slug AS business_slug,
+      ${transactionLocationSelectSql()}
+    FROM transactions t
+    JOIN businesses b ON b.id = t.business_id
+    ${transactionLocationJoinSql()}
     WHERE t.id = ${id}
   `
   if (rows.length === 0) return null
@@ -249,16 +267,10 @@ export async function listTransactionsForAdmin(params: {
     SELECT t.*,
       b.nama AS business_name,
       b.slug AS business_slug,
-      loc.name AS location_name,
-      kab.name AS kabupaten_name
+      ${transactionLocationSelectSql()}
     FROM transactions t
     JOIN businesses b ON b.id = t.business_id
-    LEFT JOIN locations loc ON loc.id = t.location_id
-    LEFT JOIN locations kab ON kab.id = CASE
-      WHEN loc.level = 'kecamatan' THEN loc.parent_id
-      WHEN loc.level = 'kabupaten_kota' THEN loc.id
-      ELSE NULL
-    END
+    ${transactionLocationJoinSql()}
     WHERE (${!hasScope} OR t.location_id = ANY(${scope}))
       AND (${params.status ?? null}::text IS NULL OR t.status = ${params.status ?? null})
       AND (${searchPattern}::text IS NULL OR (

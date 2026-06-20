@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
+import { getAdminLocationScope } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import { getOrUpdateScore } from "@/lib/connect-score"
 import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
@@ -15,10 +16,8 @@ async function checkBusinessAccess(user: any, businessLocationId: number | null)
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
 
@@ -69,10 +68,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
     const body = await request.json()
@@ -236,10 +233,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
 

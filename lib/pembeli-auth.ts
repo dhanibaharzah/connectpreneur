@@ -1,13 +1,18 @@
 import { sql } from "@/lib/sql"
 import { SignJWT, jwtVerify } from "jose"
-import bcrypt from "bcryptjs"
 import type { NextRequest } from "next/server"
 import { normalizePhoneDigits, getBuyerPhoneQueryVariants } from "@/lib/phone"
 import { checkOtpRateLimit } from "@/lib/umkm-auth"
 import {
-  ensureBuyerProfile,
-  getOrCreateBuyerProfileFromTransactions,
-} from "@/lib/gamification"
+  SESSION_TTL,
+  createOtpExpiryDate,
+  generateOtpCode,
+  hashOtpCode,
+  hasExceededOtpAttempts,
+  verifyOtpCode,
+} from "@/lib/otp-session"
+import { getOrCreateBuyerProfileFromTransactions, ensureBuyerProfile } from "@/lib/gamification"
+import type { BuyerProfile } from "@/types/gamification"
 import { transformTransactionRow, type TransactionRow } from "@/types/transaction"
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -19,9 +24,6 @@ export interface PembeliSession {
   displayName: string | null
 }
 
-const OTP_TTL_MS = 5 * 60 * 1000
-const SESSION_TTL = "7d"
-const MAX_OTP_ATTEMPTS = 5
 
 export { checkOtpRateLimit }
 
@@ -49,6 +51,30 @@ export function pickBuyerDisplayName(params: {
     )
   }
   return params.formName?.trim() || ""
+}
+
+export async function resolveBuyerProfileAfterOtp(
+  phone: string,
+  displayName?: string,
+): Promise<BuyerProfile> {
+  const hasTransactions = await buyerHasTransactions(phone)
+  if (!hasTransactions) {
+    return ensureBuyerProfile(phone, displayName?.trim() || null)
+  }
+
+  const profile = await getOrCreateBuyerProfileFromTransactions(phone)
+  const transactions = await findTransactionsByPhone(phone)
+  const resolvedName = pickBuyerDisplayName({
+    hasTransactions: true,
+    profileDisplayName: profile.displayName,
+    latestTransactionBuyerName: transactions[0]?.buyerName ?? null,
+    formName: displayName,
+  })
+
+  return {
+    ...profile,
+    displayName: resolvedName || profile.displayName,
+  }
 }
 
 export async function resolveBuyerDisplayName(phone: string, formName?: string): Promise<string> {
@@ -106,9 +132,9 @@ export async function getTransactionsForBuyerPaginated(
 }
 
 export async function createPembeliOtpChallenge(phone: string): Promise<string> {
-  const otp = String(Math.floor(100000 + Math.random() * 900000))
-  const otpHash = await bcrypt.hash(otp, 10)
-  const expiresAt = new Date(Date.now() + OTP_TTL_MS)
+  const otp = generateOtpCode()
+  const otpHash = await hashOtpCode(otp)
+  const expiresAt = createOtpExpiryDate()
   const normalized = normalizePhoneDigits(phone)
 
   await sql`
@@ -133,9 +159,9 @@ export async function verifyPembeliOtpChallenge(phone: string, otp: string): Pro
   if (rows.length === 0) return false
 
   const challenge = rows[0]
-  if ((challenge.attempts as number) >= MAX_OTP_ATTEMPTS) return false
+  if (hasExceededOtpAttempts(challenge.attempts as number)) return false
 
-  const valid = await bcrypt.compare(otp, challenge.otp_hash as string)
+  const valid = await verifyOtpCode(otp, challenge.otp_hash as string)
 
   await sql`
     UPDATE pembeli_otp_challenges SET attempts = attempts + 1 WHERE id = ${challenge.id}

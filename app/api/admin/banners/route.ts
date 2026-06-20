@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { getSessionFromRequest } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import {
   listAllBanners,
   parseBannerImageUrl,
@@ -13,10 +13,8 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const banners = await listAllBanners()
     return NextResponse.json({ banners })
@@ -28,10 +26,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const body = await request.json()
     const title = parseBannerTitle(body.title)

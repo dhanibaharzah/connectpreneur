@@ -2,9 +2,10 @@ import { notFound, permanentRedirect } from "next/navigation"
 import { BelanjaProductDetailClient } from "@/components/belanja/belanja-product-detail-client"
 import { buildBelanjaProductPath, getBelanjaPathsFromHeaders } from "@/lib/belanja-paths"
 import {
-  getMarketplaceProductById,
-  getMarketplaceProductBySlug,
-} from "@/lib/marketplace-products"
+  isLegacyMarketplaceProductId,
+  resolveMarketplaceProductByParam,
+} from "@/lib/marketplace-product-resolve"
+import { getMarketplaceProductBySlug } from "@/lib/marketplace-products"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -17,8 +18,8 @@ export default async function BelanjaProductDetailPage({ params }: ProductDetail
   const { slug } = await params
   const paths = await getBelanjaPathsFromHeaders()
 
-  if (/^\d+$/.test(slug)) {
-    const legacyProduct = await getMarketplaceProductById(Number(slug))
+  if (isLegacyMarketplaceProductId(slug)) {
+    const legacyProduct = await resolveMarketplaceProductByParam(slug)
     if (!legacyProduct) {
       notFound()
     }

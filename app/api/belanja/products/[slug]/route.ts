@@ -1,8 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import {
-  getMarketplaceProductById,
-  getMarketplaceProductBySlug,
-} from "@/lib/marketplace-products"
+import { resolveMarketplaceProductByParam } from "@/lib/marketplace-product-resolve"
 
 export async function GET(
   _request: NextRequest,
@@ -11,9 +8,7 @@ export async function GET(
   try {
     const { slug } = await params
 
-    const product = /^\d+$/.test(slug)
-      ? await getMarketplaceProductById(Number(slug))
-      : await getMarketplaceProductBySlug(slug)
+    const product = await resolveMarketplaceProductByParam(slug)
 
     if (!product) {
       return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 })

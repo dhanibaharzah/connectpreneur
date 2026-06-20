@@ -1,5 +1,6 @@
 import { sql } from "@/lib/sql"
 import { slugifyNameOrFallback } from "@/lib/slug"
+import { isAllowedImageHost, isDeletableStorageUrl } from "@/lib/storage-urls"
 import type { BusinessProduct, ProductTipeBisnis } from "@/types/business-product"
 
 export interface DbBusinessProduct {
@@ -14,8 +15,6 @@ export interface DbBusinessProduct {
   sort_order: number
   is_active: boolean
 }
-
-import { isAllowedImageHost, isDeletableStorageUrl } from "@/lib/storage-urls"
 
 export function isValidProductImageUrl(url: string): boolean {
   return isAllowedImageHost(url)
@@ -58,24 +57,27 @@ export async function generateUniqueProductSlug(
   }
 }
 
-export async function getProductsByBusinessId(businessId: number): Promise<BusinessProduct[]> {
+export async function getProductsForBusiness(
+  businessId: number,
+  options?: { includeInactive?: boolean },
+): Promise<BusinessProduct[]> {
+  const activeFilter = options?.includeInactive ? sql`` : sql`AND is_active = true`
   const rows = await sql`
     SELECT id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
     FROM business_products
-    WHERE business_id = ${businessId} AND is_active = true
+    WHERE business_id = ${businessId}
+    ${activeFilter}
     ORDER BY sort_order ASC, id ASC
   `
   return (rows as DbBusinessProduct[]).map(transformDbProduct)
 }
 
+export async function getProductsByBusinessId(businessId: number): Promise<BusinessProduct[]> {
+  return getProductsForBusiness(businessId)
+}
+
 export async function getProductsForUmkm(businessId: number): Promise<BusinessProduct[]> {
-  const rows = await sql`
-    SELECT id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
-    FROM business_products
-    WHERE business_id = ${businessId}
-    ORDER BY sort_order ASC, id ASC
-  `
-  return (rows as DbBusinessProduct[]).map(transformDbProduct)
+  return getProductsForBusiness(businessId, { includeInactive: true })
 }
 
 export function parseHargaMulai(value: unknown): number | null {

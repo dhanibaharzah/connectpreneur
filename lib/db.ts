@@ -1,3 +1,7 @@
+/**
+ * Catalog read-model layer for public business pages.
+ * Re-exports `sql` for legacy imports; prefer `@/lib/sql` in new code.
+ */
 import type { Business } from "@/types/business"
 import type { BusinessProduct } from "@/types/business-product"
 import type { TrustTier } from "@/types/gamification"

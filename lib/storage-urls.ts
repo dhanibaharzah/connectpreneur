@@ -75,3 +75,10 @@ export function isAllowedImageHost(url: string): boolean {
     return false
   }
 }
+
+/** Client-side image display check: managed hosts plus common image extensions. */
+export function isDisplayableImageUrl(url: string): boolean {
+  if (!url) return false
+  if (isAllowedImageHost(url)) return true
+  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
+}

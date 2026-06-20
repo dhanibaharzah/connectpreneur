@@ -9,14 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { LayoutDashboard, Building2, Users, LogOut, Receipt, ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getLoginPath, getDashboardPath, getMitraPath, getMembersPath, getTransaksiPath, getBannerPath } from "@/lib/use-admin-navigation"
+import type { AdminUser } from "@/lib/auth"
 
-export interface AdminUser {
-  id: number
-  email: string
-  name: string | null
-  role: string
-  location_id?: number | null
-}
+export type { AdminUser }
 
 interface AdminShellProps {
   user: AdminUser
@@ -42,10 +37,11 @@ function getCSRFToken(): string | null {
   return match ? match[1] : null
 }
 
-export function getAdminAuthHeaders(): HeadersInit {
+export function getAdminAuthHeaders(options?: { includeContentType?: boolean }): HeadersInit {
+  const includeContentType = options?.includeContentType !== false
   const csrfToken = getCSRFToken()
   return {
-    "Content-Type": "application/json",
+    ...(includeContentType ? { "Content-Type": "application/json" } : {}),
     ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
   }
 }

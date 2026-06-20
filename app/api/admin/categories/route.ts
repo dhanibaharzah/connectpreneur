@@ -1,14 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db"
-import { getSessionFromRequest } from "@/lib/auth"
+import { sql } from "@/lib/sql"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 
 // GET /api/admin/categories - Get categories with offset pagination (same as public but with auth)
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { searchParams } = new URL(request.url)
     const offset = Number(searchParams.get("offset") || "0")
@@ -57,10 +55,8 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/categories - Create new category
 export async function POST(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const body = await request.json()
     const { name } = body

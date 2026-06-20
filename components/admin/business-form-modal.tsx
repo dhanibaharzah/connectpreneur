@@ -16,6 +16,12 @@ import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
 import { isDeletableStorageUrl } from "@/lib/storage-urls"
+import {
+  extractSocialUsername,
+  generateBusinessSlug,
+  usernameToSocialUrl,
+} from "@/lib/business-form-utils"
+import { getAdminAuthHeaders } from "./admin-shell"
 
 interface BusinessFormModalProps {
   business?: any
@@ -28,25 +34,6 @@ interface ProductImage {
   id?: number
   url: string
   image_url?: string
-}
-
-// Get CSRF token from cookie
-function getCSRFToken(): string | null {
-  if (typeof document === "undefined") return null
-  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/)
-  return match ? match[1] : null
-}
-
-function getAuthHeaders(contentType = true): HeadersInit {
-  const csrfToken = getCSRFToken()
-  const headers: HeadersInit = {}
-  if (contentType) {
-    headers["Content-Type"] = "application/json"
-  }
-  if (csrfToken) {
-    headers["X-CSRF-Token"] = csrfToken
-  }
-  return headers
 }
 
 export default function BusinessFormModal({ business, onClose, onSuccess, adminLocationId }: BusinessFormModalProps) {
@@ -103,9 +90,9 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         deskripsi_kemitraan: business.deskripsi_kemitraan || "",
         website: business.website || "",
         // Extract usernames from URLs for display in form
-        instagram: extractUsername(business.instagram || "", "instagram"),
-        facebook: extractUsername(business.facebook || "", "facebook"),
-        tiktok: extractUsername(business.tiktok || "", "tiktok"),
+        instagram: extractSocialUsername(business.instagram || "", "instagram"),
+        facebook: extractSocialUsername(business.facebook || "", "facebook"),
+        tiktok: extractSocialUsername(business.tiktok || "", "tiktok"),
         nama_pic: business.nama_pic || "",
         jabatan_pic: business.jabatan_pic || "",
         kontak_pic: business.kontak_pic || "",
@@ -125,71 +112,11 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
     }
   }, [business])
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim()
-  }
-
-  // Helper function to extract username from social media URL or return as-is if already a username
-  const extractUsername = (url: string, platform: "instagram" | "facebook" | "tiktok"): string => {
-    if (!url) return ""
-    
-    // If it's already just a username (no URL format), return it
-    if (!url.includes("http") && !url.includes(".com")) {
-      return url.replace(/^@/, "") // Remove @ prefix if present
-    }
-    
-    try {
-      const urlObj = new URL(url.startsWith("http") ? url : `https://${url}`)
-      let pathname = urlObj.pathname.replace(/\/$/, "") // Remove trailing slash
-      
-      // Handle different URL formats
-      if (platform === "tiktok") {
-        // TikTok URLs are like tiktok.com/@username
-        return pathname.replace(/^\/@?/, "")
-      }
-      // Instagram/Facebook URLs are like instagram.com/username or facebook.com/username
-      return pathname.replace(/^\//, "")
-    } catch {
-      // If URL parsing fails, return the original value
-      return url.replace(/^@/, "")
-    }
-  }
-
-  // Helper function to convert username to full social media URL
-  const usernameToUrl = (username: string, platform: "instagram" | "facebook" | "tiktok"): string => {
-    if (!username) return ""
-    
-    // If it's already a full URL, return as-is
-    if (username.includes("http")) {
-      return username
-    }
-    
-    // Remove @ prefix if present
-    const cleanUsername = username.replace(/^@/, "").trim()
-    if (!cleanUsername) return ""
-    
-    switch (platform) {
-      case "instagram":
-        return `https://instagram.com/${cleanUsername}`
-      case "facebook":
-        return `https://facebook.com/${cleanUsername}`
-      case "tiktok":
-        return `https://tiktok.com/@${cleanUsername}`
-      default:
-        return username
-    }
-  }
-
   const handleNameChange = (value: string) => {
     setForm((prev) => ({
       ...prev,
       nama: value,
-      slug: !business ? generateSlug(value) : prev.slug,
+      slug: !business ? generateBusinessSlug(value) : prev.slug,
     }))
   }
 
@@ -203,11 +130,10 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       formData.append("file", file)
       formData.append("folder", "logos")
 
-      const csrfToken = getCSRFToken()
       const res = await fetch("/api/admin/upload", {
         method: "POST",
         credentials: "include",
-        headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+        headers: getAdminAuthHeaders({ includeContentType: false }),
         body: formData,
       })
 
@@ -232,7 +158,6 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
 
     setUploadingProduct(true)
     try {
-      const csrfToken = getCSRFToken()
       for (const file of Array.from(files)) {
         const formData = new FormData()
         formData.append("file", file)
@@ -241,7 +166,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         const res = await fetch("/api/admin/upload", {
           method: "POST",
           credentials: "include",
-          headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+          headers: getAdminAuthHeaders({ includeContentType: false }),
           body: formData,
         })
 
@@ -271,7 +196,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         try {
           await fetch("/api/admin/upload", {
             method: "DELETE",
-            headers: getAuthHeaders(),
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ url }),
           })
         } catch (error) {
@@ -289,7 +214,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       try {
         await fetch("/api/admin/upload", {
           method: "DELETE",
-          headers: getAuthHeaders(),
+          headers: getAdminAuthHeaders(),
           body: JSON.stringify({ url: form.logo_url }),
         })
       } catch (error) {
@@ -324,11 +249,10 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       formData.append("file", file)
       formData.append("folder", "documents")
 
-      const csrfToken = getCSRFToken()
       const res = await fetch("/api/admin/upload", {
         method: "POST",
         credentials: "include",
-        headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+        headers: getAdminAuthHeaders({ includeContentType: false }),
         body: formData,
       })
 
@@ -353,7 +277,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       try {
         await fetch("/api/admin/upload", {
           method: "DELETE",
-          headers: getAuthHeaders(),
+          headers: getAdminAuthHeaders(),
           body: JSON.stringify({ url }),
         })
       } catch (error) {
@@ -383,9 +307,9 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         category_id: form.category_id ? Number.parseInt(form.category_id) : null,
         location_id: form.location_id,
         product_images: productImages,
-        instagram: usernameToUrl(form.instagram, "instagram"),
-        facebook: usernameToUrl(form.facebook, "facebook"),
-        tiktok: usernameToUrl(form.tiktok, "tiktok"),
+        instagram: usernameToSocialUrl(form.instagram, "instagram"),
+        facebook: usernameToSocialUrl(form.facebook, "facebook"),
+        tiktok: usernameToSocialUrl(form.tiktok, "tiktok"),
       }
 
       const url = business ? `/api/admin/businesses/${business.id}` : "/api/admin/businesses"
@@ -394,7 +318,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       const res = await fetch(url, {
         method,
         credentials: "include",
-        headers: getAuthHeaders(),
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify(payload),
       })
 
@@ -464,7 +388,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
                     onChange={(value) => setForm({ ...form, category_id: value })}
                     allowCreate={true}
                     apiEndpoint="/api/admin/categories"
-                    authHeaders={getAuthHeaders()}
+                    authHeaders={getAdminAuthHeaders()}
                   />
                 </div>
                 <div className="space-y-2">

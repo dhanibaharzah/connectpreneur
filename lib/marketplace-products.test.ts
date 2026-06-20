@@ -1,9 +1,27 @@
 import { describe, expect, it } from "vitest"
+import { buildSearchPattern } from "@/lib/marketplace-products"
 import {
   parseMarketplaceSort,
   parseMarketplaceTipe,
   parseMarketplaceFilters,
+  buildMarketplaceQueryParams,
 } from "@/lib/marketplace-product-filters"
+
+describe("buildSearchPattern", () => {
+  it("returns null for empty search", () => {
+    expect(buildSearchPattern("")).toBeNull()
+  })
+
+  it("wraps search term with wildcards", () => {
+    expect(buildSearchPattern("kopi")).toBe("%kopi%")
+  })
+
+  it("escapes LIKE wildcard characters", () => {
+    expect(buildSearchPattern("50%")).toBe("%50\\%%")
+    expect(buildSearchPattern("a_b")).toBe("%a\\_b%")
+    expect(buildSearchPattern("path\\name")).toBe("%path\\\\name%")
+  })
+})
 
 describe("parseMarketplaceSort", () => {
   it("accepts valid sort values", () => {
@@ -64,5 +82,26 @@ describe("parseMarketplaceFilters", () => {
   it("caps limit at max page size", () => {
     const params = new URLSearchParams({ limit: "999" })
     expect(parseMarketplaceFilters(params).limit).toBe(50)
+  })
+})
+
+describe("buildMarketplaceQueryParams", () => {
+  it("round-trips with parseMarketplaceFilters", () => {
+    const params = buildMarketplaceQueryParams({
+      search: "kopi",
+      tipe: "produk",
+      location: "Jakarta",
+      sort: "harga_asc",
+      page: 2,
+      limit: 10,
+    })
+    expect(parseMarketplaceFilters(params)).toEqual({
+      search: "kopi",
+      tipe: "produk",
+      location: "Jakarta",
+      sort: "harga_asc",
+      page: 2,
+      limit: 10,
+    })
   })
 })

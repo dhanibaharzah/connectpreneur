@@ -42,15 +42,9 @@ import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import { trackEvent } from "@/lib/analytics/client"
 import { RfqRequestModal } from "@/components/rfq-request-modal"
 import { cn } from "@/lib/utils"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { isDisplayableImageUrl } from "@/lib/storage-urls"
 
 type DetailTab = "products" | "about" | "gallery" | "info" | "contact" | "kemitraan"
-
-function isValidImageUrl(url: string): boolean {
-  if (!url) return false
-  if (isAllowedImageHost(url)) return true
-  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
-}
 
 function shouldShowBranch(jumlahCabang: string | undefined): boolean {
   if (!jumlahCabang) return false
@@ -381,8 +375,8 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
   const [kemitraanOpen, setKemitraanOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<DetailTab>("products")
 
-  const validImages = business.produkUrls.filter((url) => isValidImageUrl(url))
-  const hasValidLogo = isValidImageUrl(business.logoUrl)
+  const validImages = business.produkUrls.filter((url) => isDisplayableImageUrl(url))
+  const hasValidLogo = isDisplayableImageUrl(business.logoUrl)
   const galleryImages = hasValidLogo ? [business.logoUrl, ...validImages] : validImages
   const hasGallery = galleryImages.length > 0
   const hasProducts = business.products.length > 0

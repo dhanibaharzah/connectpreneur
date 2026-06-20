@@ -8,19 +8,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import type { MarketplaceProduct } from "@/types/marketplace-product"
 import { buildBelanjaProductPath } from "@/lib/belanja-paths"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { isDisplayableImageUrl } from "@/lib/storage-urls"
 import { cn } from "@/lib/utils"
 
 interface ProductCardProps {
   product: MarketplaceProduct
   onSubdomain: boolean
   className?: string
-}
-
-function isValidImageUrl(url: string): boolean {
-  if (!url) return false
-  if (isAllowedImageHost(url)) return true
-  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
 export function ProductCard({ product, onSubdomain, className }: ProductCardProps) {
@@ -30,7 +24,7 @@ export function ProductCard({ product, onSubdomain, className }: ProductCardProp
     <Card className={cn("group overflow-hidden transition-shadow hover:shadow-md", className)}>
       <Link href={href} className="block">
         <div className="relative aspect-square bg-muted">
-          {product.imageUrl && isValidImageUrl(product.imageUrl) ? (
+          {product.imageUrl && isDisplayableImageUrl(product.imageUrl) ? (
             <Image
               src={product.imageUrl}
               alt={product.nama}

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
+import { getAdminLocationScope } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import { listTransactionsForAdmin } from "@/lib/transactions"
 import {
   TRANSACTION_STATUS_LABELS,
@@ -7,10 +8,8 @@ import {
 } from "@/types/transaction"
 
 export async function GET(request: NextRequest) {
-  const user = await getSessionFromRequest(request)
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const user = await requireAdmin(request)
+  if (isAdminResponse(user)) return user
 
   const { searchParams } = new URL(request.url)
   const format = searchParams.get("format")

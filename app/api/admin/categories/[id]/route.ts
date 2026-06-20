@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db"
-import { getSessionFromRequest } from "@/lib/auth"
+import { sql } from "@/lib/sql"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 
 // GET /api/admin/categories/[id] - Get category details with usage count
 export async function GET(
@@ -8,10 +8,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
     const categoryId = Number(id)
@@ -43,10 +41,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { id } = await params
     const categoryId = Number(id)

@@ -1,9 +1,16 @@
 import { sql } from "@/lib/sql"
 import { SignJWT, jwtVerify } from "jose"
-import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import type { NextRequest } from "next/server"
 import { normalizePhoneDigits, phonesMatch } from "@/lib/phone"
+import {
+  SESSION_TTL,
+  createOtpExpiryDate,
+  generateOtpCode,
+  hashOtpCode,
+  hasExceededOtpAttempts,
+  verifyOtpCode,
+} from "@/lib/otp-session"
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "dev-only-secret-do-not-use-in-production",
@@ -14,10 +21,6 @@ export interface UmkmSession {
   phone: string
   businessName: string
 }
-
-const OTP_TTL_MS = 5 * 60 * 1000
-const SESSION_TTL = "7d"
-const MAX_OTP_ATTEMPTS = 5
 
 const otpRateLimit = new Map<string, { count: number; resetAt: number }>()
 
@@ -47,9 +50,9 @@ export async function findBusinessesByPhone(phone: string) {
 }
 
 export async function createOtpChallenge(businessId: number, phone: string): Promise<string> {
-  const otp = String(Math.floor(100000 + Math.random() * 900000))
-  const otpHash = await bcrypt.hash(otp, 10)
-  const expiresAt = new Date(Date.now() + OTP_TTL_MS)
+  const otp = generateOtpCode()
+  const otpHash = await hashOtpCode(otp)
+  const expiresAt = createOtpExpiryDate()
 
   await sql`
     INSERT INTO umkm_otp_challenges (business_id, phone, otp_hash, expires_at)
@@ -78,9 +81,9 @@ export async function verifyOtpChallenge(
   if (rows.length === 0) return false
 
   const challenge = rows[0]
-  if ((challenge.attempts as number) >= MAX_OTP_ATTEMPTS) return false
+  if (hasExceededOtpAttempts(challenge.attempts as number)) return false
 
-  const valid = await bcrypt.compare(otp, challenge.otp_hash as string)
+  const valid = await verifyOtpCode(otp, challenge.otp_hash as string)
 
   await sql`
     UPDATE umkm_otp_challenges SET attempts = attempts + 1 WHERE id = ${challenge.id}

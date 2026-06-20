@@ -10,13 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ProductListPagination } from "@/components/product-list-pagination"
 import { paginateArray, PRODUCT_PAGE_SIZE } from "@/lib/pagination"
 import { cn } from "@/lib/utils"
-import { isAllowedImageHost } from "@/lib/storage-urls"
-
-function isValidImageUrl(url: string): boolean {
-  if (!url) return false
-  if (isAllowedImageHost(url)) return true
-  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
-}
+import { isDisplayableImageUrl } from "@/lib/storage-urls"
 
 export interface RfqProductSelection {
   nama: string
@@ -80,7 +74,7 @@ function DetailProductCard({
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex flex-col gap-4 sm:flex-row">
-        {product.imageUrl && isValidImageUrl(product.imageUrl) ? (
+        {product.imageUrl && isDisplayableImageUrl(product.imageUrl) ? (
           <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-lg border bg-muted sm:h-28 sm:w-40">
             <Image src={product.imageUrl} alt={product.nama} fill className="object-cover" />
           </div>
@@ -172,7 +166,7 @@ function ProductListContent({
         {visibleProducts.map((product) => (
           <div key={product.id} className="rounded-lg border p-3">
             <div className="flex items-start gap-3">
-              {product.imageUrl && isValidImageUrl(product.imageUrl) ? (
+              {product.imageUrl && isDisplayableImageUrl(product.imageUrl) ? (
                 <div className="relative h-16 w-16 overflow-hidden rounded-lg border bg-muted shrink-0">
                   <Image src={product.imageUrl} alt={product.nama} fill className="object-cover" />
                 </div>

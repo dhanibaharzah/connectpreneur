@@ -77,35 +77,22 @@ export async function PUT(
   const previousNama = (existing[0].nama as string).trim()
   const slug =
     previousNama === nama
-      ? undefined
+      ? null
       : await generateUniqueProductSlug(nama, productId)
 
-  const rows = slug
-    ? await sql`
-        UPDATE business_products
-        SET
-          slug = ${slug},
-          nama = ${nama},
-          deskripsi = ${deskripsi || null},
-          image_url = ${imageUrl || null},
-          harga_mulai = ${hargaMulai},
-          tipe_bisnis = ${tipeBisnis},
-          updated_at = NOW()
-        WHERE id = ${productId} AND business_id = ${session.businessId}
-        RETURNING id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
-      `
-    : await sql`
-        UPDATE business_products
-        SET
-          nama = ${nama},
-          deskripsi = ${deskripsi || null},
-          image_url = ${imageUrl || null},
-          harga_mulai = ${hargaMulai},
-          tipe_bisnis = ${tipeBisnis},
-          updated_at = NOW()
-        WHERE id = ${productId} AND business_id = ${session.businessId}
-        RETURNING id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
-      `
+  const rows = await sql`
+    UPDATE business_products
+    SET
+      slug = COALESCE(${slug}, slug),
+      nama = ${nama},
+      deskripsi = ${deskripsi || null},
+      image_url = ${imageUrl || null},
+      harga_mulai = ${hargaMulai},
+      tipe_bisnis = ${tipeBisnis},
+      updated_at = NOW()
+    WHERE id = ${productId} AND business_id = ${session.businessId}
+    RETURNING id, slug, business_id, nama, deskripsi, image_url, harga_mulai, tipe_bisnis, sort_order, is_active
+  `
 
   if (previousImageUrl && previousImageUrl !== (imageUrl || null)) {
     await deleteStoredFileIfNeeded(previousImageUrl)

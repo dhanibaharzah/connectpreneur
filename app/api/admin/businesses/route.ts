@@ -1,14 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { getSessionFromRequest, getAdminLocationScope } from "@/lib/auth"
+import { getAdminLocationScope } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { searchParams } = new URL(request.url)
     const page = Number.parseInt(searchParams.get("page") || "1")
@@ -279,10 +278,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const body = await request.json()
     console.log("[v0] POST body received:", JSON.stringify(body, null, 2))

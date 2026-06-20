@@ -10,18 +10,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { RfqRequestModal } from "@/components/rfq-request-modal"
 import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import type { MarketplaceProduct } from "@/types/marketplace-product"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { isDisplayableImageUrl } from "@/lib/storage-urls"
 import { appUrl } from "@/lib/app-url"
 
 interface ProductDetailContentProps {
   product: MarketplaceProduct
   homePath: string
-}
-
-function isValidImageUrl(url: string): boolean {
-  if (!url) return false
-  if (isAllowedImageHost(url)) return true
-  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
 export function ProductDetailContent({ product, homePath }: ProductDetailContentProps) {
@@ -40,7 +34,7 @@ export function ProductDetailContent({ product, homePath }: ProductDetailContent
 
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted">
-          {product.imageUrl && isValidImageUrl(product.imageUrl) ? (
+          {product.imageUrl && isDisplayableImageUrl(product.imageUrl) ? (
             <Image
               src={product.imageUrl}
               alt={product.nama}
@@ -95,7 +89,7 @@ export function ProductDetailContent({ product, homePath }: ProductDetailContent
         <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted">
-              {product.businessLogoUrl && isValidImageUrl(product.businessLogoUrl) ? (
+              {product.businessLogoUrl && isDisplayableImageUrl(product.businessLogoUrl) ? (
                 <Image
                   src={product.businessLogoUrl}
                   alt={product.businessNama}

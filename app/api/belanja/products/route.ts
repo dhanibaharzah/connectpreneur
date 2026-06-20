@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { listMarketplaceProducts, parseMarketplaceFilters } from "@/lib/marketplace-products"
+import { parseMarketplaceFilters } from "@/lib/marketplace-product-filters"
+import { listMarketplaceProducts } from "@/lib/marketplace-products"
 
 export async function GET(request: NextRequest) {
   try {

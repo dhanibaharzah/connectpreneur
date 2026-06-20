@@ -1,6 +1,5 @@
 "use client"
 
-import { PembeliAuthProvider } from "@/components/pembeli/pembeli-auth-context"
 import { BelanjaHeader } from "@/components/belanja/belanja-header"
 import { ProductDetailContent } from "@/components/belanja/product-detail-content"
 import type { MarketplaceProduct } from "@/types/marketplace-product"
@@ -27,9 +26,5 @@ function BelanjaProductDetailInner({
 }
 
 export function BelanjaProductDetailClient(props: BelanjaProductDetailClientProps) {
-  return (
-    <PembeliAuthProvider>
-      <BelanjaProductDetailInner {...props} />
-    </PembeliAuthProvider>
-  )
+  return <BelanjaProductDetailInner {...props} />
 }

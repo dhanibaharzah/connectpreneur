@@ -1,12 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { getSessionFromRequest } from "@/lib/auth"
+import { isAdminResponse, requireAdmin, requireSuperAdmin } from "@/lib/admin-api"
 
 export async function GET(request: NextRequest) {
-  const user = await getSessionFromRequest(request)
-  if (!user || user.role !== "superadmin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+  const user = await requireSuperAdmin(request)
+  if (isAdminResponse(user)) return user
 
   const members = await sql`
     SELECT 
@@ -21,10 +19,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const user = await getSessionFromRequest(request)
-  if (!user || user.role !== "superadmin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+  const user = await requireSuperAdmin(request)
+  if (isAdminResponse(user)) return user
 
   const { id, action } = await request.json()
 

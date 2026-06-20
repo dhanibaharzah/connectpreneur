@@ -1,5 +1,6 @@
 import type { ProductTipeBisnis } from "@/types/business-product"
 import type { MarketplaceProductFilters, MarketplaceSort } from "@/types/marketplace-product"
+import { parsePageLimit } from "@/lib/pagination"
 
 export const DEFAULT_MARKETPLACE_PAGE_SIZE = 20
 export const MAX_MARKETPLACE_PAGE_SIZE = 50
@@ -16,18 +17,41 @@ export function parseMarketplaceTipe(value: unknown): ProductTipeBisnis | "all" 
   return "all"
 }
 
+export function buildMarketplaceQueryParams(input: {
+  search?: string
+  tipe?: ProductTipeBisnis | "all"
+  location?: string
+  sort?: MarketplaceSort
+  page?: number
+  limit?: number
+}): URLSearchParams {
+  const params = new URLSearchParams()
+  const search = input.search?.trim() || ""
+  const tipe = input.tipe ?? "all"
+  const location = input.location?.trim() || ""
+  const sort = input.sort ?? "terbaru"
+  const page = input.page ?? 1
+  const limit = input.limit ?? DEFAULT_MARKETPLACE_PAGE_SIZE
+
+  if (search) params.set("search", search)
+  if (tipe !== "all") params.set("tipe", tipe)
+  if (location) params.set("location", location)
+  if (sort !== "terbaru") params.set("sort", sort)
+  params.set("page", String(page))
+  params.set("limit", String(limit))
+  return params
+}
+
 export function parseMarketplaceFilters(searchParams: URLSearchParams): Required<
   Omit<MarketplaceProductFilters, "search" | "location">
 > & {
   search: string
   location: string
 } {
-  const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1", 10) || 1)
-  const rawLimit = Number.parseInt(searchParams.get("limit") || String(DEFAULT_MARKETPLACE_PAGE_SIZE), 10)
-  const limit = Math.min(
-    MAX_MARKETPLACE_PAGE_SIZE,
-    Math.max(1, rawLimit || DEFAULT_MARKETPLACE_PAGE_SIZE),
-  )
+  const { page, limit } = parsePageLimit(searchParams, {
+    defaultLimit: DEFAULT_MARKETPLACE_PAGE_SIZE,
+    maxLimit: MAX_MARKETPLACE_PAGE_SIZE,
+  })
 
   return {
     search: (searchParams.get("search") || "").trim(),

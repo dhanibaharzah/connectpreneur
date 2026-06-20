@@ -15,7 +15,13 @@ import CategoryCombobox from "@/components/category-combobox"
 import RichTextEditor from "@/components/rich-text-editor"
 import { LocationDropdown } from "@/components/location-dropdown"
 import LegalitasConfirmDialog from "@/components/legalitas-confirm-dialog"
+import { DaftarMitraSuccess } from "@/components/daftar-mitra/daftar-mitra-success"
 import { isDeletableStorageUrl } from "@/lib/storage-urls"
+import {
+  generateBusinessSlug,
+  isRichTextEmpty,
+  usernameToSocialUrl,
+} from "@/lib/business-form-utils"
 
 interface ProductImage {
   url: string
@@ -69,43 +75,12 @@ export default function DaftarMitraPage() {
   const [productImages, setProductImages] = useState<ProductImage[]>([])
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
-  const isRichTextEmpty = (html: string) =>
-    !html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim()
-  }
-
   const handleNameChange = (value: string) => {
     setForm((prev) => ({
       ...prev,
       nama: value,
-      slug: generateSlug(value),
+      slug: generateBusinessSlug(value),
     }))
-  }
-
-  // Helper function to convert username to full social media URL
-  const usernameToUrl = (username: string, platform: "instagram" | "facebook" | "tiktok"): string => {
-    if (!username) return ""
-    if (username.includes("http")) return username
-    const cleanUsername = username.replace(/^@/, "").trim()
-    if (!cleanUsername) return ""
-    
-    switch (platform) {
-      case "instagram":
-        return `https://instagram.com/${cleanUsername}`
-      case "facebook":
-        return `https://facebook.com/${cleanUsername}`
-      case "tiktok":
-        return `https://tiktok.com/@${cleanUsername}`
-      default:
-        return username
-    }
   }
 
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -453,9 +428,9 @@ export default function DaftarMitraPage() {
         category_id: Number.parseInt(form.category_id),
         location_id: form.location_id,
         product_images: productImages,
-        instagram: usernameToUrl(form.instagram, "instagram"),
-        facebook: usernameToUrl(form.facebook, "facebook"),
-        tiktok: usernameToUrl(form.tiktok, "tiktok"),
+        instagram: usernameToSocialUrl(form.instagram, "instagram"),
+        facebook: usernameToSocialUrl(form.facebook, "facebook"),
+        tiktok: usernameToSocialUrl(form.tiktok, "tiktok"),
         ktp_ocr_verified: ktpOcrVerified,
         akta_ocr_verified: aktaOcrVerified,
       }
@@ -486,34 +461,11 @@ export default function DaftarMitraPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${autoApproved ? "bg-green-100" : "bg-amber-100"}`}>
-              <CheckCircle className={`h-10 w-10 ${autoApproved ? "text-green-600" : "text-amber-600"}`} />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-3">Pendaftaran Berhasil!</h2>
-            <p className="text-muted-foreground mb-6">{successMessage}</p>
-            {!autoApproved && (
-              <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
-                Verifikasi KTP akan direview oleh tim admin. Status bisnis Anda saat ini under review.
-                {(!form.akta_pendirian_url || !form.legalitas_url) && (
-                  <> Dokumen legalitas yang belum diupload dapat dilengkapi kemudian.</>
-                )}
-              </p>
-            )}
-            <p className="text-sm text-muted-foreground mb-6">
-              Notifikasi telah dikirim ke WhatsApp yang Anda daftarkan.
-            </p>
-            <Link href="/">
-              <Button className="bg-primary hover:bg-primary/90">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Kembali ke Beranda
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <DaftarMitraSuccess
+        successMessage={successMessage}
+        autoApproved={autoApproved}
+        showLegalitasNote={!form.akta_pendirian_url || !form.legalitas_url}
+      />
     )
   }
 

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getSessionFromRequest } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import { deleteObject, isDeletableStorageUrl, newStorageObjectId, uploadObject } from "@/lib/storage"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
@@ -66,10 +66,8 @@ async function compressImage(buffer: Buffer, mimeType: string): Promise<Buffer> 
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const formData = await request.formData()
     const file = formData.get("file") as File
@@ -153,10 +151,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const { url } = await request.json()
 

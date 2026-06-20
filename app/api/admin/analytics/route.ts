@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getSessionFromRequest } from "@/lib/auth"
+import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
 import {
   getAnalyticsOverview,
   getMitraUniqueVisitors,
@@ -10,10 +10,8 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const user = await requireAdmin(request)
+    if (isAdminResponse(user)) return user
 
     const [overview, mitraStats, byKabKota, visitorOrigins, socialByPlatform] = await Promise.all([
       getAnalyticsOverview(),

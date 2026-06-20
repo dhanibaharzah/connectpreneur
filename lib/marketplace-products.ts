@@ -26,7 +26,7 @@ interface DbMarketplaceRow extends DbBusinessProduct {
   kota_provinsi: string | null
 }
 
-function buildSearchPattern(search: string): string | null {
+export function buildSearchPattern(search: string): string | null {
   if (!search) return null
   return `%${search.replace(/[%_\\]/g, "\\$&")}%`
 }
@@ -42,6 +42,22 @@ function orderByClause(sort: MarketplaceSort) {
     default:
       return sql`ORDER BY bp.created_at DESC, bp.id DESC`
   }
+}
+
+function marketplaceProductSelectSql() {
+  return sql`
+    bp.id, bp.slug, bp.business_id, bp.nama, bp.deskripsi, bp.image_url, bp.harga_mulai,
+    bp.tipe_bisnis, bp.sort_order, bp.is_active,
+    b.slug AS business_slug, b.nama AS business_nama, b.logo_url AS business_logo_url,
+    b.kota_provinsi
+  `
+}
+
+function marketplaceProductJoinSql() {
+  return sql`
+    FROM business_products bp
+    JOIN businesses b ON b.id = bp.business_id
+  `
 }
 
 function transformMarketplaceRow(row: DbMarketplaceRow): MarketplaceProduct {
@@ -90,13 +106,8 @@ export async function listMarketplaceProducts(
   const total = Number(countResult[0]?.count || 0)
 
   const rows = await sql`
-    SELECT
-      bp.id, bp.slug, bp.business_id, bp.nama, bp.deskripsi, bp.image_url, bp.harga_mulai,
-      bp.tipe_bisnis, bp.sort_order, bp.is_active,
-      b.slug AS business_slug, b.nama AS business_nama, b.logo_url AS business_logo_url,
-      b.kota_provinsi
-    FROM business_products bp
-    JOIN businesses b ON b.id = bp.business_id
+    SELECT ${marketplaceProductSelectSql()}
+    ${marketplaceProductJoinSql()}
     WHERE bp.is_active = true AND b.is_active = true
     ${tipeFilter}
     ${searchFilter}
@@ -113,13 +124,8 @@ export async function listMarketplaceProducts(
 
 export async function getMarketplaceProductBySlug(slug: string): Promise<MarketplaceProduct | null> {
   const rows = await sql`
-    SELECT
-      bp.id, bp.slug, bp.business_id, bp.nama, bp.deskripsi, bp.image_url, bp.harga_mulai,
-      bp.tipe_bisnis, bp.sort_order, bp.is_active,
-      b.slug AS business_slug, b.nama AS business_nama, b.logo_url AS business_logo_url,
-      b.kota_provinsi
-    FROM business_products bp
-    JOIN businesses b ON b.id = bp.business_id
+    SELECT ${marketplaceProductSelectSql()}
+    ${marketplaceProductJoinSql()}
     WHERE bp.slug = ${slug} AND bp.is_active = true AND b.is_active = true
   `
   if (rows.length === 0) return null
@@ -128,13 +134,8 @@ export async function getMarketplaceProductBySlug(slug: string): Promise<Marketp
 
 export async function getMarketplaceProductById(id: number): Promise<MarketplaceProduct | null> {
   const rows = await sql`
-    SELECT
-      bp.id, bp.slug, bp.business_id, bp.nama, bp.deskripsi, bp.image_url, bp.harga_mulai,
-      bp.tipe_bisnis, bp.sort_order, bp.is_active,
-      b.slug AS business_slug, b.nama AS business_nama, b.logo_url AS business_logo_url,
-      b.kota_provinsi
-    FROM business_products bp
-    JOIN businesses b ON b.id = bp.business_id
+    SELECT ${marketplaceProductSelectSql()}
+    ${marketplaceProductJoinSql()}
     WHERE bp.id = ${id} AND bp.is_active = true AND b.is_active = true
   `
   if (rows.length === 0) return null

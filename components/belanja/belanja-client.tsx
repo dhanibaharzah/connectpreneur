@@ -8,8 +8,7 @@ import { ProductGrid } from "@/components/belanja/product-grid"
 import type { ShopBanner } from "@/types/shop-banner"
 import type { MarketplaceProduct, MarketplaceSort } from "@/types/marketplace-product"
 import type { PaginationMeta } from "@/lib/pagination"
-import { DEFAULT_MARKETPLACE_PAGE_SIZE } from "@/lib/marketplace-product-filters"
-import { PembeliAuthProvider } from "@/components/pembeli/pembeli-auth-context"
+import { buildMarketplaceQueryParams } from "@/lib/marketplace-product-filters"
 
 interface BelanjaClientProps {
   homePath: string
@@ -21,29 +20,8 @@ interface BelanjaClientProps {
   initialLocations: string[]
 }
 
-function buildQueryParams(
-  search: string,
-  tipe: TipeFilter,
-  location: string,
-  sort: MarketplaceSort,
-  page: number,
-): URLSearchParams {
-  const params = new URLSearchParams()
-  if (search.trim()) params.set("search", search.trim())
-  if (tipe !== "all") params.set("tipe", tipe)
-  if (location) params.set("location", location)
-  if (sort !== "terbaru") params.set("sort", sort)
-  params.set("page", String(page))
-  params.set("limit", String(DEFAULT_MARKETPLACE_PAGE_SIZE))
-  return params
-}
-
 export function BelanjaClient(props: BelanjaClientProps) {
-  return (
-    <PembeliAuthProvider>
-      <BelanjaClientInner {...props} />
-    </PembeliAuthProvider>
-  )
+  return <BelanjaClientInner {...props} />
 }
 
 function BelanjaClientInner({
@@ -75,7 +53,13 @@ function BelanjaClientInner({
 
   const fetchProducts = useCallback(
     async (page: number, append: boolean) => {
-      const params = buildQueryParams(debouncedSearch, tipe, location, sort, page)
+      const params = buildMarketplaceQueryParams({
+        search: debouncedSearch,
+        tipe,
+        location,
+        sort,
+        page,
+      })
       const res = await fetch(`/api/belanja/products?${params.toString()}`)
       if (!res.ok) throw new Error("Failed to fetch products")
       const data = await res.json()

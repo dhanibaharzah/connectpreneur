@@ -3,10 +3,9 @@ import {
   buyerHasTransactions,
   createPembeliSession,
   pembeliSessionCookieOptions,
-  resolveBuyerDisplayName,
+  resolveBuyerProfileAfterOtp,
   verifyPembeliOtpChallenge,
 } from "@/lib/pembeli-auth"
-import { ensureBuyerProfile, getOrCreateBuyerProfileFromTransactions } from "@/lib/gamification"
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,20 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "OTP tidak valid atau sudah kedaluwarsa" }, { status: 401 })
     }
 
-    const hasTransactions = await buyerHasTransactions(phone)
-    let profile
-
-    if (hasTransactions) {
-      const resolvedName = await resolveBuyerDisplayName(phone, displayName)
-      profile = await getOrCreateBuyerProfileFromTransactions(phone)
-      profile = {
-        ...profile,
-        displayName: resolvedName || profile.displayName,
-      }
-    } else {
-      profile = await ensureBuyerProfile(phone, displayName?.trim() || null)
-    }
-
+    const profile = await resolveBuyerProfileAfterOtp(phone, displayName)
     const sessionDisplayName = profile.displayName?.trim() || null
     const token = await createPembeliSession({ phone, displayName: sessionDisplayName })
 

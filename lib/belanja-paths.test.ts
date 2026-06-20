@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildBelanjaAkunPath, buildBelanjaProductPath } from "@/lib/belanja-paths"
+import { buildBelanjaAkunPath, buildBelanjaProductPath, resolveBelanjaPaths } from "@/lib/belanja-paths"
 
 describe("buildBelanjaAkunPath", () => {
   it("uses /akun on belanja subdomain", () => {
@@ -18,5 +18,28 @@ describe("buildBelanjaProductPath", () => {
 
   it("uses prefixed slug path on main domain", () => {
     expect(buildBelanjaProductPath("kopi-arabica", false)).toBe("/belanja/produk/kopi-arabica")
+  })
+})
+
+describe("resolveBelanjaPaths", () => {
+  it("detects belanja subdomain and uses root home path", () => {
+    expect(resolveBelanjaPaths("belanja.connectpreneur.id")).toEqual({
+      homePath: "/",
+      onSubdomain: true,
+    })
+  })
+
+  it("strips port from host", () => {
+    expect(resolveBelanjaPaths("belanja.localhost:3000")).toEqual({
+      homePath: "/",
+      onSubdomain: true,
+    })
+  })
+
+  it("uses prefixed home path on main domain", () => {
+    expect(resolveBelanjaPaths("connectpreneur.id")).toEqual({
+      homePath: "/belanja",
+      onSubdomain: false,
+    })
   })
 })

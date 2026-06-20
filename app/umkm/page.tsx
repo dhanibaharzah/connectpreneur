@@ -12,48 +12,23 @@ import { Badge } from "@/components/ui/badge"
 import {
   Loader2,
   LogOut,
-  Bell,
-  Check,
-  X,
-  FileText,
-  Building2,
-  Trophy,
   Settings,
   ArrowLeft,
-  MessageCircle,
   Package,
   Users,
 } from "lucide-react"
-import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
-import { TransactionPagination } from "@/components/transaction-pagination"
+import { UmkmAuthSteps } from "@/components/umkm/umkm-auth-steps"
+import { UmkmTransactionsPanel } from "@/components/umkm/umkm-transactions-panel"
 import { UmkmProductsPanel } from "@/components/umkm-products-panel"
 import { UmkmCustomersPanel } from "@/components/umkm-customers-panel"
 import { UmkmLegalitasPanel } from "@/components/umkm-legalitas-panel"
 import { UmkmStoreQrCard } from "@/components/umkm-store-qr-card"
-import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
 import type { PaginationMeta } from "@/lib/pagination"
 import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/pagination"
-import type { TrustTier } from "@/types/gamification"
-import { buildUmkmContactBuyerMessage } from "@/lib/whatsapp-messages"
-import { buildWhatsappWebUrl, formatPhoneDisplay } from "@/lib/phone"
-import {
-  TRANSACTION_STATUS_LABELS,
-  type Transaction,
-  type TransactionStatus,
-} from "@/types/transaction"
+import type { Transaction } from "@/types/transaction"
 
 type Step = "phone" | "otp" | "dashboard"
 type DashboardTab = "transactions" | "products" | "customers" | "settings"
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  pending_review: "secondary",
-  approved: "default",
-  invoice_sent: "outline",
-  payment_proof_uploaded: "default",
-  completed: "default",
-  rejected: "destructive",
-  cancelled: "destructive",
-}
 
 export default function UmkmPortalPage() {
   const [step, setStep] = useState<Step>("phone")
@@ -352,50 +327,19 @@ export default function UmkmPortalPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
-        {step === "phone" && (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                <h1 className="text-xl font-bold">Masuk Portal UMKM</h1>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Masukkan nomor WhatsApp PIC yang terdaftar. Kode OTP akan dikirim via WhatsApp.
-              </p>
-              <form onSubmit={requestOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="umkm-phone">Nomor WhatsApp</Label>
-                  <Input id="umkm-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08xxxxxxxxxx" required />
-                </div>
-                {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Kirim OTP"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {step === "otp" && (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h1 className="text-xl font-bold">Verifikasi OTP</h1>
-              <p className="text-sm text-muted-foreground">Kode OTP dikirim ke {phone}</p>
-              <form onSubmit={verifyOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="umkm-otp">Kode OTP</Label>
-                  <Input id="umkm-otp" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6 digit" maxLength={6} required />
-                </div>
-                {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verifikasi"}
-                </Button>
-                <Button type="button" variant="ghost" className="w-full" onClick={() => setStep("phone")}>
-                  Ganti nomor
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+        {(step === "phone" || step === "otp") && (
+          <UmkmAuthSteps
+            step={step}
+            phone={phone}
+            otp={otp}
+            error={error}
+            loading={loading}
+            onPhoneChange={setPhone}
+            onOtpChange={setOtp}
+            onRequestOtp={requestOtp}
+            onVerifyOtp={verifyOtp}
+            onBackToPhone={() => setStep("phone")}
+          />
         )}
 
         {step === "dashboard" && dashboardTab === "products" && (
@@ -481,261 +425,29 @@ export default function UmkmPortalPage() {
         )}
 
         {step === "dashboard" && dashboardTab === "transactions" && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">{businessName}</h1>
-              <p className="text-muted-foreground text-sm">Kelola permintaan penawaran & transaksi</p>
-            </div>
-
-            <Card>
-              <CardContent className="p-6 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-primary" />
-                    <h2 className="font-semibold">Poin & Trust Badge</h2>
-                  </div>
-                  {gamification.trustTier && (
-                    <UmkmTrustBadge tier={gamification.trustTier as TrustTier} size="md" />
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg bg-muted/50 p-4">
-                    <p className="text-xs text-muted-foreground">Total Poin</p>
-                    <p className="text-2xl font-bold text-primary">{gamification.totalPoints}</p>
-                  </div>
-                  <div className="rounded-lg bg-muted/50 p-4">
-                    <p className="text-xs text-muted-foreground">Pesanan Selesai</p>
-                    <p className="text-2xl font-bold">{gamification.completedOrders}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +50 poin per transaksi dikonfirmasi. Trust badge naik otomatis berdasarkan
-                  performa pesanan.
-                </p>
-              </CardContent>
-            </Card>
-
-            {!bankSaved && (
-              <Card className="border-amber-200 bg-amber-50/50">
-                <CardContent className="p-6 space-y-4">
-                  <h2 className="font-semibold">Lengkapi Rekening Bank</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Rekening bank wajib diisi sebelum Anda dapat menerbitkan invoice ke pembeli.
-                  </p>
-                  <Button onClick={() => setDashboardTab("settings")}>
-                    <Settings className="h-4 w-4 mr-1" />
-                    Atur Rekening Bank
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {error && <p className="text-sm text-destructive">{error}</p>}
-
-            <div className="space-y-3">
-              <h2 className="font-semibold">Transaksi ({pagination.total})</h2>
-              <ExpandableList isEmpty={transactions.length === 0} emptyMessage="Belum ada permintaan penawaran.">
-                {transactions.map((tx) => (
-                  <ExpandableListItem
-                    key={tx.id}
-                    open={expandedId === tx.id}
-                    onToggle={() => toggleTransaction(tx.id)}
-                    title={tx.buyerName}
-                    subtitle={tx.referenceNo}
-                    trailing={
-                      <>
-                        {tx.invoiceTotal != null && (
-                          <span className="hidden text-xs font-medium text-foreground sm:inline">
-                            Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                          </span>
-                        )}
-                        <Badge variant={STATUS_VARIANT[tx.status] || "secondary"} className="shrink-0">
-                          {TRANSACTION_STATUS_LABELS[tx.status as TransactionStatus]}
-                        </Badge>
-                      </>
-                    }
-                  >
-                    <div className="space-y-1 text-sm">
-                      <p className="text-muted-foreground">{formatPhoneDisplay(tx.buyerPhone)}</p>
-                      {tx.notes && (
-                        <p><span className="font-medium">Catatan:</span> {tx.notes}</p>
-                      )}
-                      {tx.quantity > 0 && (
-                        <p><span className="font-medium">Kuantitas:</span> {tx.quantity}</p>
-                      )}
-                      {tx.invoiceTotal != null && (
-                        <p className="font-medium sm:hidden">
-                          Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                        </p>
-                      )}
-                    </div>
-
-                    {tx.status !== "completed" && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-fit border-green-600 text-green-700 hover:bg-green-50"
-                      asChild
-                    >
-                      <a
-                        href={buildWhatsappWebUrl(
-                          tx.buyerPhone,
-                          buildUmkmContactBuyerMessage({
-                            businessName: tx.businessName || businessName,
-                            buyerName: tx.buyerName,
-                            referenceNo: tx.referenceNo,
-                            quantity: tx.quantity,
-                            notes: tx.notes,
-                          }),
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Kontak Pembeli
-                      </a>
-                    </Button>
-                    )}
-
-                    {tx.status === "pending_review" && (
-                      <div className="flex flex-wrap gap-2">
-                        <Button size="sm" onClick={() => action(tx.id, "approve")} disabled={loading}>
-                          <Check className="h-4 w-4 mr-1" /> Setujui
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            setExpandedId(tx.id)
-                            setRejectingId(rejectingId === tx.id ? null : tx.id)
-                            setInvoiceEditId(null)
-                          }}
-                          disabled={loading}
-                        >
-                          <X className="h-4 w-4 mr-1" /> Tolak
-                        </Button>
-                      </div>
-                    )}
-
-                    {rejectingId === tx.id && tx.status === "pending_review" && (
-                      <div className="space-y-2">
-                        <Textarea
-                          placeholder="Alasan penolakan (opsional)"
-                          value={rejectReason}
-                          onChange={(e) => setRejectReason(e.target.value)}
-                          rows={2}
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="destructive" onClick={() => action(tx.id, "reject", { reason: rejectReason })} disabled={loading}>
-                            Konfirmasi Tolak
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setRejectingId(null)} disabled={loading}>
-                            Batal
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {tx.status === "approved" && (
-                      <div className="space-y-2">
-                        {invoiceEditId !== tx.id ? (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setExpandedId(tx.id)
-                              setInvoiceEditId(tx.id)
-                              setRejectingId(null)
-                              setInvoiceForm({ description: "", quantity: "1", unit_price: "" })
-                            }}
-                            disabled={loading}
-                          >
-                            <FileText className="h-4 w-4 mr-1" /> Buat Invoice
-                          </Button>
-                        ) : (
-                          <>
-                            <p className="text-sm font-medium">Terbitkan Invoice</p>
-                            <Input placeholder="Deskripsi item" value={invoiceForm.description} onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })} />
-                            <div className="grid grid-cols-2 gap-2">
-                              <Input type="number" min={1} placeholder="Qty" value={invoiceForm.quantity} onChange={(e) => setInvoiceForm({ ...invoiceForm, quantity: e.target.value })} />
-                              <Input type="number" min={1} placeholder="Harga satuan (Rp)" value={invoiceForm.unit_price} onChange={(e) => setInvoiceForm({ ...invoiceForm, unit_price: e.target.value })} />
-                            </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => sendInvoice(tx.id)} disabled={loading}>
-                                Kirim Invoice
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => setInvoiceEditId(null)} disabled={loading}>
-                                Batal
-                              </Button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {tx.status === "invoice_sent" && (
-                      <div className="space-y-2">
-                        {tx.invoiceTotal != null && (
-                          <p className="text-sm font-medium">
-                            Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                          </p>
-                        )}
-                        <Button size="sm" variant="outline" onClick={() => action(tx.id, "remind")} disabled={loading}>
-                          <Bell className="h-4 w-4 mr-1" /> Kirim Reminder Bayar
-                        </Button>
-                      </div>
-                    )}
-
-                    {tx.status === "payment_proof_uploaded" && (
-                      <div className="flex flex-col gap-3">
-                        {tx.invoiceTotal != null && (
-                          <p className="text-sm font-medium">
-                            Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                          </p>
-                        )}
-                        {tx.paymentProofUrl && (
-                          <a
-                            href={tx.paymentProofUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex w-fit items-center text-sm text-primary underline underline-offset-2"
-                          >
-                            Lihat bukti transfer
-                          </a>
-                        )}
-                        <Button
-                          size="sm"
-                          className="w-fit"
-                          onClick={() => action(tx.id, "confirm_payment")}
-                          disabled={loading}
-                        >
-                          <Check className="h-4 w-4 mr-1" /> Konfirmasi Pembayaran
-                        </Button>
-                      </div>
-                    )}
-
-                    {tx.invoiceTotal != null &&
-                      tx.status !== "pending_review" &&
-                      tx.status !== "approved" &&
-                      tx.status !== "invoice_sent" &&
-                      tx.status !== "payment_proof_uploaded" && (
-                      <p className="text-sm font-medium">
-                        Total: Rp {tx.invoiceTotal.toLocaleString("id-ID")}
-                      </p>
-                    )}
-                  </ExpandableListItem>
-                ))}
-              </ExpandableList>
-              <TransactionPagination
-                pagination={pagination}
-                onPageChange={changeTxPage}
-                loading={loading}
-              />
-            </div>
-
-            <Link href="/katalog" className="text-sm text-muted-foreground hover:text-primary">
-              ← Kembali ke Katalog
-            </Link>
-          </div>
+          <UmkmTransactionsPanel
+            businessName={businessName}
+            gamification={gamification}
+            bankSaved={bankSaved}
+            error={error}
+            transactions={transactions}
+            pagination={pagination}
+            loading={loading}
+            expandedId={expandedId}
+            rejectingId={rejectingId}
+            invoiceEditId={invoiceEditId}
+            invoiceForm={invoiceForm}
+            rejectReason={rejectReason}
+            onOpenSettings={() => setDashboardTab("settings")}
+            onToggleTransaction={toggleTransaction}
+            onAction={action}
+            onSendInvoice={sendInvoice}
+            onRejectingIdChange={setRejectingId}
+            onInvoiceEditIdChange={setInvoiceEditId}
+            onInvoiceFormChange={setInvoiceForm}
+            onRejectReasonChange={setRejectReason}
+            onPageChange={changeTxPage}
+          />
         )}
       </main>
     </div>

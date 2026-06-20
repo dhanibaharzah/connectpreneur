@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getBelanjaPortalUrl } from "@/lib/app-url"
+import {
+  resolveBelanjaBuyerRedirectPath,
+  resolveBelanjaSubdomainAction,
+  shouldPassthroughPath,
+} from "@/lib/portal-routing"
 
 function basicAuth(request: NextRequest): boolean {
   const authHeader = request.headers.get("authorization")
@@ -17,39 +23,12 @@ function getHostname(request: NextRequest): string {
 }
 
 function shouldPassthrough(pathname: string): boolean {
-  return (
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/geo") ||
-    pathname === "/favicon.ico" ||
-    pathname === "/icon.svg" ||
-    pathname.startsWith("/images/")
-  )
-}
-
-function redirectToMainSite(request: NextRequest): NextResponse {
-  const mainBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://connectpreneur.id"
-  const target = new URL(request.nextUrl.pathname + request.nextUrl.search, mainBase)
-  return NextResponse.redirect(target)
+  return shouldPassthroughPath(pathname)
 }
 
 function redirectToBelanjaPortal(request: NextRequest): NextResponse {
-  const explicit = process.env.NEXT_PUBLIC_BELANJA_PORTAL_URL?.replace(/\/$/, "")
-  let belanjaBase = explicit
-  if (!belanjaBase) {
-    try {
-      const main = new URL(process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://connectpreneur.id")
-      const host = main.hostname.replace(/^www\./, "")
-      main.hostname = `belanja.${host}`
-      belanjaBase = main.origin
-    } catch {
-      belanjaBase = "https://belanja.connectpreneur.id"
-    }
-  }
-
-  const pathname = request.nextUrl.pathname
-  const targetPath = pathname === "/pembeli" || pathname === "/" ? "/akun" : pathname
-  const target = new URL(targetPath + request.nextUrl.search, belanjaBase)
+  const targetPath = resolveBelanjaBuyerRedirectPath(request.nextUrl.pathname)
+  const target = new URL(targetPath + request.nextUrl.search, getBelanjaPortalUrl())
   return NextResponse.redirect(target, 301)
 }
 
@@ -87,45 +66,28 @@ function handlePortalSubdomain(
   return redirectToMainSite(request)
 }
 
+function redirectToMainSite(request: NextRequest): NextResponse {
+  const mainBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://connectpreneur.id"
+  const target = new URL(request.nextUrl.pathname + request.nextUrl.search, mainBase)
+  return NextResponse.redirect(target)
+}
+
 function handleBelanjaSubdomain(request: NextRequest): NextResponse | null {
   const url = request.nextUrl.clone()
-  const pathname = url.pathname
+  const action = resolveBelanjaSubdomainAction(url.pathname)
 
-  if (shouldPassthrough(pathname)) {
-    return null
+  switch (action.type) {
+    case "passthrough":
+      return null
+    case "redirect":
+      url.pathname = action.pathname
+      return NextResponse.redirect(url)
+    case "rewrite":
+      url.pathname = action.pathname
+      return NextResponse.rewrite(url)
+    case "redirect_to_main":
+      return redirectToMainSite(request)
   }
-
-  if (pathname === "/belanja") {
-    url.pathname = "/"
-    return NextResponse.redirect(url)
-  }
-
-  if (pathname === "/belanja/akun") {
-    url.pathname = "/akun"
-    return NextResponse.redirect(url)
-  }
-
-  if (pathname.startsWith("/belanja/produk/")) {
-    url.pathname = pathname.replace("/belanja", "")
-    return NextResponse.redirect(url)
-  }
-
-  if (pathname === "/akun") {
-    url.pathname = "/belanja/akun"
-    return NextResponse.rewrite(url)
-  }
-
-  if (pathname.startsWith("/produk/")) {
-    url.pathname = `/belanja${pathname}`
-    return NextResponse.rewrite(url)
-  }
-
-  if (pathname === "/") {
-    url.pathname = "/belanja"
-    return NextResponse.rewrite(url)
-  }
-
-  return redirectToMainSite(request)
 }
 
 export function middleware(request: NextRequest) {

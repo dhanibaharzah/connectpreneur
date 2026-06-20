@@ -6,22 +6,16 @@ import Image from "next/image"
 import Link from "next/link"
 import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
 import { cn } from "@/lib/utils"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { isDisplayableImageUrl } from "@/lib/storage-urls"
 import { htmlToPlainText } from "@/lib/html-text"
 
 interface BusinessCardProps {
   business: Business
 }
 
-function isValidImageUrl(url: string): boolean {
-  if (!url) return false
-  if (isAllowedImageHost(url)) return true
-  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
-}
-
 export function BusinessCard({ business }: BusinessCardProps) {
   const logoUrl = business.logoUrl
-  const hasValidLogo = isValidImageUrl(logoUrl)
+  const hasValidLogo = isDisplayableImageUrl(logoUrl)
   const detailHref = `/bisnis/${business.slug}`
   const description = htmlToPlainText(business.deskripsi)
 

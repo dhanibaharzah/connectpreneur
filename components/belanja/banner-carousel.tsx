@@ -7,18 +7,12 @@ import useEmblaCarousel from "embla-carousel-react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { isDisplayableImageUrl } from "@/lib/storage-urls"
 import type { ShopBanner } from "@/types/shop-banner"
 
 interface BannerCarouselProps {
   banners: ShopBanner[]
   className?: string
-}
-
-function isValidBannerImage(url: string): boolean {
-  if (!url) return false
-  if (isAllowedImageHost(url)) return true
-  return url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) !== null
 }
 
 export function BannerCarousel({ banners, className }: BannerCarouselProps) {
@@ -59,7 +53,7 @@ export function BannerCarousel({ banners, className }: BannerCarouselProps) {
           {banners.map((banner) => {
             const content = (
               <div className="relative aspect-[21/7] min-w-0 flex-[0_0_100%] overflow-hidden rounded-xl bg-muted sm:aspect-[21/6]">
-                {isValidBannerImage(banner.imageUrl) ? (
+                {isDisplayableImageUrl(banner.imageUrl) ? (
                   <Image
                     src={banner.imageUrl}
                     alt={banner.title || "Banner promosi"}
