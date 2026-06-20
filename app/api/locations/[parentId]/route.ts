@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getKecamatanByParent } from "@/lib/db"
+import { getKecamatanByParent } from "@/lib/catalog/read-model"
 
 // GET /api/locations/[parentId] - Ambil kecamatan berdasarkan parent kabupaten/kota
 export async function GET(

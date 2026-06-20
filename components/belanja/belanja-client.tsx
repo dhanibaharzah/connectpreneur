@@ -7,8 +7,8 @@ import { ProductFilters, type TipeFilter } from "@/components/belanja/product-fi
 import { ProductGrid } from "@/components/belanja/product-grid"
 import type { ShopBanner } from "@/types/shop-banner"
 import type { MarketplaceProduct, MarketplaceSort } from "@/types/marketplace-product"
-import type { PaginationMeta } from "@/lib/pagination"
-import { buildMarketplaceQueryParams } from "@/lib/marketplace-product-filters"
+import type { PaginationMeta } from "@/lib/shared/pagination"
+import { buildMarketplaceQueryParams } from "@/lib/marketplace/marketplace-product-filters"
 
 interface BelanjaClientProps {
   homePath: string

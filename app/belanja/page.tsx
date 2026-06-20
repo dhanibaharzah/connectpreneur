@@ -1,7 +1,7 @@
 import { BelanjaClient } from "@/components/belanja/belanja-client"
-import { getBelanjaPathsFromHeaders } from "@/lib/belanja-paths"
-import { getActiveBanners } from "@/lib/shop-banners"
-import { getMarketplaceLocations, listMarketplaceProducts } from "@/lib/marketplace-products"
+import { getBelanjaPathsFromHeaders } from "@/lib/marketplace/belanja-paths"
+import { getActiveBanners } from "@/lib/marketplace/shop-banners"
+import { getMarketplaceLocations, listMarketplaceProducts } from "@/lib/marketplace/marketplace-products"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

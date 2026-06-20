@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { BusinessDetailContent } from "@/components/business-detail-content"
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import { BusinessDetailContent } from "@/components/business/business-detail-content"
 import { BusinessPageTracker } from "@/components/analytics/business-page-tracker"
-import { getBusinessBySlug } from "@/lib/db"
+import { getBusinessBySlug } from "@/lib/catalog/read-model"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

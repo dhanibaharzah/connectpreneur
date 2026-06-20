@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getOrUpdateScore } from "@/lib/connect-score"
-import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
-import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
+import { getOrUpdateScore } from "@/lib/business/connect-score"
+import { getConnectScoreTier, hasDocument } from "@/lib/business/connect-score-tier"
+import { getUmkmSessionFromRequest } from "@/lib/auth/umkm-auth"
 import { sql } from "@/lib/sql"
 
 function parseDocumentUrl(value: unknown): string | null | undefined {

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
+import { deleteObject, isDeletableStorageUrl } from "@/lib/integrations/storage"
 import {
   generateUniqueProductSlug,
   parseHargaMulai,
@@ -9,8 +9,8 @@ import {
   parseProductTipeBisnis,
   transformDbProduct,
   type DbBusinessProduct,
-} from "@/lib/business-products"
-import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
+} from "@/lib/marketplace/business-products"
+import { getUmkmSessionFromRequest } from "@/lib/auth/umkm-auth"
 import { sql } from "@/lib/sql"
 
 async function deleteStoredFileIfNeeded(url: string | null | undefined) {

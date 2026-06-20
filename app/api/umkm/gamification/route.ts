@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
-import { getBusinessGamificationStats } from "@/lib/gamification"
+import { getUmkmSessionFromRequest } from "@/lib/auth/umkm-auth"
+import { getBusinessGamificationStats } from "@/lib/umkm/gamification"
 
 export async function GET(request: NextRequest) {
   const session = await getUmkmSessionFromRequest(request)

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
-import { deleteObject, isDeletableStorageUrl, newStorageObjectId, uploadObject } from "@/lib/storage"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
+import { deleteObject, isDeletableStorageUrl, newStorageObjectId, uploadObject } from "@/lib/integrations/storage"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 

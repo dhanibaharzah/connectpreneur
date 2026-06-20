@@ -1,7 +1,7 @@
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { getAllBusinesses, getAllCategories } from "@/lib/db"
-import { KatalogClient } from "@/components/katalog-client"
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import { getAllBusinesses, getAllCategories } from "@/lib/catalog/read-model"
+import { KatalogClient } from "@/components/katalog/katalog-client"
 import { KatalogPageTracker } from "@/components/analytics/katalog-page-tracker"
 
 export const dynamic = "force-dynamic"

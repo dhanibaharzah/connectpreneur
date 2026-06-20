@@ -3,7 +3,7 @@ import {
   getBusinessBankDetails,
   getUmkmSessionFromRequest,
   updateBusinessBankDetails,
-} from "@/lib/umkm-auth"
+} from "@/lib/auth/umkm-auth"
 
 export async function GET(request: NextRequest) {
   const session = await getUmkmSessionFromRequest(request)

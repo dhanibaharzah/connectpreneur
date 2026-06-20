@@ -9,8 +9,8 @@ import {
   parseProductTipeBisnis,
   transformDbProduct,
   type DbBusinessProduct,
-} from "@/lib/business-products"
-import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
+} from "@/lib/marketplace/business-products"
+import { getUmkmSessionFromRequest } from "@/lib/auth/umkm-auth"
 import { sql } from "@/lib/sql"
 
 const MAX_PRODUCTS_PER_BUSINESS = 50

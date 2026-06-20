@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { resolveMarketplaceProductByParam } from "@/lib/marketplace-product-resolve"
+import { resolveMarketplaceProductByParam } from "@/lib/marketplace/marketplace-product-resolve"
 
 export async function GET(
   _request: NextRequest,

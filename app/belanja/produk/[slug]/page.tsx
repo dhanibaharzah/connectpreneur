@@ -1,11 +1,11 @@
 import { notFound, permanentRedirect } from "next/navigation"
 import { BelanjaProductDetailClient } from "@/components/belanja/belanja-product-detail-client"
-import { buildBelanjaProductPath, getBelanjaPathsFromHeaders } from "@/lib/belanja-paths"
+import { buildBelanjaProductPath, getBelanjaPathsFromHeaders } from "@/lib/marketplace/belanja-paths"
 import {
   isLegacyMarketplaceProductId,
   resolveMarketplaceProductByParam,
-} from "@/lib/marketplace-product-resolve"
-import { getMarketplaceProductBySlug } from "@/lib/marketplace-products"
+} from "@/lib/marketplace/marketplace-product-resolve"
+import { getMarketplaceProductBySlug } from "@/lib/marketplace/marketplace-products"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
 
 // GET /api/admin/categories - Get categories with offset pagination (same as public but with auth)
 export async function GET(request: NextRequest) {

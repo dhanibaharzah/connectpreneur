@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getAdminLocationScope } from "@/lib/auth"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
-import { listTransactionsForAdmin } from "@/lib/transactions"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
+import { listTransactionsForAdmin } from "@/lib/transactions/transactions"
 import {
   TRANSACTION_STATUS_LABELS,
   type TransactionStatus,

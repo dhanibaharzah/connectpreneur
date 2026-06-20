@@ -4,11 +4,11 @@ import Image from "next/image"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { sanitizeHTML } from "@/lib/sanitize"
+import { sanitizeHTML } from "@/lib/shared/sanitize"
 import { MapPin, Clock, Building2, Globe, Phone, User, Briefcase, Instagram, Facebook, Handshake, FileText, ExternalLink } from "lucide-react"
-import { ConnectScoreDetail } from "@/components/connect-score-badge"
-import { ConnectScoreTierBadge } from "@/components/connect-score-tier-badge"
-import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
+import { ConnectScoreDetail } from "@/components/shared/connect-score-badge"
+import { ConnectScoreTierBadge } from "@/components/shared/connect-score-tier-badge"
+import { getConnectScoreTier, hasDocument } from "@/lib/business/connect-score-tier"
 
 interface BusinessViewModalProps {
   business: any

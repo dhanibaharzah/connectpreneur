@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { Loader2, PackageOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { MarketplaceProduct } from "@/types/marketplace-product"
-import type { PaginationMeta } from "@/lib/pagination"
+import type { PaginationMeta } from "@/lib/shared/pagination"
 import { ProductCard } from "@/components/belanja/product-card"
 
 interface ProductGridProps {

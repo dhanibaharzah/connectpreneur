@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
 import {
   listAllBanners,
   parseBannerImageUrl,
@@ -9,7 +9,7 @@ import {
   parseBannerTitle,
   transformDbBanner,
   type DbShopBanner,
-} from "@/lib/shop-banners"
+} from "@/lib/marketplace/shop-banners"
 
 export async function GET(request: NextRequest) {
   try {

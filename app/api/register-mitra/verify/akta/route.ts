@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { fileTypeFromBuffer } from "file-type"
-import { newStorageObjectId, uploadObject } from "@/lib/storage"
-import { verifyAktaDocument } from "@/lib/akta-verification"
-import { isAktaOcrEnabled } from "@/lib/ocr-config"
-import { isOcrServiceConfigured } from "@/lib/ocr-service"
+import { newStorageObjectId, uploadObject } from "@/lib/integrations/storage"
+import { verifyAktaDocument } from "@/lib/integrations/akta-verification"
+import { isAktaOcrEnabled } from "@/lib/integrations/ocr-config"
+import { isOcrServiceConfigured } from "@/lib/integrations/ocr-service"
 
 const MAX_PDF_SIZE = 10 * 1024 * 1024
 const OCR_SKIPPED_REASON =

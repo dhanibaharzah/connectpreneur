@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { clearPembeliSessionCookie } from "@/lib/pembeli-auth"
+import { clearPembeliSessionCookie } from "@/lib/auth/pembeli-auth"
 
 export async function POST() {
   const response = NextResponse.json({ success: true })

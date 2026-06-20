@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { newStorageObjectId, uploadObject } from "@/lib/storage"
+import { newStorageObjectId, uploadObject } from "@/lib/integrations/storage"
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 

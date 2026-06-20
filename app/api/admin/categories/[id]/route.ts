@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
 
 // GET /api/admin/categories/[id] - Get category details with usage count
 export async function GET(

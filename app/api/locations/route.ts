@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getKabupatenKota } from "@/lib/db"
+import { getKabupatenKota } from "@/lib/catalog/read-model"
 
 // GET /api/locations - Ambil semua kabupaten/kota
 export async function GET() {

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { checkOtpRateLimit, createPembeliOtpChallenge } from "@/lib/pembeli-auth"
-import { sendPembeliOtp } from "@/lib/gowa"
+import { checkOtpRateLimit, createPembeliOtpChallenge } from "@/lib/auth/pembeli-auth"
+import { sendPembeliOtp } from "@/lib/integrations/gowa"
 
 export async function POST(request: NextRequest) {
   try {

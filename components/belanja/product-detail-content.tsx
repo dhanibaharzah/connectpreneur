@@ -7,11 +7,11 @@ import { ArrowLeft, FileText, MapPin, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { RfqRequestModal } from "@/components/rfq-request-modal"
+import { RfqRequestModal } from "@/components/shared/rfq-request-modal"
 import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import type { MarketplaceProduct } from "@/types/marketplace-product"
-import { isDisplayableImageUrl } from "@/lib/storage-urls"
-import { appUrl } from "@/lib/app-url"
+import { isDisplayableImageUrl } from "@/lib/integrations/storage-urls"
+import { appUrl } from "@/lib/shared/app-url"
 
 interface ProductDetailContentProps {
   product: MarketplaceProduct

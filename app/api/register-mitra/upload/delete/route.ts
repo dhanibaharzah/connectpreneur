@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
+import { deleteObject, isDeletableStorageUrl } from "@/lib/integrations/storage"
 
 export async function POST(request: NextRequest) {
   try {

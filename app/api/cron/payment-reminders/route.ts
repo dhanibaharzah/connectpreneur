@@ -2,10 +2,10 @@ import { NextResponse } from "next/server"
 import {
   getTransactionsDueForAutoReminder,
   markAutoReminderSent,
-} from "@/lib/transactions"
-import { getOrCreateToken } from "@/lib/transaction-tokens"
-import { appUrl } from "@/lib/app-url"
-import { sendPaymentReminderToBuyer } from "@/lib/gowa"
+} from "@/lib/transactions/transactions"
+import { getOrCreateToken } from "@/lib/transactions/transaction-tokens"
+import { appUrl } from "@/lib/shared/app-url"
+import { sendPaymentReminderToBuyer } from "@/lib/integrations/gowa"
 import { sql } from "@/lib/sql"
 
 export async function GET(request: Request) {

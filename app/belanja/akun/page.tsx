@@ -1,5 +1,5 @@
 import { BelanjaAkunClient } from "@/components/belanja/belanja-akun-client"
-import { getBelanjaPathsFromHeaders } from "@/lib/belanja-paths"
+import { getBelanjaPathsFromHeaders } from "@/lib/marketplace/belanja-paths"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

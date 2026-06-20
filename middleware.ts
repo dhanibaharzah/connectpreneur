@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getBelanjaPortalUrl } from "@/lib/app-url"
+import { getBelanjaPortalUrl } from "@/lib/shared/app-url"
 import {
   resolveBelanjaBuyerRedirectPath,
   resolveBelanjaSubdomainAction,
   shouldPassthroughPath,
-} from "@/lib/portal-routing"
+} from "@/lib/marketplace/portal-routing"
 
 function basicAuth(request: NextRequest): boolean {
   const authHeader = request.headers.get("authorization")

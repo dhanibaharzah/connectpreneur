@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import sharp from "sharp"
-import { newStorageObjectId, uploadObject } from "@/lib/storage"
+import { newStorageObjectId, uploadObject } from "@/lib/integrations/storage"
 import { fileTypeFromBuffer } from "file-type"
-import { getValidToken, markTokenUsed } from "@/lib/transaction-tokens"
-import { getTransactionById, uploadPaymentProof } from "@/lib/transactions"
-import { sendPaymentProofNotificationToUmkm } from "@/lib/gowa"
+import { getValidToken, markTokenUsed } from "@/lib/transactions/transaction-tokens"
+import { getTransactionById, uploadPaymentProof } from "@/lib/transactions/transactions"
+import { sendPaymentProofNotificationToUmkm } from "@/lib/integrations/gowa"
 import { isDbConnectionError, sql, withDbRetry } from "@/lib/sql"
 const MAX_SIZE = 5 * 1024 * 1024
 

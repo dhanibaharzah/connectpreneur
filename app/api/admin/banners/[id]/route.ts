@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
-import { deleteObject, isDeletableStorageUrl } from "@/lib/storage"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
+import { deleteObject, isDeletableStorageUrl } from "@/lib/integrations/storage"
 import {
   getBannerById,
   parseBannerImageUrl,
@@ -10,7 +10,7 @@ import {
   parseBannerTitle,
   transformDbBanner,
   type DbShopBanner,
-} from "@/lib/shop-banners"
+} from "@/lib/marketplace/shop-banners"
 
 export async function GET(
   request: NextRequest,

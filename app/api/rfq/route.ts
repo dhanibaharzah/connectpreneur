@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { createTransaction } from "@/lib/transactions"
+import { createTransaction } from "@/lib/transactions/transactions"
 import {
   sendRfqConfirmationToBuyer,
   sendRfqNotificationToUmkm,
-} from "@/lib/gowa"
-import { checkRfqRateLimit } from "@/lib/rfq-rate-limit"
-import { normalizePhoneDigits } from "@/lib/phone"
+} from "@/lib/integrations/gowa"
+import { checkRfqRateLimit } from "@/lib/marketplace/rfq-rate-limit"
+import { normalizePhoneDigits } from "@/lib/shared/phone"
 
 export async function POST(request: NextRequest) {
   try {

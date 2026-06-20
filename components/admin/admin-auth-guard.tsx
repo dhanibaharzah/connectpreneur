@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { getLoginPath } from "@/lib/use-admin-navigation"
+import { getLoginPath } from "@/lib/admin/navigation"
 import type { AdminUser } from "./admin-shell"
 
 export function useAdminAuth() {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getMarketplaceLocations } from "@/lib/marketplace-products"
+import { getMarketplaceLocations } from "@/lib/marketplace/marketplace-products"
 
 export async function GET() {
   try {

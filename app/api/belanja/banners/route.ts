@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getActiveBanners } from "@/lib/shop-banners"
+import { getActiveBanners } from "@/lib/marketplace/shop-banners"
 
 export async function GET() {
   try {

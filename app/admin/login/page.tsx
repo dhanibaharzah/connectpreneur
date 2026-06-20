@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { getDashboardPath } from "@/lib/use-admin-navigation"
+import { getDashboardPath } from "@/lib/admin/navigation"
 
 export default function AdminLoginPage() {
   const router = useRouter()

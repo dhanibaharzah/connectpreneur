@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/shared/utils"
 import { Loader2, Users, Eye, MessageCircle, Globe, Share2, BookOpen } from "lucide-react"
 import type { AdminUser } from "./admin-shell"
 import AdminShell, { getAdminAuthHeaders } from "./admin-shell"

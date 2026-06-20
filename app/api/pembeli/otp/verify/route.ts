@@ -5,7 +5,7 @@ import {
   pembeliSessionCookieOptions,
   resolveBuyerProfileAfterOtp,
   verifyPembeliOtpChallenge,
-} from "@/lib/pembeli-auth"
+} from "@/lib/auth/pembeli-auth"
 
 export async function POST(request: NextRequest) {
   try {

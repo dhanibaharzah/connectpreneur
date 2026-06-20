@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import AdminShell, { getAdminAuthHeaders, type AdminUser } from "./admin-shell"
 import { BannerFormModal } from "./banner-form-modal"
 import type { ShopBanner } from "@/types/shop-banner"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { isAllowedImageHost } from "@/lib/integrations/storage-urls"
 
 interface AdminBannersProps {
   user: AdminUser

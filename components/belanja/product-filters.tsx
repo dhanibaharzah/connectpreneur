@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/shared/utils"
 import type { ProductTipeBisnis } from "@/types/business-product"
 import { MARKETPLACE_SORT_LABELS, type MarketplaceSort } from "@/types/marketplace-product"
 

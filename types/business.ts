@@ -1,6 +1,6 @@
 import type { BusinessProduct } from "@/types/business-product"
 import type { TrustTier } from "@/types/gamification"
-import type { ConnectScoreTier } from "@/lib/connect-score-tier"
+import type { ConnectScoreTier } from "@/lib/business/connect-score-tier"
 
 export interface Business {
   id: string

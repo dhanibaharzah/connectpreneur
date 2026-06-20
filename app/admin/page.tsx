@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { getDashboardPath } from "@/lib/use-admin-navigation"
+import { getDashboardPath } from "@/lib/admin/navigation"
 
 export default function AdminRootPage() {
   const router = useRouter()

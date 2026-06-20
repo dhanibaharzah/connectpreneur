@@ -16,8 +16,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { getAdminAuthHeaders } from "./admin-shell"
 import type { ShopBanner } from "@/types/shop-banner"
-import { BELANJA_BANNER_UPLOAD_RECOMMENDED } from "@/lib/belanja-banner-spec"
-import { isAllowedImageHost } from "@/lib/storage-urls"
+import { BELANJA_BANNER_UPLOAD_RECOMMENDED } from "@/lib/marketplace/belanja-banner-spec"
+import { isAllowedImageHost } from "@/lib/integrations/storage-urls"
 
 interface BannerFormModalProps {
   open: boolean

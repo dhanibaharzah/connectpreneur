@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import type { MarketplaceProduct } from "@/types/marketplace-product"
-import { buildBelanjaProductPath } from "@/lib/belanja-paths"
-import { isDisplayableImageUrl } from "@/lib/storage-urls"
-import { cn } from "@/lib/utils"
+import { buildBelanjaProductPath } from "@/lib/marketplace/belanja-paths"
+import { isDisplayableImageUrl } from "@/lib/integrations/storage-urls"
+import { cn } from "@/lib/shared/utils"
 
 interface ProductCardProps {
   product: MarketplaceProduct

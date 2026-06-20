@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { isAdminResponse, requireAdmin } from "@/lib/admin-api"
+import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
 import {
   getAnalyticsOverview,
   getMitraUniqueVisitors,

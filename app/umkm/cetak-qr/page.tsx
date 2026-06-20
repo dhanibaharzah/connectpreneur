@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer } from "lucide-react"
-import { StoreQrSticker } from "@/components/store-qr-sticker"
+import { StoreQrSticker } from "@/components/umkm/store-qr-sticker"
 
 interface QrData {
   businessName: string

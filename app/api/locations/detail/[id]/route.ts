@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getLocationById } from "@/lib/db"
+import { getLocationById } from "@/lib/catalog/read-model"
 
 // GET /api/locations/detail/[id] - Get location detail including parent_id
 export async function GET(

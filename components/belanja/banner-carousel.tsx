@@ -6,8 +6,8 @@ import Link from "next/link"
 import useEmblaCarousel from "embla-carousel-react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { isDisplayableImageUrl } from "@/lib/storage-urls"
+import { cn } from "@/lib/shared/utils"
+import { isDisplayableImageUrl } from "@/lib/integrations/storage-urls"
 import type { ShopBanner } from "@/types/shop-banner"
 
 interface BannerCarouselProps {

@@ -1,9 +1,9 @@
-import { sql } from "@/lib/db"
+import { sql } from "@/lib/sql"
 import { type NextRequest, NextResponse } from "next/server"
 import { getSessionFromRequest } from "@/lib/auth"
-import { getOrUpdateScore } from "@/lib/connect-score"
-import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
-import { stripSensitiveBusinessFields } from "@/lib/strip-sensitive-business-fields"
+import { getOrUpdateScore } from "@/lib/business/connect-score"
+import { getConnectScoreTier, hasDocument } from "@/lib/business/connect-score-tier"
+import { stripSensitiveBusinessFields } from "@/lib/business/strip-sensitive-fields"
 
 // GET /api/businesses/[slug] - Get single business by slug (PUBLIC)
 export async function GET(

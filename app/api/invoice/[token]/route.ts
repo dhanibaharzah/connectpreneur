@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getValidToken } from "@/lib/transaction-tokens"
-import { getTransactionById, formatCurrency } from "@/lib/transactions"
+import { getValidToken } from "@/lib/transactions/transaction-tokens"
+import { getTransactionById, formatCurrency } from "@/lib/transactions/transactions"
 import { isDbConnectionError, sql, withDbRetry } from "@/lib/sql"
 
 type RouteContext = { params: Promise<{ token: string }> }

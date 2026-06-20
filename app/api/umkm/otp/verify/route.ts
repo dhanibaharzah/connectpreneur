@@ -3,7 +3,7 @@ import {
   createUmkmSession,
   umkmSessionCookieOptions,
   verifyOtpChallenge,
-} from "@/lib/umkm-auth"
+} from "@/lib/auth/umkm-auth"
 import { sql } from "@/lib/sql"
 
 export async function POST(request: NextRequest) {

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getCompletedCustomersForBusiness } from "@/lib/umkm-customers"
-import { getUmkmSessionFromRequest } from "@/lib/umkm-auth"
+import { getCompletedCustomersForBusiness } from "@/lib/umkm/customers"
+import { getUmkmSessionFromRequest } from "@/lib/auth/umkm-auth"
 
 export async function GET(request: NextRequest) {
   const session = await getUmkmSessionFromRequest(request)

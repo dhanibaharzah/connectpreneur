@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin, requireSuperAdmin } from "@/lib/admin-api"
+import { isAdminResponse, requireAdmin, requireSuperAdmin } from "@/lib/auth/admin-api"
 
 export async function GET(request: NextRequest) {
   const user = await requireSuperAdmin(request)

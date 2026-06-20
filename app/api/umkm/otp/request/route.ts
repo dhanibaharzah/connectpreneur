@@ -6,8 +6,8 @@ import {
   findBusinessesByPhone,
   umkmSessionCookieOptions,
   verifyOtpChallenge,
-} from "@/lib/umkm-auth"
-import { sendUmkmOtp } from "@/lib/gowa"
+} from "@/lib/auth/umkm-auth"
+import { sendUmkmOtp } from "@/lib/integrations/gowa"
 
 export async function POST(request: NextRequest) {
   try {

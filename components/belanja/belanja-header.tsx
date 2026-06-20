@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2, Search, ShoppingBag, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { buildBelanjaAkunPath } from "@/lib/belanja-paths"
+import { buildBelanjaAkunPath } from "@/lib/marketplace/belanja-paths"
 import { usePembeliAuth } from "@/components/pembeli/pembeli-auth-context"
 import { PembeliLoginDialog } from "@/components/pembeli/pembeli-login-dialog"
 

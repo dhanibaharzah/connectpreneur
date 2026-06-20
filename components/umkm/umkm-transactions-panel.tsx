@@ -15,12 +15,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
-import { TransactionPagination } from "@/components/transaction-pagination"
-import { UmkmTrustBadge } from "@/components/umkm-trust-badge"
-import type { PaginationMeta } from "@/lib/pagination"
-import { buildUmkmContactBuyerMessage } from "@/lib/whatsapp-messages"
-import { buildWhatsappWebUrl, formatPhoneDisplay } from "@/lib/phone"
+import { ExpandableList, ExpandableListItem } from "@/components/shared/expandable-list"
+import { TransactionPagination } from "@/components/shared/transaction-pagination"
+import { UmkmTrustBadge } from "@/components/umkm/umkm-trust-badge"
+import type { PaginationMeta } from "@/lib/shared/pagination"
+import { buildUmkmContactBuyerMessage } from "@/lib/integrations/whatsapp-messages"
+import { buildWhatsappWebUrl, formatPhoneDisplay } from "@/lib/shared/phone"
 import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,

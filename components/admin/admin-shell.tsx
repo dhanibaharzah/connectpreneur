@@ -7,8 +7,8 @@ import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { LayoutDashboard, Building2, Users, LogOut, Receipt, ImageIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { getLoginPath, getDashboardPath, getMitraPath, getMembersPath, getTransaksiPath, getBannerPath } from "@/lib/use-admin-navigation"
+import { cn } from "@/lib/shared/utils"
+import { getAdminPath, getLoginPath, getDashboardPath, getMitraPath, getMembersPath, getTransaksiPath, getBannerPath } from "@/lib/admin/navigation"
 import type { AdminUser } from "@/lib/auth"
 
 export type { AdminUser }

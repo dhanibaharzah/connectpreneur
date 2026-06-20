@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { sendRegistrationWhatsAppNotification } from "@/lib/gowa"
-import { verifyAktaDocument } from "@/lib/akta-verification"
-import { fetchDocumentBuffer } from "@/lib/document-fetch"
-import { verifyKtpDocument } from "@/lib/ktp-verification"
-import { isAktaOcrEnabled, isKtpOcrEnabled } from "@/lib/ocr-config"
+import { sendRegistrationWhatsAppNotification } from "@/lib/integrations/gowa"
+import { verifyAktaDocument } from "@/lib/integrations/akta-verification"
+import { fetchDocumentBuffer } from "@/lib/integrations/document-fetch"
+import { verifyKtpDocument } from "@/lib/integrations/ktp-verification"
+import { isAktaOcrEnabled, isKtpOcrEnabled } from "@/lib/integrations/ocr-config"
 
 export async function POST(request: NextRequest) {
   try {

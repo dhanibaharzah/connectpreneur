@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { businessCatalogUrl } from "@/lib/business-catalog-url"
-import { generateStoreQrDataUrl, STORE_QR_SIZES } from "@/lib/generate-store-qr"
-import { getBusinessCatalogInfo, getUmkmSessionFromRequest } from "@/lib/umkm-auth"
+import { businessCatalogUrl } from "@/lib/business/catalog-url"
+import { generateStoreQrDataUrl, STORE_QR_SIZES } from "@/lib/umkm/generate-store-qr"
+import { getBusinessCatalogInfo, getUmkmSessionFromRequest } from "@/lib/auth/umkm-auth"
 
 export async function GET(request: NextRequest) {
   const session = await getUmkmSessionFromRequest(request)

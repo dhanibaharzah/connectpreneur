@@ -6,12 +6,12 @@ import { ExternalLink, Loader2, LogOut, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { BuyerBadge } from "@/components/buyer-badge"
-import { ExpandableList, ExpandableListItem } from "@/components/expandable-list"
-import { TransactionPagination } from "@/components/transaction-pagination"
+import { BuyerBadge } from "@/components/shared/buyer-badge"
+import { ExpandableList, ExpandableListItem } from "@/components/shared/expandable-list"
+import { TransactionPagination } from "@/components/shared/transaction-pagination"
 import { usePembeliAuth } from "@/components/pembeli/pembeli-auth-context"
-import type { PaginationMeta } from "@/lib/pagination"
-import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/pagination"
+import type { PaginationMeta } from "@/lib/shared/pagination"
+import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/shared/pagination"
 import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,

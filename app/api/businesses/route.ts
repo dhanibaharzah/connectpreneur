@@ -1,6 +1,6 @@
-import { sql } from "@/lib/db"
-import { stripSensitiveBusinessFields } from "@/lib/strip-sensitive-business-fields"
-import { getConnectScoreTier, hasDocument } from "@/lib/connect-score-tier"
+import { sql } from "@/lib/sql"
+import { stripSensitiveBusinessFields } from "@/lib/business/strip-sensitive-fields"
+import { getConnectScoreTier, hasDocument } from "@/lib/business/connect-score-tier"
 import { type NextRequest, NextResponse } from "next/server"
 
 // GET /api/businesses - Get all businesses with optional filtering

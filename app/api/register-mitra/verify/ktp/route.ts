@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { fileTypeFromBuffer } from "file-type"
-import { newStorageObjectId, uploadObject } from "@/lib/storage"
-import { verifyKtpDocument } from "@/lib/ktp-verification"
-import { isKtpOcrEnabled } from "@/lib/ocr-config"
-import { isOcrServiceConfigured } from "@/lib/ocr-service"
+import { newStorageObjectId, uploadObject } from "@/lib/integrations/storage"
+import { verifyKtpDocument } from "@/lib/integrations/ktp-verification"
+import { isKtpOcrEnabled } from "@/lib/integrations/ocr-config"
+import { isOcrServiceConfigured } from "@/lib/integrations/ocr-service"
 
 const MAX_KTP_SIZE = 5 * 1024 * 1024
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const

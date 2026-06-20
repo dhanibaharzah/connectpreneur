@@ -1,4 +1,4 @@
-import { sql } from "@/lib/db"
+import { sql } from "@/lib/sql"
 import { type NextRequest, NextResponse } from "next/server"
 
 // GET /api/categories - Get categories with offset pagination
