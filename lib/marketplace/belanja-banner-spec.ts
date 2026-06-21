@@ -1,14 +1,14 @@
 /**
  * Banner carousel display spec — derived from:
  * - `components/belanja/belanja-client.tsx` → `container mx-auto px-4`
- * - `components/belanja/banner-carousel.tsx` → `aspect-[21/7] sm:aspect-[21/6]`
+ * - `components/belanja/banner-carousel.tsx` → `aspect-[16/9] sm:aspect-[21/6]`
  *
  * Banner width = container max-width − 32px (px-4 × 2)
  * Tailwind default container max-widths: sm 640, md 768, lg 1024, xl 1280, 2xl 1536
  */
 
 export const BELANJA_BANNER_ASPECT = {
-  mobile: { w: 21, h: 7 },
+  mobile: { w: 16, h: 9 },
   desktop: { w: 21, h: 6 },
 } as const
 
@@ -30,7 +30,7 @@ export function getBelanjaBannerDisplaySizes(): BelanjaBannerDisplaySize[] {
   const mobile = (viewport: number, label: string): BelanjaBannerDisplaySize => {
     const width = viewport - 32
     const height = Math.round((width * BELANJA_BANNER_ASPECT.mobile.h) / BELANJA_BANNER_ASPECT.mobile.w)
-    return { breakpoint: label, width, height, note: "mobile (aspect 21:7)" }
+    return { breakpoint: label, width, height, note: "mobile (aspect 16:9)" }
   }
 
   return [

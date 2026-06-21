@@ -25,7 +25,7 @@ function BelanjaHeaderAuth({ onSubdomain }: { onSubdomain: boolean }) {
 
   if (loading) {
     return (
-      <div className="flex h-10 w-20 shrink-0 items-center justify-end">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center sm:w-20 sm:justify-end">
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
       </div>
     )
@@ -37,11 +37,12 @@ function BelanjaHeaderAuth({ onSubdomain }: { onSubdomain: boolean }) {
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="shrink-0"
+          className="h-10 w-10 shrink-0 p-0 sm:h-9 sm:w-auto sm:px-3 sm:gap-1.5"
           onClick={() => setLoginOpen(true)}
+          aria-label="Masuk"
         >
-          Masuk
+          <User className="h-4 w-4" />
+          <span className="hidden sm:inline">Masuk</span>
         </Button>
         <PembeliLoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
       </>
@@ -51,10 +52,14 @@ function BelanjaHeaderAuth({ onSubdomain }: { onSubdomain: boolean }) {
   const label = user.displayName?.split(" ")[0] || "Akun"
 
   return (
-    <Button variant="outline" size="sm" className="shrink-0 gap-1.5" asChild>
-      <Link href={akunPath}>
+    <Button
+      variant="outline"
+      className="h-10 w-10 shrink-0 p-0 sm:h-9 sm:w-auto sm:px-3 sm:gap-1.5"
+      asChild
+    >
+      <Link href={akunPath} aria-label={label}>
         <User className="h-4 w-4" />
-        <span className="max-w-[100px] truncate">{label}</span>
+        <span className="hidden max-w-[100px] truncate sm:inline">{label}</span>
       </Link>
     </Button>
   )

@@ -52,13 +52,13 @@ export function BannerCarousel({ banners, className }: BannerCarouselProps) {
         <div className="flex">
           {banners.map((banner) => {
             const content = (
-              <div className="relative aspect-[21/7] min-w-0 flex-[0_0_100%] overflow-hidden rounded-xl bg-muted sm:aspect-[21/6]">
+              <div className="relative aspect-[16/9] min-w-0 flex-[0_0_100%] overflow-hidden rounded-xl bg-muted sm:aspect-[21/6]">
                 {isDisplayableImageUrl(banner.imageUrl) ? (
                   <Image
                     src={banner.imageUrl}
                     alt={banner.title || "Banner promosi"}
                     fill
-                    className="object-cover"
+                    className="object-cover object-left"
                     sizes="100vw"
                     priority={banner.id === banners[0]?.id}
                   />

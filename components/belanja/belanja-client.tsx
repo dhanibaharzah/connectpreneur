@@ -127,8 +127,8 @@ function BelanjaClientInner({
         onSearchSubmit={() => setDebouncedSearch(search)}
       />
 
-      <main className="container mx-auto space-y-6 px-4 py-6">
-        <div>
+      <main className="container mx-auto space-y-6 px-4 py-4 md:py-6">
+        <div className="hidden md:block">
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">Belanja UMKM Lokal</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Temukan produk dan jasa dari mitra ConnectPreneur di seluruh Indonesia
