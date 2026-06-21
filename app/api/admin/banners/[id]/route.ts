@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
+import { isAdminResponse, requireSuperAdmin } from "@/lib/auth/admin-api"
 import { deleteObject, isDeletableStorageUrl } from "@/lib/integrations/storage"
 import {
   getBannerById,
@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await requireAdmin(request)
+    const user = await requireSuperAdmin(request)
     if (isAdminResponse(user)) return user
 
     const { id } = await params
@@ -43,7 +43,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await requireAdmin(request)
+    const user = await requireSuperAdmin(request)
     if (isAdminResponse(user)) return user
 
     const { id } = await params
@@ -127,7 +127,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await requireAdmin(request)
+    const user = await requireSuperAdmin(request)
     if (isAdminResponse(user)) return user
 
     const { id } = await params

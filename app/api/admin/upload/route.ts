@@ -124,6 +124,10 @@ export async function POST(request: NextRequest) {
     // Sanitize folder (prevent path traversal)
     const folder = sanitizeFolder(rawFolder)
 
+    if (folder === "banners" && user.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     // Validate file size based on type
     const maxSize = isPDF ? MAX_PDF_SIZE : getMaxImageSize(folder)
     const maxSizeLabel = isPDF ? "10MB" : getMaxImageSizeLabel(folder)

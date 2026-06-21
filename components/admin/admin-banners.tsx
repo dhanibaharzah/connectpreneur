@@ -78,6 +78,16 @@ export default function AdminBanners({ user }: AdminBannersProps) {
     setModalOpen(true)
   }
 
+  if (user.role !== "superadmin") {
+    return (
+      <AdminShell user={user}>
+        <div className="flex items-center justify-center py-20">
+          <p className="text-muted-foreground">Hanya Superadmin yang dapat mengakses halaman ini.</p>
+        </div>
+      </AdminShell>
+    )
+  }
+
   return (
     <AdminShell user={user}>
       <div className="rounded-lg bg-white p-6 shadow-sm">

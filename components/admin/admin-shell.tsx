@@ -23,10 +23,12 @@ function getNavItems(userRole: string) {
     { href: getDashboardPath(), label: "Dashboard", icon: LayoutDashboard, match: "/dashboard" },
     { href: getMitraPath(), label: "Mitra Bisnis", icon: Building2, match: "/mitra" },
     { href: getTransaksiPath(), label: "Transaksi", icon: Receipt, match: "/transaksi" },
-    { href: getBannerPath(), label: "Banner Belanja", icon: ImageIcon, match: "/banner" },
   ]
   if (userRole === "superadmin") {
-    items.push({ href: getMembersPath(), label: "Anggota", icon: Users, match: "/members" })
+    items.push(
+      { href: getBannerPath(), label: "Banner Belanja", icon: ImageIcon, match: "/banner" },
+      { href: getMembersPath(), label: "Anggota", icon: Users, match: "/members" },
+    )
   }
   return items
 }

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { isAdminResponse, requireAdmin } from "@/lib/auth/admin-api"
+import { isAdminResponse, requireSuperAdmin } from "@/lib/auth/admin-api"
 import {
   listAllBanners,
   parseBannerImageUrl,
@@ -13,7 +13,7 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireAdmin(request)
+    const user = await requireSuperAdmin(request)
     if (isAdminResponse(user)) return user
 
     const banners = await listAllBanners()
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAdmin(request)
+    const user = await requireSuperAdmin(request)
     if (isAdminResponse(user)) return user
 
     const body = await request.json()
