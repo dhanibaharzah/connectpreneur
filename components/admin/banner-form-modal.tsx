@@ -165,7 +165,7 @@ export function BannerFormModal({ open, onOpenChange, banner, onSaved }: BannerF
             <p className="text-xs text-muted-foreground">
               Ukuran placeholder desktop (xl): {BELANJA_BANNER_UPLOAD_RECOMMENDED.width}×
               {BELANJA_BANNER_UPLOAD_RECOMMENDED.height}px (rasio {BELANJA_BANNER_UPLOAD_RECOMMENDED.aspectLabel}
-              ), maks. 5MB
+              ), maks. 10MB — disimpan tanpa kompresi
             </p>
           </div>
 

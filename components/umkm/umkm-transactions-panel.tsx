@@ -16,9 +16,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { ExpandableList, ExpandableListItem } from "@/components/shared/expandable-list"
+import { TransactionListControls } from "@/components/shared/transaction-list-controls"
 import { TransactionPagination } from "@/components/shared/transaction-pagination"
 import { UmkmTrustBadge } from "@/components/umkm/umkm-trust-badge"
 import type { PaginationMeta } from "@/lib/shared/pagination"
+import type { TransactionSort } from "@/lib/transactions/transaction-list-filters"
 import { buildUmkmContactBuyerMessage } from "@/lib/integrations/whatsapp-messages"
 import { buildWhatsappWebUrl, formatPhoneDisplay } from "@/lib/shared/phone"
 import {
@@ -64,6 +66,10 @@ interface UmkmTransactionsPanelProps {
   onInvoiceFormChange: (form: { description: string; quantity: string; unit_price: string }) => void
   onRejectReasonChange: (reason: string) => void
   onPageChange: (page: number) => void
+  txSearch: string
+  txSort: TransactionSort
+  onTxSearchChange: (value: string) => void
+  onTxSortChange: (sort: TransactionSort) => void
 }
 
 export function UmkmTransactionsPanel({
@@ -88,7 +94,16 @@ export function UmkmTransactionsPanel({
   onInvoiceFormChange,
   onRejectReasonChange,
   onPageChange,
+  txSearch,
+  txSort,
+  onTxSearchChange,
+  onTxSortChange,
 }: UmkmTransactionsPanelProps) {
+  const emptyMessage =
+    txSearch.trim() || txSort !== "terbaru"
+      ? "Tidak ada transaksi yang cocok dengan filter."
+      : "Belum ada permintaan penawaran."
+
   return (
     <div className="space-y-6">
       <div>
@@ -143,7 +158,15 @@ export function UmkmTransactionsPanel({
 
       <div className="space-y-3">
         <h2 className="font-semibold">Transaksi ({pagination.total})</h2>
-        <ExpandableList isEmpty={transactions.length === 0} emptyMessage="Belum ada permintaan penawaran.">
+        <TransactionListControls
+          search={txSearch}
+          sort={txSort}
+          onSearchChange={onTxSearchChange}
+          onSortChange={onTxSortChange}
+          searchPlaceholder="Cari pembeli, no. referensi..."
+          disabled={loading}
+        />
+        <ExpandableList isEmpty={transactions.length === 0} emptyMessage={emptyMessage}>
           {transactions.map((tx) => (
             <ExpandableListItem
               key={tx.id}
@@ -183,32 +206,43 @@ export function UmkmTransactionsPanel({
                 )}
               </div>
 
-              {tx.status !== "completed" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-fit border-green-600 text-green-700 hover:bg-green-50"
-                  asChild
-                >
-                  <a
-                    href={buildWhatsappWebUrl(
-                      tx.buyerPhone,
-                      buildUmkmContactBuyerMessage({
-                        businessName: tx.businessName || businessName,
-                        buyerName: tx.buyerName,
-                        referenceNo: tx.referenceNo,
-                        quantity: tx.quantity,
-                        notes: tx.notes,
-                      }),
-                    )}
-                    target="_blank"
-                    rel="noopener noreferrer"
+              <div className="flex flex-wrap gap-2">
+                {tx.status !== "completed" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-fit border-green-600 text-green-700 hover:bg-green-50"
+                    asChild
                   >
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    Kontak Pembeli
-                  </a>
-                </Button>
-              )}
+                    <a
+                      href={buildWhatsappWebUrl(
+                        tx.buyerPhone,
+                        buildUmkmContactBuyerMessage({
+                          businessName: tx.businessName || businessName,
+                          buyerName: tx.buyerName,
+                          referenceNo: tx.referenceNo,
+                          quantity: tx.quantity,
+                          notes: tx.notes,
+                        }),
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      Kontak Pembeli
+                    </a>
+                  </Button>
+                )}
+
+                {tx.invoiceUrl && (
+                  <Button size="sm" variant="outline" className="w-fit" asChild>
+                    <a href={tx.invoiceUrl} target="_blank" rel="noopener noreferrer">
+                      <FileText className="h-4 w-4 mr-1" />
+                      Lihat Invoice
+                    </a>
+                  </Button>
+                )}
+              </div>
 
               {tx.status === "pending_review" && (
                 <div className="flex flex-wrap gap-2">

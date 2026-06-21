@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,10 @@ import { UmkmLegalitasPanel } from "@/components/umkm/umkm-legalitas-panel"
 import { UmkmStoreQrCard } from "@/components/umkm/umkm-store-qr-card"
 import type { PaginationMeta } from "@/lib/shared/pagination"
 import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/shared/pagination"
+import {
+  buildTransactionQueryParams,
+  type TransactionSort,
+} from "@/lib/transactions/transaction-list-filters"
 import type { Transaction } from "@/types/transaction"
 
 type Step = "phone" | "otp" | "dashboard"
@@ -54,6 +58,10 @@ export default function UmkmPortalPage() {
     trustTier: null as string | null,
   })
   const [txPage, setTxPage] = useState(1)
+  const [txSearch, setTxSearch] = useState("")
+  const [debouncedTxSearch, setDebouncedTxSearch] = useState("")
+  const [txSort, setTxSort] = useState<TransactionSort>("terbaru")
+  const skipFilterFetch = useRef(true)
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
     limit: DEFAULT_TRANSACTION_PAGE_SIZE,
@@ -61,19 +69,48 @@ export default function UmkmPortalPage() {
     totalPages: 0,
   })
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedTxSearch(txSearch), 300)
+    return () => window.clearTimeout(timer)
+  }, [txSearch])
+
+  const fetchTransactions = useCallback(
+    async (page = 1, search = debouncedTxSearch, sort = txSort) => {
+      const params = buildTransactionQueryParams({ search, sort, page })
+      const txRes = await fetch(`/api/umkm/transactions?${params.toString()}`, {
+        credentials: "include",
+      })
+
+      if (txRes.status === 401) {
+        setStep("phone")
+        return null
+      }
+
+      const txData = await txRes.json()
+      setTransactions(txData.transactions || [])
+      setPagination(
+        txData.pagination ?? {
+          page,
+          limit: DEFAULT_TRANSACTION_PAGE_SIZE,
+          total: txData.transactions?.length ?? 0,
+          totalPages: 1,
+        },
+      )
+      setTxPage(page)
+      return txData
+    },
+    [debouncedTxSearch, txSort],
+  )
+
   const loadDashboard = useCallback(async (page = 1) => {
-    const [txRes, bankRes, gamRes] = await Promise.all([
-      fetch(`/api/umkm/transactions?page=${page}`, { credentials: "include" }),
+    const [txData, bankRes, gamRes] = await Promise.all([
+      fetchTransactions(page),
       fetch("/api/umkm/bank", { credentials: "include" }),
       fetch("/api/umkm/gamification", { credentials: "include" }),
     ])
 
-    if (txRes.status === 401) {
-      setStep("phone")
-      return
-    }
+    if (!txData) return
 
-    const txData = await txRes.json()
     const bankData = await bankRes.json()
     if (gamRes.ok) {
       const gamData = await gamRes.json()
@@ -83,16 +120,6 @@ export default function UmkmPortalPage() {
         trustTier: gamData.trustTier ?? null,
       })
     }
-    setTransactions(txData.transactions || [])
-    setPagination(
-      txData.pagination ?? {
-        page,
-        limit: DEFAULT_TRANSACTION_PAGE_SIZE,
-        total: txData.transactions?.length ?? 0,
-        totalPages: 1,
-      },
-    )
-    setTxPage(page)
     setBank({
       bank_name: bankData.bank_name || "",
       bank_account_number: bankData.bank_account_number || "",
@@ -109,7 +136,7 @@ export default function UmkmPortalPage() {
       Boolean(bankData.bank_account_name?.trim())
     setBankSaved(hasBank)
     setStep("dashboard")
-  }, [])
+  }, [fetchTransactions])
 
   useEffect(() => {
     loadDashboard().catch(() => setStep("phone"))
@@ -250,12 +277,26 @@ export default function UmkmPortalPage() {
     setInvoiceEditId(null)
   }
 
+  useEffect(() => {
+    if (step !== "dashboard") return
+    if (skipFilterFetch.current) {
+      skipFilterFetch.current = false
+      return
+    }
+
+    setLoading(true)
+    closeTransactionPanel()
+    fetchTransactions(1)
+      .catch(() => setStep("phone"))
+      .finally(() => setLoading(false))
+  }, [debouncedTxSearch, txSort, step, fetchTransactions])
+
   const changeTxPage = async (page: number) => {
     setLoading(true)
     setError("")
     closeTransactionPanel()
     try {
-      await loadDashboard(page)
+      await fetchTransactions(page)
     } catch {
       setStep("phone")
     } finally {
@@ -447,6 +488,10 @@ export default function UmkmPortalPage() {
             onInvoiceFormChange={setInvoiceForm}
             onRejectReasonChange={setRejectReason}
             onPageChange={changeTxPage}
+            txSearch={txSearch}
+            txSort={txSort}
+            onTxSearchChange={setTxSearch}
+            onTxSortChange={setTxSort}
           />
         )}
       </main>

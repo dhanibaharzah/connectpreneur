@@ -45,6 +45,10 @@ describe("resolveBelanjaSubdomainAction", () => {
       type: "redirect",
       pathname: "/akun",
     })
+    expect(resolveBelanjaSubdomainAction("/belanja/akun/poin")).toEqual({
+      type: "redirect",
+      pathname: "/akun/poin",
+    })
     expect(resolveBelanjaSubdomainAction("/belanja/produk/kopi")).toEqual({
       type: "redirect",
       pathname: "/produk/kopi",
@@ -55,6 +59,10 @@ describe("resolveBelanjaSubdomainAction", () => {
     expect(resolveBelanjaSubdomainAction("/akun")).toEqual({
       type: "rewrite",
       pathname: "/belanja/akun",
+    })
+    expect(resolveBelanjaSubdomainAction("/akun/poin")).toEqual({
+      type: "rewrite",
+      pathname: "/belanja/akun/poin",
     })
     expect(resolveBelanjaSubdomainAction("/produk/kopi")).toEqual({
       type: "rewrite",

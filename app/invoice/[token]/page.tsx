@@ -102,13 +102,7 @@ export default function InvoicePage({ params }: { params: Promise<{ token: strin
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4 print:bg-white print:py-0">
       <div className="max-w-2xl mx-auto space-y-4 print:max-w-none">
-        <div className="flex justify-between items-center print:hidden">
-          <Link href="/katalog">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Katalog
-            </Button>
-          </Link>
+        <div className="flex justify-end print:hidden">
           <Button size="sm" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-2" />
             Cetak / Simpan PDF

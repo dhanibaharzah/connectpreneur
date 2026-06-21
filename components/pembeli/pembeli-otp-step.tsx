@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { OtpInput } from "@/components/ui/otp-input"
+import { OTP_LENGTH } from "@/lib/auth/otp-session"
 import type { BuyerBadgeLevel } from "@/types/gamification"
 
 export interface PembeliVerifiedProfile {
@@ -93,19 +94,17 @@ export function PembeliOtpStep({ phone, displayName, onVerified, onBack }: Pembe
       </p>
       <div className="space-y-2">
         <Label htmlFor="pembeli-otp">Kode OTP</Label>
-        <Input
+        <OtpInput
           id="pembeli-otp"
           value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          placeholder="6 digit"
-          maxLength={6}
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          required
+          onChange={setOtp}
+          disabled={loading || resending}
+          aria-invalid={!!error}
+          autoFocus
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading || otp.length !== OTP_LENGTH}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verifikasi"}
       </Button>
       <Button

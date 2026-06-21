@@ -1,17 +1,19 @@
 "use client"
 
+import { BelanjaFooter } from "@/components/belanja/belanja-footer"
 import { BelanjaHeader } from "@/components/belanja/belanja-header"
+import { PembeliAccountNav } from "@/components/pembeli/pembeli-account-nav"
 import { PembeliLoginForm } from "@/components/pembeli/pembeli-login-form"
-import { PembeliAccountDashboard } from "@/components/pembeli/pembeli-account-dashboard"
 import { usePembeliAuth } from "@/components/pembeli/pembeli-auth-context"
 import { Loader2 } from "lucide-react"
 
-interface BelanjaAkunClientProps {
+interface BelanjaAkunLayoutProps {
   homePath: string
   onSubdomain: boolean
+  children: React.ReactNode
 }
 
-function BelanjaAkunContent({ homePath, onSubdomain }: BelanjaAkunClientProps) {
+export function BelanjaAkunLayout({ homePath, onSubdomain, children }: BelanjaAkunLayoutProps) {
   const { user, loading } = usePembeliAuth()
 
   return (
@@ -23,15 +25,15 @@ function BelanjaAkunContent({ homePath, onSubdomain }: BelanjaAkunClientProps) {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : user ? (
-          <PembeliAccountDashboard />
+          <>
+            <PembeliAccountNav onSubdomain={onSubdomain} />
+            {children}
+          </>
         ) : (
           <PembeliLoginForm variant="card" />
         )}
       </main>
+      <BelanjaFooter homePath={homePath} onSubdomain={onSubdomain} />
     </div>
   )
-}
-
-export function BelanjaAkunClient(props: BelanjaAkunClientProps) {
-  return <BelanjaAkunContent {...props} />
 }

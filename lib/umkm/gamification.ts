@@ -224,8 +224,18 @@ export async function ensureBuyerProfile(
   }
 }
 
-export async function getPointLedgerForBuyer(phone: string): Promise<PointLedgerEntry[]> {
+export async function getPointLedgerForBuyerPaginated(
+  phone: string,
+  params: { limit: number; offset: number },
+): Promise<{ items: PointLedgerEntry[]; total: number }> {
   const normalized = normalizePhoneDigits(phone)
+
+  const [countRow] = await sql`
+    SELECT COUNT(*)::int AS total
+    FROM point_ledger pl
+    WHERE pl.entity_type = 'buyer' AND pl.entity_id = ${normalized}
+  `
+
   const rows = await sql`
     SELECT pl.id, pl.entity_type, pl.entity_id, pl.transaction_id, pl.points,
            pl.event_type, pl.created_at, t.reference_no
@@ -233,18 +243,22 @@ export async function getPointLedgerForBuyer(phone: string): Promise<PointLedger
     LEFT JOIN transactions t ON t.id = pl.transaction_id
     WHERE pl.entity_type = 'buyer' AND pl.entity_id = ${normalized}
     ORDER BY pl.created_at DESC
-    LIMIT 50
+    LIMIT ${params.limit} OFFSET ${params.offset}
   `
-  return rows.map((row) => ({
-    id: row.id as number,
-    entityType: row.entity_type as "buyer",
-    entityId: row.entity_id as string,
-    transactionId: row.transaction_id as number,
-    points: row.points as number,
-    eventType: row.event_type as string,
-    createdAt: row.created_at as string,
-    referenceNo: row.reference_no as string | undefined,
-  }))
+
+  return {
+    items: rows.map((row) => ({
+      id: row.id as number,
+      entityType: row.entity_type as "buyer",
+      entityId: row.entity_id as string,
+      transactionId: row.transaction_id as number,
+      points: row.points as number,
+      eventType: row.event_type as string,
+      createdAt: row.created_at as string,
+      referenceNo: row.reference_no as string | undefined,
+    })),
+    total: (countRow?.total as number) ?? 0,
+  }
 }
 
 export async function getBusinessGamificationStats(businessId: number) {

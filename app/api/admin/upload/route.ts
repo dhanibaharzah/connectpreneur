@@ -4,8 +4,9 @@ import { deleteObject, isDeletableStorageUrl, newStorageObjectId, uploadObject }
 import sharp from "sharp"
 import { fileTypeFromBuffer } from "file-type"
 
-// Max upload size for images: 5MB, for PDFs: 10MB
+// Max upload size for images: 5MB, banners: 10MB (full resolution), PDFs: 10MB
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_BANNER_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_PDF_SIZE = 10 * 1024 * 1024 // 10MB
 const TARGET_WIDTH = 800
 const TARGET_HEIGHT = 800
@@ -37,6 +38,29 @@ function sanitizeFilename(filename: string): string {
   const baseName = filename.replace(/\.[^/.]+$/, "")
   // Only allow alphanumeric, underscore, hyphen
   return baseName.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 100)
+}
+
+function getMaxImageSize(folder: AllowedFolder): number {
+  return folder === "banners" ? MAX_BANNER_SIZE : MAX_IMAGE_SIZE
+}
+
+function getMaxImageSizeLabel(folder: AllowedFolder): string {
+  return folder === "banners" ? "10MB" : "5MB"
+}
+
+function getImageExtension(mime: string): string {
+  switch (mime) {
+    case "image/jpeg":
+      return ".jpg"
+    case "image/png":
+      return ".png"
+    case "image/webp":
+      return ".webp"
+    case "image/gif":
+      return ".gif"
+    default:
+      return ".jpg"
+  }
 }
 
 async function compressImage(buffer: Buffer, mimeType: string): Promise<Buffer> {
@@ -97,15 +121,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Sanitize folder (prevent path traversal)
+    const folder = sanitizeFolder(rawFolder)
+
     // Validate file size based on type
-    const maxSize = isPDF ? MAX_PDF_SIZE : MAX_IMAGE_SIZE
-    const maxSizeLabel = isPDF ? "10MB" : "5MB"
+    const maxSize = isPDF ? MAX_PDF_SIZE : getMaxImageSize(folder)
+    const maxSizeLabel = isPDF ? "10MB" : getMaxImageSizeLabel(folder)
     if (file.size > maxSize) {
       return NextResponse.json({ error: `Ukuran file maksimal ${maxSizeLabel}` }, { status: 400 })
     }
 
-    // Sanitize folder (prevent path traversal)
-    const folder = sanitizeFolder(rawFolder)
     const baseName = sanitizeFilename(file.name)
 
     if (isPDF) {
@@ -124,10 +149,23 @@ export async function POST(request: NextRequest) {
       })
     }
     
+    if (folder === "banners") {
+      const outputExt = getImageExtension(detectedType.mime)
+      const filename = `${folder}/${newStorageObjectId()}-${baseName}${outputExt}`
+      const uploaded = await uploadObject(filename, buffer, detectedType.mime)
+
+      console.log(`[Upload] Banner (original): ${(file.size / 1024).toFixed(1)}KB`)
+
+      return NextResponse.json({
+        success: true,
+        url: uploaded.url,
+        filename: filename,
+        originalSize: file.size,
+      })
+    }
+
     // Image: compress and upload
     const compressedBuffer = await compressImage(buffer, detectedType.mime)
-    
-    // Determine output extension based on actual processing
     const outputExt = detectedType.mime === "image/png" ? ".webp" : ".jpg"
     const filename = `${folder}/${newStorageObjectId()}-${baseName}${outputExt}`
 

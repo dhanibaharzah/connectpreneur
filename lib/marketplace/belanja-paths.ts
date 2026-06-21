@@ -11,6 +11,10 @@ export function buildBelanjaAkunPath(onSubdomain: boolean): string {
   return onSubdomain ? "/akun" : "/belanja/akun"
 }
 
+export function buildBelanjaAkunPoinPath(onSubdomain: boolean): string {
+  return onSubdomain ? "/akun/poin" : "/belanja/akun/poin"
+}
+
 export function resolveBelanjaPaths(host: string): BelanjaPaths {
   const hostname = host.split(":")[0]
   const onSubdomain = hostname.startsWith("belanja.")

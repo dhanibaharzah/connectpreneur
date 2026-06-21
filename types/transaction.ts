@@ -41,6 +41,8 @@ export interface Transaction {
   businessSlug?: string
   locationName?: string
   kabupatenName?: string
+  invoiceUrl?: string | null
+  paymentUrl?: string | null
 }
 
 export interface TransactionRow {

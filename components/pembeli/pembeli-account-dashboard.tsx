@@ -8,16 +8,20 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BuyerBadge } from "@/components/shared/buyer-badge"
 import { ExpandableList, ExpandableListItem } from "@/components/shared/expandable-list"
+import { TransactionListControls } from "@/components/shared/transaction-list-controls"
 import { TransactionPagination } from "@/components/shared/transaction-pagination"
 import { usePembeliAuth } from "@/components/pembeli/pembeli-auth-context"
 import type { PaginationMeta } from "@/lib/shared/pagination"
 import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/shared/pagination"
 import {
+  buildTransactionQueryParams,
+  type TransactionSort,
+} from "@/lib/transactions/transaction-list-filters"
+import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,
   type TransactionStatus,
 } from "@/types/transaction"
-import type { PointLedgerEntry } from "@/types/gamification"
 
 type TransactionWithLinks = Transaction & {
   invoiceUrl?: string | null
@@ -42,8 +46,10 @@ export function PembeliAccountDashboard({ onLogout }: PembeliAccountDashboardPro
   const { user, logout } = usePembeliAuth()
   const [loading, setLoading] = useState(true)
   const [transactions, setTransactions] = useState<TransactionWithLinks[]>([])
-  const [points, setPoints] = useState<PointLedgerEntry[]>([])
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [sort, setSort] = useState<TransactionSort>("terbaru")
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
     limit: DEFAULT_TRANSACTION_PAGE_SIZE,
@@ -51,33 +57,41 @@ export function PembeliAccountDashboard({ onLogout }: PembeliAccountDashboardPro
     totalPages: 0,
   })
 
-  const loadDashboard = useCallback(async (page = 1) => {
-    const [txRes, pointsRes] = await Promise.all([
-      fetch(`/api/pembeli/transactions?page=${page}`, { credentials: "include" }),
-      fetch("/api/pembeli/points", { credentials: "include" }),
-    ])
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
-    if (txRes.status === 401) {
-      throw new Error("Unauthorized")
-    }
+  const loadDashboard = useCallback(
+    async (page = 1, searchQuery = debouncedSearch, sortBy = sort) => {
+      const params = buildTransactionQueryParams({ search: searchQuery, sort: sortBy, page })
+      const txRes = await fetch(`/api/pembeli/transactions?${params.toString()}`, {
+        credentials: "include",
+      })
 
-    const txData = await txRes.json()
-    const pointsData = await pointsRes.json()
+      if (txRes.status === 401) {
+        throw new Error("Unauthorized")
+      }
 
-    setTransactions(txData.transactions || [])
-    setPagination(
-      txData.pagination ?? {
-        page,
-        limit: DEFAULT_TRANSACTION_PAGE_SIZE,
-        total: txData.transactions?.length ?? 0,
-        totalPages: 1,
-      },
-    )
-    setPoints(pointsData.points || [])
-  }, [])
+      const txData = await txRes.json()
+
+      setTransactions(txData.transactions || [])
+      setPagination(
+        txData.pagination ?? {
+          page,
+          limit: DEFAULT_TRANSACTION_PAGE_SIZE,
+          total: txData.transactions?.length ?? 0,
+          totalPages: 1,
+        },
+      )
+    },
+    [debouncedSearch, sort],
+  )
 
   useEffect(() => {
-    loadDashboard()
+    setLoading(true)
+    setExpandedId(null)
+    loadDashboard(1)
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [loadDashboard])
@@ -107,12 +121,17 @@ export function PembeliAccountDashboard({ onLogout }: PembeliAccountDashboardPro
     )
   }
 
+  const emptyMessage =
+    debouncedSearch.trim() || sort !== "terbaru"
+      ? "Tidak ada transaksi yang cocok dengan filter."
+      : "Belum ada transaksi."
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">{user.displayName || "Pembeli"}</h1>
-          <p className="text-sm text-muted-foreground">Riwayat transaksi & poin reward</p>
+          <p className="text-sm text-muted-foreground">Riwayat transaksi pembelian Anda</p>
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout}>
           <LogOut className="mr-1 h-4 w-4" />
@@ -147,7 +166,15 @@ export function PembeliAccountDashboard({ onLogout }: PembeliAccountDashboardPro
 
       <div className="space-y-3">
         <h2 className="font-semibold">Transaksi ({pagination.total})</h2>
-        <ExpandableList isEmpty={transactions.length === 0} emptyMessage="Belum ada transaksi.">
+        <TransactionListControls
+          search={search}
+          sort={sort}
+          onSearchChange={setSearch}
+          onSortChange={setSort}
+          searchPlaceholder="Cari mitra, no. referensi..."
+          disabled={loading}
+        />
+        <ExpandableList isEmpty={transactions.length === 0} emptyMessage={emptyMessage}>
           {transactions.map((tx) => (
             <ExpandableListItem
               key={tx.id}
@@ -205,27 +232,6 @@ export function PembeliAccountDashboard({ onLogout }: PembeliAccountDashboardPro
         </ExpandableList>
         <TransactionPagination pagination={pagination} onPageChange={changeTxPage} loading={loading} />
       </div>
-
-      {points.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="font-semibold">Riwayat Poin</h2>
-          {points.map((entry) => (
-            <Card key={entry.id}>
-              <CardContent className="flex flex-wrap items-center justify-between gap-2 p-4">
-                <div>
-                  <p className="text-sm font-medium text-green-700">+{entry.points} poin</p>
-                  {entry.referenceNo && (
-                    <p className="font-mono text-xs text-muted-foreground">{entry.referenceNo}</p>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(entry.createdAt).toLocaleDateString("id-ID")}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

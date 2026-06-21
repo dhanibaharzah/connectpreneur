@@ -4,8 +4,9 @@ import {
   getTransactionsForBuyerPaginated,
 } from "@/lib/auth/pembeli-auth"
 import { getOrCreateToken } from "@/lib/transactions/transaction-tokens"
+import { parseTransactionListFilters } from "@/lib/transactions/transaction-list-filters"
 import { appUrl } from "@/lib/shared/app-url"
-import { buildPaginationMeta, parseTransactionPagination } from "@/lib/shared/pagination"
+import { buildPaginationMeta } from "@/lib/shared/pagination"
 
 export async function GET(request: NextRequest) {
   const session = await getPembeliSessionFromRequest(request)
@@ -13,10 +14,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { page, limit, offset } = parseTransactionPagination(request.nextUrl.searchParams)
+  const { page, limit, offset, search, sort } = parseTransactionListFilters(
+    request.nextUrl.searchParams,
+  )
   const { items, total } = await getTransactionsForBuyerPaginated(session.phone, {
     limit,
     offset,
+    search,
+    sort,
   })
 
   const withLinks = await Promise.all(

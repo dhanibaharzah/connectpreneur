@@ -8,12 +8,14 @@ interface TransactionPaginationProps {
   pagination: PaginationMeta
   onPageChange: (page: number) => void
   loading?: boolean
+  itemLabel?: string
 }
 
 export function TransactionPagination({
   pagination,
   onPageChange,
   loading = false,
+  itemLabel = "transaksi",
 }: TransactionPaginationProps) {
   const { page, totalPages, total, limit } = pagination
 
@@ -25,7 +27,7 @@ export function TransactionPagination({
   return (
     <div className="flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-muted-foreground">
-        Menampilkan {start}–{end} dari {total} transaksi
+        Menampilkan {start}–{end} dari {total} {itemLabel}
       </p>
       <div className="flex items-center gap-2">
         <Button

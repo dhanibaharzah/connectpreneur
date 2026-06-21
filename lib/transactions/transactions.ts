@@ -1,5 +1,10 @@
 import { sql } from "@/lib/sql"
 import {
+  buildBusinessTransactionOrderBy,
+  buildBusinessTransactionSearchFilter,
+  type TransactionSort,
+} from "@/lib/transactions/transaction-list-filters"
+import {
   type Transaction,
   type TransactionRow,
   transformTransactionRow,
@@ -96,10 +101,18 @@ export async function getTransactionsForBusiness(businessId: number): Promise<Tr
 
 export async function getTransactionsForBusinessPaginated(
   businessId: number,
-  params: { limit: number; offset: number },
+  params: { limit: number; offset: number; search?: string; sort?: TransactionSort },
 ): Promise<{ items: Transaction[]; total: number }> {
+  const search = params.search?.trim() || ""
+  const sort = params.sort ?? "terbaru"
+  const searchFilter = buildBusinessTransactionSearchFilter(search)
+  const orderBy = buildBusinessTransactionOrderBy(sort)
+
   const [countRow] = await sql`
-    SELECT COUNT(*)::int AS total FROM transactions WHERE business_id = ${businessId}
+    SELECT COUNT(*)::int AS total
+    FROM transactions t
+    WHERE t.business_id = ${businessId}
+    ${searchFilter}
   `
 
   const rows = await sql`
@@ -107,7 +120,8 @@ export async function getTransactionsForBusinessPaginated(
     FROM transactions t
     JOIN businesses b ON b.id = t.business_id
     WHERE t.business_id = ${businessId}
-    ORDER BY t.created_at DESC
+    ${searchFilter}
+    ${orderBy}
     LIMIT ${params.limit} OFFSET ${params.offset}
   `
 

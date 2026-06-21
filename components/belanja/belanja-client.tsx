@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { BelanjaFooter } from "@/components/belanja/belanja-footer"
 import { BelanjaHeader } from "@/components/belanja/belanja-header"
 import { BannerCarousel } from "@/components/belanja/banner-carousel"
 import { ProductFilters, type TipeFilter } from "@/components/belanja/product-filters"
@@ -156,14 +157,7 @@ function BelanjaClientInner({
         />
       </main>
 
-      <footer className="border-t bg-white py-6">
-        <div className="container mx-auto px-4 text-center text-xs text-muted-foreground">
-          <p>
-            Harga bersifat indikatif. Selalu verifikasi mitra sebelum bertransaksi. Segala kerjasama
-            merupakan tanggung jawab masing-masing pihak.
-          </p>
-        </div>
-      </footer>
+      <BelanjaFooter homePath={homePath} onSubdomain={onSubdomain} />
     </div>
   )
 }

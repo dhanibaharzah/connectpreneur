@@ -32,12 +32,20 @@ export function resolveBelanjaSubdomainAction(pathname: string): BelanjaSubdomai
     return { type: "redirect", pathname: "/akun" }
   }
 
+  if (pathname === "/belanja/akun/poin") {
+    return { type: "redirect", pathname: "/akun/poin" }
+  }
+
   if (pathname.startsWith("/belanja/produk/")) {
     return { type: "redirect", pathname: pathname.replace("/belanja", "") }
   }
 
   if (pathname === "/akun") {
     return { type: "rewrite", pathname: "/belanja/akun" }
+  }
+
+  if (pathname === "/akun/poin") {
+    return { type: "rewrite", pathname: "/belanja/akun/poin" }
   }
 
   if (pathname.startsWith("/produk/")) {

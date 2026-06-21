@@ -5,6 +5,8 @@ import { Building2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { OtpInput } from "@/components/ui/otp-input"
+import { OTP_LENGTH } from "@/lib/auth/otp-session"
 import { Card, CardContent } from "@/components/ui/card"
 
 export type UmkmAuthStep = "phone" | "otp"
@@ -74,17 +76,17 @@ export function UmkmAuthSteps({
         <form onSubmit={onVerifyOtp} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="umkm-otp">Kode OTP</Label>
-            <Input
+            <OtpInput
               id="umkm-otp"
               value={otp}
-              onChange={(e) => onOtpChange(e.target.value)}
-              placeholder="6 digit"
-              maxLength={6}
-              required
+              onChange={onOtpChange}
+              disabled={loading}
+              aria-invalid={!!error}
+              autoFocus
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || otp.length !== OTP_LENGTH}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verifikasi"}
           </Button>
           <Button type="button" variant="ghost" className="w-full" onClick={onBackToPhone}>

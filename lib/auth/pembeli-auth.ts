@@ -12,6 +12,11 @@ import {
   verifyOtpCode,
 } from "@/lib/auth/otp-session"
 import { getOrCreateBuyerProfileFromTransactions, ensureBuyerProfile } from "@/lib/umkm/gamification"
+import {
+  buildBuyerTransactionOrderBy,
+  buildBuyerTransactionSearchFilter,
+  type TransactionSort,
+} from "@/lib/transactions/transaction-list-filters"
 import type { BuyerProfile } from "@/types/gamification"
 import { transformTransactionRow, type TransactionRow } from "@/types/transaction"
 
@@ -107,13 +112,20 @@ export async function findTransactionsByPhone(phone: string) {
 
 export async function getTransactionsForBuyerPaginated(
   phone: string,
-  params: { limit: number; offset: number },
+  params: { limit: number; offset: number; search?: string; sort?: TransactionSort },
 ) {
   const variants = getBuyerPhoneQueryVariants(phone)
+  const search = params.search?.trim() || ""
+  const sort = params.sort ?? "terbaru"
+  const searchFilter = buildBuyerTransactionSearchFilter(search)
+  const orderBy = buildBuyerTransactionOrderBy(sort)
 
   const [countRow] = await sql`
-    SELECT COUNT(*)::int AS total FROM transactions
-    WHERE buyer_phone = ANY(${variants})
+    SELECT COUNT(*)::int AS total
+    FROM transactions t
+    JOIN businesses b ON b.id = t.business_id
+    WHERE t.buyer_phone = ANY(${variants})
+    ${searchFilter}
   `
 
   const rows = await sql`
@@ -121,7 +133,8 @@ export async function getTransactionsForBuyerPaginated(
     FROM transactions t
     JOIN businesses b ON b.id = t.business_id
     WHERE t.buyer_phone = ANY(${variants})
-    ORDER BY t.created_at DESC
+    ${searchFilter}
+    ${orderBy}
     LIMIT ${params.limit} OFFSET ${params.offset}
   `
 

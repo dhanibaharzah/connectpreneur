@@ -4,7 +4,7 @@ import {
   BUYER_TOP_POINTS_THRESHOLD,
   POINTS_PER_TRANSACTION,
 } from "@/types/gamification"
-import { calculateBuyerBadge, calculateTrustTier, ensureBuyerProfile } from "@/lib/umkm/gamification"
+import { calculateBuyerBadge, calculateTrustTier, ensureBuyerProfile, getPointLedgerForBuyerPaginated } from "@/lib/umkm/gamification"
 
 const sqlMock = vi.hoisted(() => vi.fn())
 
@@ -93,5 +93,36 @@ describe("ensureBuyerProfile", () => {
     expect(profile.displayName).toBeNull()
     expect(profile.phone).toBe("628123456789")
     expect(profile.completedOrders).toBe(0)
+  })
+})
+
+describe("getPointLedgerForBuyerPaginated", () => {
+  beforeEach(() => {
+    sqlMock.mockReset()
+  })
+
+  it("returns paginated ledger entries with total count", async () => {
+    sqlMock.mockResolvedValueOnce([{ total: 3 }])
+    sqlMock.mockResolvedValueOnce([
+      {
+        id: 1,
+        entity_type: "buyer",
+        entity_id: "628123456789",
+        transaction_id: 10,
+        points: 50,
+        event_type: "transaction_completed",
+        created_at: "2026-01-01T00:00:00.000Z",
+        reference_no: "TX-001",
+      },
+    ])
+
+    const result = await getPointLedgerForBuyerPaginated("08123456789", {
+      limit: 20,
+      offset: 0,
+    })
+
+    expect(result.total).toBe(3)
+    expect(result.items).toHaveLength(1)
+    expect(result.items[0].referenceNo).toBe("TX-001")
   })
 })
