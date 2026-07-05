@@ -26,8 +26,13 @@ import {
   isRichTextEmpty,
   usernameToSocialUrl,
 } from "@/lib/business/form-utils"
+import { appUrl } from "@/lib/shared/app-url"
 
-export function DaftarMitraForm() {
+interface DaftarMitraFormProps {
+  useMainSiteLinks?: boolean
+}
+
+export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormProps) {
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
@@ -391,15 +396,18 @@ export function DaftarMitraForm() {
         successMessage={successMessage}
         autoApproved={autoApproved}
         showLegalitasNote={!form.akta_pendirian_url || !form.legalitas_url}
+        useMainSiteLinks={useMainSiteLinks}
       />
     )
   }
+
+  const homeHref = useMainSiteLinks ? appUrl("/") : "/"
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex flex-col">
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
+          <Link href={homeHref}>
             <Image
               src="/images/logoconnectpreneur.png"
               alt="ConnectPreneur"
@@ -408,7 +416,7 @@ export function DaftarMitraForm() {
               className="h-12 w-auto"
             />
           </Link>
-          <Link href="/">
+          <Link href={homeHref}>
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Kembali

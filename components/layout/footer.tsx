@@ -1,9 +1,18 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, AlertTriangle } from "lucide-react"
-import { katalogPortalUrl } from "@/lib/shared/app-url"
+import { appUrl, katalogPortalUrl } from "@/lib/shared/app-url"
 
-export function Footer() {
+interface FooterProps {
+  /** When on katalog/daftar subdomain, main nav links go to connectpreneur.id */
+  useMainSiteLinks?: boolean
+}
+
+export function Footer({ useMainSiteLinks = false }: FooterProps) {
+  const homeHref = useMainSiteLinks ? appUrl("/") : "/"
+  const tentangHref = useMainSiteLinks ? appUrl("/#tentang") : "/#tentang"
+  const panduanHref = useMainSiteLinks ? appUrl("/panduan") : "/panduan"
+
   return (
     <footer className="bg-gradient-to-b from-[#ec4e14] to-[#862c0b] px-4 pb-8 pt-14 text-white md:px-8 lg:px-[60px]">
       <div className="container mx-auto max-w-6xl space-y-10">
@@ -24,16 +33,16 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col gap-4 text-sm font-medium">
-            <Link href="/" className="transition hover:text-[#f9c8b6]">
+            <Link href={homeHref} className="transition hover:text-[#f9c8b6]">
               Beranda
             </Link>
             <Link href={katalogPortalUrl("/")} className="transition hover:text-[#f9c8b6]">
               Katalog Bisnis
             </Link>
-            <Link href="/#tentang" className="transition hover:text-[#f9c8b6]">
+            <Link href={tentangHref} className="transition hover:text-[#f9c8b6]">
               Tentang Kami
             </Link>
-            <Link href="/panduan" className="transition hover:text-[#f9c8b6]">
+            <Link href={panduanHref} className="transition hover:text-[#f9c8b6]">
               Panduan
             </Link>
           </div>

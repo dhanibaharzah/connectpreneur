@@ -5,15 +5,17 @@ import Image from "next/image"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/shared/utils"
-import { daftarPortalUrl, katalogPortalUrl } from "@/lib/shared/app-url"
+import { appUrl, daftarPortalUrl, katalogPortalUrl } from "@/lib/shared/app-url"
 
 type HeaderVariant = "default" | "hero"
 
 interface HeaderProps {
   variant?: HeaderVariant
+  /** When on katalog/daftar subdomain, main nav links go to connectpreneur.id */
+  useMainSiteLinks?: boolean
 }
 
-export function Header({ variant = "default" }: HeaderProps) {
+export function Header({ variant = "default", useMainSiteLinks = false }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const isHero = variant === "hero"
 
@@ -40,6 +42,10 @@ export function Header({ variant = "default" }: HeaderProps) {
   const desktopNavClass =
     "hidden items-center gap-10 rounded-full bg-transparent px-8 py-3 md:flex lg:gap-20"
 
+  const homeHref = useMainSiteLinks ? appUrl("/") : "/"
+  const tentangHref = useMainSiteLinks ? appUrl("/#tentang") : "/#tentang"
+  const panduanHref = useMainSiteLinks ? appUrl("/panduan") : "/panduan"
+
   return (
     <Fragment>
       <header className="fixed inset-x-0 top-0 z-[100]">
@@ -47,7 +53,7 @@ export function Header({ variant = "default" }: HeaderProps) {
         <div className="mx-auto w-[calc(100%-1.5rem)] max-w-[min(1152px,calc(100%-2rem))] pt-3 sm:w-[calc(100%-2rem)] md:pt-4">
           <div className={panelClass}>
             <div className="flex h-16 items-center justify-between px-4 md:h-20 md:px-6 lg:px-8">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href={homeHref} className="flex items-center gap-2">
                 <Image
                   src="/images/logoconnectpreneur.png"
                   alt="ConnectPreneur Logo"
@@ -58,16 +64,16 @@ export function Header({ variant = "default" }: HeaderProps) {
               </Link>
 
               <nav className={desktopNavClass}>
-                <Link href="/" className={navLinkClass}>
+                <Link href={homeHref} className={navLinkClass}>
                   Beranda
                 </Link>
                 <Link href={katalogPortalUrl("/")} className={navLinkClass}>
                   Katalog
                 </Link>
-                <Link href="/#tentang" className={navLinkClass}>
+                <Link href={tentangHref} className={navLinkClass}>
                   Tentang Kami
                 </Link>
-                <Link href="/panduan" className={navLinkClass}>
+                <Link href={panduanHref} className={navLinkClass}>
                   Panduan
                 </Link>
               </nav>
@@ -100,7 +106,7 @@ export function Header({ variant = "default" }: HeaderProps) {
               >
                 <div className="flex flex-col gap-4">
                   <Link
-                    href="/"
+                    href={homeHref}
                     className={cn("py-2 text-sm font-medium", isHero ? "text-[#531b07]" : "text-foreground")}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -114,14 +120,14 @@ export function Header({ variant = "default" }: HeaderProps) {
                     Katalog
                   </Link>
                   <Link
-                    href="/#tentang"
+                    href={tentangHref}
                     className={cn("py-2 text-sm font-medium", isHero ? "text-[#531b07]" : "text-foreground")}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Tentang Kami
                   </Link>
                   <Link
-                    href="/panduan"
+                    href={panduanHref}
                     className={cn("py-2 text-sm font-medium", isHero ? "text-[#531b07]" : "text-foreground")}
                     onClick={() => setIsMenuOpen(false)}
                   >

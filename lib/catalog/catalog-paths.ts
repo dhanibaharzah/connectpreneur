@@ -34,3 +34,10 @@ export async function getKatalogPathsFromHeaders(): Promise<KatalogPaths> {
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? ""
   return resolveKatalogPaths(host)
 }
+
+export async function getDaftarPathsFromHeaders(): Promise<DaftarPaths> {
+  const { headers } = await import("next/headers")
+  const headerStore = await headers()
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? ""
+  return resolveDaftarPaths(host)
+}

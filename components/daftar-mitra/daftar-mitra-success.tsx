@@ -2,18 +2,23 @@ import Link from "next/link"
 import { ArrowLeft, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { appUrl } from "@/lib/shared/app-url"
 
 interface DaftarMitraSuccessProps {
   successMessage: string
   autoApproved: boolean
   showLegalitasNote: boolean
+  useMainSiteLinks?: boolean
 }
 
 export function DaftarMitraSuccess({
   successMessage,
   autoApproved,
   showLegalitasNote,
+  useMainSiteLinks = false,
 }: DaftarMitraSuccessProps) {
+  const homeHref = useMainSiteLinks ? appUrl("/") : "/"
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
       <Card className="max-w-md w-full text-center">
@@ -38,7 +43,7 @@ export function DaftarMitraSuccess({
           <p className="text-sm text-muted-foreground mb-6">
             Notifikasi telah dikirim ke WhatsApp yang Anda daftarkan.
           </p>
-          <Link href="/">
+          <Link href={homeHref}>
             <Button className="bg-primary hover:bg-primary/90">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Kembali ke Beranda
