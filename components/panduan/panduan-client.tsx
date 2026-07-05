@@ -62,17 +62,19 @@ export function PanduanClient({ initialSection }: PanduanClientProps) {
       </div>
 
       <Tabs value={activeSection} onValueChange={handleTabChange} className="gap-8">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 p-1 sm:grid-cols-4">
-          {PANDUAN_GUIDES.map((guide) => (
-            <TabsTrigger
-              key={guide.id}
-              value={guide.id}
-              className="px-2 py-2.5 text-xs sm:text-sm"
-            >
-              {guide.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 p-1 sm:grid sm:w-full sm:grid-cols-4">
+            {PANDUAN_GUIDES.map((guide) => (
+              <TabsTrigger
+                key={guide.id}
+                value={guide.id}
+                className="min-w-[5.5rem] shrink-0 flex-none px-4 py-2.5 text-sm sm:min-w-0 sm:flex-1 sm:px-2"
+              >
+                {guide.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {PANDUAN_GUIDES.map((guide) => {
           const cta = getSectionCta(guide.id)
