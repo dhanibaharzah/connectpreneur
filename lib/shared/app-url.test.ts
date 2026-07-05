@@ -3,10 +3,14 @@ import {
   appUrl,
   belanjaPortalUrl,
   buyerPortalUrl,
+  daftarPortalUrl,
   getAppBaseUrl,
   getBelanjaPortalUrl,
   getBuyerPortalUrl,
+  getDaftarPortalUrl,
+  getKatalogPortalUrl,
   getMitraPortalUrl,
+  katalogPortalUrl,
   mitraPortalUrl,
 } from "@/lib/shared/app-url"
 
@@ -45,6 +49,8 @@ describe("portal URLs", () => {
     delete process.env.NEXT_PUBLIC_BUYER_PORTAL_URL
     delete process.env.NEXT_PUBLIC_MITRA_PORTAL_URL
     delete process.env.NEXT_PUBLIC_BELANJA_PORTAL_URL
+    delete process.env.NEXT_PUBLIC_KATALOG_PORTAL_URL
+    delete process.env.NEXT_PUBLIC_DAFTAR_PORTAL_URL
   })
 
   it("derives belanja portal from main app URL", () => {
@@ -62,6 +68,13 @@ describe("portal URLs", () => {
   it("derives mitra portal from main app URL", () => {
     expect(getMitraPortalUrl()).toBe("https://mitra.connectpreneur.id")
     expect(mitraPortalUrl()).toBe("https://mitra.connectpreneur.id")
+  })
+
+  it("derives katalog and daftar portals from main app URL", () => {
+    expect(getKatalogPortalUrl()).toBe("https://katalog.connectpreneur.id")
+    expect(katalogPortalUrl("/bisnis/toko")).toBe("https://katalog.connectpreneur.id/bisnis/toko")
+    expect(getDaftarPortalUrl()).toBe("https://daftar.connectpreneur.id")
+    expect(daftarPortalUrl()).toBe("https://daftar.connectpreneur.id")
   })
 
   it("uses explicit portal env when set", () => {

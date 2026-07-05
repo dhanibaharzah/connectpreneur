@@ -99,7 +99,7 @@ export const PANDUAN_GUIDES: PanduanGuide[] = [
       {
         title: "Daftarkan bisnis Anda",
         description:
-          "Buka halaman Daftar Mitra dan isi form 5 tab: info dasar, detail alamat & lokasi, kontak PIC, legalitas (KTP wajib), dan foto produk. Upload KTP dan dokumen pendukung untuk verifikasi.",
+          "Buka daftar.connectpreneur.id dan isi form 5 tab: info dasar, detail alamat & lokasi, kontak PIC, legalitas (KTP wajib), dan foto produk. Upload KTP dan dokumen pendukung untuk verifikasi.",
         tips: [
           "Jika verifikasi OCR KTP (dan Akta jika diupload) berhasil, bisnis Anda langsung aktif tanpa menunggu admin.",
           "Lengkapi profil semaksimal mungkin untuk ConnectScore lebih tinggi.",
@@ -161,7 +161,7 @@ export const PANDUAN_GUIDES: PanduanGuide[] = [
       {
         title: "Buka halaman Katalog",
         description:
-          "Dari beranda ConnectPreneur, klik menu Katalog atau langsung buka /katalog. Anda akan melihat daftar mitra bisnis yang sudah terverifikasi dan aktif.",
+          "Kunjungi katalog.connectpreneur.id untuk melihat daftar mitra bisnis yang sudah terverifikasi dan aktif. Anda juga bisa mengaksesnya dari menu Katalog di beranda connectpreneur.id.",
         screenshotPath: "/images/panduan/katalog/01-halaman-katalog.png",
         screenshotAlt: "Halaman katalog bisnis ConnectPreneur",
       },
@@ -206,7 +206,7 @@ export const PANDUAN_GUIDES: PanduanGuide[] = [
       {
         title: "Ingin bergabung sebagai mitra?",
         description:
-          "Jika Anda pemilik bisnis dan ingin tampil di katalog, klik Daftar Mitra di menu atas. Proses pendaftaran gratis dan profil Anda akan tampil setelah verifikasi.",
+          "Jika Anda pemilik bisnis dan ingin tampil di katalog, buka daftar.connectpreneur.id. Proses pendaftaran gratis dan profil Anda akan tampil setelah verifikasi.",
         screenshotPath: "/images/panduan/katalog/07-daftar-mitra-cta.png",
         screenshotAlt: "Tombol daftar mitra",
       },
@@ -264,7 +264,7 @@ export const PANDUAN_GUIDES: PanduanGuide[] = [
       {
         title: "Ingin jualan di Belanja?",
         description:
-          "Hanya mitra ConnectPreneur yang sudah terdaftar dan aktif yang bisa menampilkan produk. Daftar bisnis Anda dulu, lalu kelola produk melalui Portal Mitra.",
+          "Hanya mitra ConnectPreneur yang sudah terdaftar dan aktif yang bisa menampilkan produk. Daftar bisnis Anda dulu di daftar.connectpreneur.id, lalu kelola produk melalui Portal Mitra.",
         screenshotPath: "/images/panduan/belanja/07-jadi-penjual.png",
         screenshotAlt: "CTA daftar mitra untuk penjual",
       },

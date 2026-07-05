@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/shared/utils"
+import { daftarPortalUrl, katalogPortalUrl } from "@/lib/shared/app-url"
 
 type HeaderVariant = "default" | "hero"
 
@@ -60,7 +61,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <Link href="/" className={navLinkClass}>
                   Beranda
                 </Link>
-                <Link href="/katalog" className={navLinkClass}>
+                <Link href={katalogPortalUrl("/")} className={navLinkClass}>
                   Katalog
                 </Link>
                 <Link href="/#tentang" className={navLinkClass}>
@@ -72,7 +73,7 @@ export function Header({ variant = "default" }: HeaderProps) {
               </nav>
 
               <div className="hidden md:block">
-                <Link href="/daftar-mitra" className={ctaClass}>
+                <Link href={daftarPortalUrl("/")} className={ctaClass}>
                   Daftar Mitra
                 </Link>
               </div>
@@ -106,7 +107,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     Beranda
                   </Link>
                   <Link
-                    href="/katalog"
+                    href={katalogPortalUrl("/")}
                     className={cn("py-2 text-sm font-medium", isHero ? "text-[#531b07]" : "text-foreground")}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -127,7 +128,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     Panduan
                   </Link>
                   <Link
-                    href="/daftar-mitra"
+                    href={daftarPortalUrl("/")}
                     className={cn(ctaClass, "text-center")}
                     onClick={() => setIsMenuOpen(false)}
                   >

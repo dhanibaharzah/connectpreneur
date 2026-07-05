@@ -23,6 +23,7 @@ import type { PaginationMeta } from "@/lib/shared/pagination"
 import type { TransactionSort } from "@/lib/transactions/transaction-list-filters"
 import { buildUmkmContactBuyerMessage } from "@/lib/integrations/whatsapp-messages"
 import { buildWhatsappWebUrl, formatPhoneDisplay } from "@/lib/shared/phone"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 import {
   TRANSACTION_STATUS_LABELS,
   type Transaction,
@@ -417,7 +418,7 @@ export function UmkmTransactionsPanel({
         <TransactionPagination pagination={pagination} onPageChange={onPageChange} loading={loading} />
       </div>
 
-      <Link href="/katalog" className="text-sm text-muted-foreground hover:text-primary">
+      <Link href={katalogPortalUrl("/")} className="text-sm text-muted-foreground hover:text-primary">
         ← Kembali ke Katalog
       </Link>
     </div>

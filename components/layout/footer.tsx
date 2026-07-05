@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, AlertTriangle } from "lucide-react"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 
 export function Footer() {
   return (
@@ -26,7 +27,7 @@ export function Footer() {
             <Link href="/" className="transition hover:text-[#f9c8b6]">
               Beranda
             </Link>
-            <Link href="/katalog" className="transition hover:text-[#f9c8b6]">
+            <Link href={katalogPortalUrl("/")} className="transition hover:text-[#f9c8b6]">
               Katalog Bisnis
             </Link>
             <Link href="/#tentang" className="transition hover:text-[#f9c8b6]">

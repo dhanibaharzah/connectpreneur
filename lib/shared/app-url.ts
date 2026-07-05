@@ -46,8 +46,28 @@ export function getBelanjaPortalUrl(): string {
   return resolvePortalBaseUrl("NEXT_PUBLIC_BELANJA_PORTAL_URL", "belanja")
 }
 
+export function getKatalogPortalUrl(): string {
+  return resolvePortalBaseUrl("NEXT_PUBLIC_KATALOG_PORTAL_URL", "katalog")
+}
+
+export function getDaftarPortalUrl(): string {
+  return resolvePortalBaseUrl("NEXT_PUBLIC_DAFTAR_PORTAL_URL", "daftar")
+}
+
 export function belanjaPortalUrl(path = "/"): string {
   const base = getBelanjaPortalUrl()
+  if (!path || path === "/") return base
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`
+}
+
+export function katalogPortalUrl(path = "/"): string {
+  const base = getKatalogPortalUrl()
+  if (!path || path === "/") return base
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`
+}
+
+export function daftarPortalUrl(path = "/"): string {
+  const base = getDaftarPortalUrl()
   if (!path || path === "/") return base
   return `${base}${path.startsWith("/") ? path : `/${path}`}`
 }

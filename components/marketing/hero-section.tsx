@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { HOME_HERO_BACKGROUND } from "@/lib/shared/home-hero"
+import { daftarPortalUrl } from "@/lib/shared/app-url"
 
 /** Height follows 21:9 from viewport width, with floors so copy + floating header fit on small screens. */
 const HERO_HEIGHT = "clamp(300px, calc(100vw * 9 / 21), min(72vh, 720px))" as const
@@ -52,7 +53,7 @@ export function HeroSection() {
             </p>
           </div>
           <Link
-            href="/daftar-mitra"
+            href={daftarPortalUrl("/")}
             className="inline-flex h-12 w-[160px] items-center justify-center rounded-full bg-primary text-sm font-medium text-white transition hover:bg-[#d44612]"
           >
             Daftar Mitra

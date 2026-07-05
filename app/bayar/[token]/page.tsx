@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, Upload, CheckCircle2, ArrowLeft } from "lucide-react"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 
 export default function BayarPage({ params }: { params: Promise<{ token: string }> }) {
   const [token, setToken] = useState<string | null>(null)
@@ -87,7 +88,7 @@ export default function BayarPage({ params }: { params: Promise<{ token: string 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4">
         <p className="text-muted-foreground">{error}</p>
-        <Link href="/katalog">
+        <Link href={katalogPortalUrl("/")}>
           <Button variant="outline">Kembali ke Katalog</Button>
         </Link>
       </div>
@@ -101,7 +102,7 @@ export default function BayarPage({ params }: { params: Promise<{ token: string 
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
       <div className="max-w-md mx-auto space-y-4">
-        <Link href="/katalog">
+        <Link href={katalogPortalUrl("/")}>
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Katalog

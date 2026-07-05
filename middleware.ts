@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getBelanjaPortalUrl } from "@/lib/shared/app-url"
+import {
+  getBelanjaPortalUrl,
+  getDaftarPortalUrl,
+  getKatalogPortalUrl,
+} from "@/lib/shared/app-url"
+import {
+  resolveDaftarSubdomainAction,
+  resolveKatalogSubdomainAction,
+} from "@/lib/catalog/portal-routing"
 import {
   resolveBelanjaBuyerRedirectPath,
   resolveBelanjaSubdomainAction,
@@ -72,6 +80,31 @@ function redirectToMainSite(request: NextRequest): NextResponse {
   return NextResponse.redirect(target)
 }
 
+function isMainProductionSite(hostname: string): boolean {
+  return hostname.replace(/^www\./, "") === "connectpreneur.id"
+}
+
+function handleCatalogPortalSubdomain(
+  request: NextRequest,
+  resolveAction: (pathname: string) => ReturnType<typeof resolveKatalogSubdomainAction>,
+): NextResponse | null {
+  const url = request.nextUrl.clone()
+  const action = resolveAction(url.pathname)
+
+  switch (action.type) {
+    case "passthrough":
+      return null
+    case "redirect":
+      url.pathname = action.pathname
+      return NextResponse.redirect(url)
+    case "rewrite":
+      url.pathname = action.pathname
+      return NextResponse.rewrite(url)
+    case "redirect_to_main":
+      return redirectToMainSite(request)
+  }
+}
+
 function handleBelanjaSubdomain(request: NextRequest): NextResponse | null {
   const url = request.nextUrl.clone()
   const action = resolveBelanjaSubdomainAction(url.pathname)
@@ -108,6 +141,42 @@ export function middleware(request: NextRequest) {
   if (hostname.startsWith("belanja.")) {
     const response = handleBelanjaSubdomain(request)
     if (response) return response
+  }
+
+  if (hostname.startsWith("katalog.")) {
+    const response = handleCatalogPortalSubdomain(request, resolveKatalogSubdomainAction)
+    if (response) return response
+  }
+
+  if (hostname.startsWith("daftar.")) {
+    const response = handleCatalogPortalSubdomain(request, resolveDaftarSubdomainAction)
+    if (response) return response
+  }
+
+  // Canonicalize main-site catalog/register paths to dedicated subdomains (production only)
+  if (
+    isMainProductionSite(hostname) &&
+    !isAdminSubdomain &&
+    !isMitraSubdomain &&
+    !hostname.startsWith("belanja.")
+  ) {
+    if (url.pathname === "/katalog" || url.pathname.startsWith("/katalog/")) {
+      const target = new URL(
+        url.pathname.replace(/^\/katalog/, "") || "/",
+        getKatalogPortalUrl(),
+      )
+      target.search = url.search
+      return NextResponse.redirect(target, 301)
+    }
+
+    if (url.pathname === "/daftar-mitra" || url.pathname.startsWith("/daftar-mitra/")) {
+      const target = new URL(
+        url.pathname.replace(/^\/daftar-mitra/, "") || "/",
+        getDaftarPortalUrl(),
+      )
+      target.search = url.search
+      return NextResponse.redirect(target, 301)
+    }
   }
 
   // Protect admin subdomain pages with Basic Auth (exclude API routes)

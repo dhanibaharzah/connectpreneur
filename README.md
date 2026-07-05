@@ -209,7 +209,9 @@ Pembeli submit RFQ → pending_review
 
 | Portal | URL | Fungsi |
 |--------|-----|--------|
-| Situs utama | [connectpreneur.id](https://connectpreneur.id) | Katalog mitra, detail bisnis, daftar mitra |
+| Situs utama | [connectpreneur.id](https://connectpreneur.id) | Beranda, panduan, invoice/bayar |
+| Katalog | `katalog.connectpreneur.id` | Katalog mitra & detail bisnis |
+| Daftar Mitra | `daftar.connectpreneur.id` | Form pendaftaran mitra UMKM |
 | Belanja | `belanja.connectpreneur.id` | Marketplace produk/jasa UMKM, akun pembeli |
 | Mitra (UMKM) | `mitra.connectpreneur.id` | Dashboard transaksi, produk, pelanggan, QR toko |
 | Admin | `admin.connectpreneur.id` | Analytics, mitra, transaksi, banner, anggota |
@@ -264,15 +266,17 @@ Platform ini sepenuhnya **gratis** sebagai layanan digital ConnectPreneur untuk 
 | Portal | URL |
 |--------|-----|
 | Main | [https://connectpreneur.id](https://connectpreneur.id) |
+| Katalog | [https://katalog.connectpreneur.id](https://katalog.connectpreneur.id) |
+| Daftar Mitra | [https://daftar.connectpreneur.id](https://daftar.connectpreneur.id) |
 | Belanja | [https://belanja.connectpreneur.id](https://belanja.connectpreneur.id) |
 | Mitra (UMKM) | [https://mitra.connectpreneur.id](https://mitra.connectpreneur.id) |
 | Admin | [https://admin.connectpreneur.id](https://admin.connectpreneur.id) |
 
 ## ✨ Fitur Utama
 
-### Katalog & Kemitraan (Publik)
+### Katalog & Kemitraan (`katalog.`)
 
-- 📋 Katalog bisnis dengan filter kategori dan **ConnectScore tier**
+- 📋 Katalog bisnis di **katalog.connectpreneur.id** dengan filter kategori dan **ConnectScore tier**
 - 🔍 Pencarian mitra (nama, jenis usaha, lokasi) + sort ConnectScore
 - 📱 Detail bisnis multi-tab (produk, tentang, galeri, kontak, kemitraan)
 - 📝 Form pendaftaran mitra self-registration (5 tab, upload KTP wajib)
@@ -364,6 +368,8 @@ DATABASE_URL="postgresql://username:password@host/database?sslmode=require"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_BELANJA_PORTAL_URL="http://localhost:3000/belanja"
 NEXT_PUBLIC_MITRA_PORTAL_URL="http://localhost:3000/umkm"
+NEXT_PUBLIC_KATALOG_PORTAL_URL="http://localhost:3000/katalog"
+NEXT_PUBLIC_DAFTAR_PORTAL_URL="http://localhost:3000/daftar-mitra"
 
 # Cloudflare R2
 R2_ACCOUNT_ID="your-r2-account-id"

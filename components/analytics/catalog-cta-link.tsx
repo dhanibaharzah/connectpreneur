@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { trackEvent } from "@/lib/analytics/client"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 
 interface CatalogCtaLinkProps {
   className?: string
@@ -12,7 +13,7 @@ interface CatalogCtaLinkProps {
 export function CatalogCtaLink({ className, children }: CatalogCtaLinkProps) {
   return (
     <Link
-      href="/katalog"
+      href={katalogPortalUrl("/")}
       className={className}
       onClick={() => trackEvent({ eventType: "catalog_cta_click" })}
     >

@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { daftarPortalUrl } from "@/lib/shared/app-url"
 
 export function ExpandBusinessCta() {
   return (
@@ -25,7 +26,7 @@ export function ExpandBusinessCta() {
               Gabung sekarang dan temukan peluang kolaborasi yang lebih luas melalui ConnectPreneur.
             </p>
             <Link
-              href="/daftar-mitra"
+              href={daftarPortalUrl("/")}
               className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-b from-[#ec4e14] to-[#bd3e10] px-8 text-sm font-medium text-white shadow-sm transition hover:opacity-95"
             >
               Daftarkan Bisnis Anda

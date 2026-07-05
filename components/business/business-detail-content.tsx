@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { BusinessProductsSection, type RfqProductSelection } from "@/components/business/business-products-section"
 import { trackEvent } from "@/lib/analytics/client"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 import { RfqRequestModal } from "@/components/shared/rfq-request-modal"
 import { cn } from "@/lib/shared/utils"
 import { isDisplayableImageUrl } from "@/lib/integrations/storage-urls"
@@ -107,7 +108,7 @@ export function BusinessDetailContent({ business }: BusinessDetailContentProps) 
   return (
     <div className="container mx-auto px-4 max-w-6xl">
       <Link
-        href="/katalog"
+        href={katalogPortalUrl("/")}
         className="inline-flex items-center gap-2 text-primary hover:text-secondary mb-6 transition-colors text-sm font-medium"
       >
         <ArrowLeft className="h-4 w-4" />

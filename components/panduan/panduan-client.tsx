@@ -10,7 +10,7 @@ import {
   isPanduanSection,
   type PanduanSection,
 } from "@/lib/panduan/guides"
-import { appUrl, belanjaPortalUrl, mitraPortalUrl } from "@/lib/shared/app-url"
+import { belanjaPortalUrl, katalogPortalUrl, mitraPortalUrl } from "@/lib/shared/app-url"
 import { cn } from "@/lib/shared/utils"
 
 interface PanduanClientProps {
@@ -24,7 +24,7 @@ function getSectionCta(section: PanduanSection): { label: string; href: string }
     case "mitra":
       return { label: "Portal Mitra", href: mitraPortalUrl("/") }
     case "katalog":
-      return { label: "Lihat Katalog", href: appUrl("/katalog") }
+      return { label: "Lihat Katalog", href: katalogPortalUrl("/") }
     case "belanja":
       return { label: "Mulai Belanja", href: belanjaPortalUrl("/") }
   }

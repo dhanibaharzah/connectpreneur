@@ -1,5 +1,5 @@
-import { appUrl } from "@/lib/shared/app-url"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 
 export function businessCatalogUrl(slug: string): string {
-  return appUrl(`/bisnis/${slug}`)
+  return katalogPortalUrl(`/bisnis/${slug}`)
 }

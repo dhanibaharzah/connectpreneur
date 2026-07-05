@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { AlertTriangle, ArrowRight } from "lucide-react"
 import { buildBelanjaAkunPath } from "@/lib/marketplace/belanja-paths"
-import { appUrl } from "@/lib/shared/app-url"
+import { appUrl, katalogPortalUrl } from "@/lib/shared/app-url"
 
 interface BelanjaFooterProps {
   homePath: string
@@ -41,7 +41,7 @@ export function BelanjaFooter({ homePath, onSubdomain }: BelanjaFooterProps) {
             <Link href={appUrl("/")} className="transition hover:text-[#f9c8b6]">
               ConnectPreneur
             </Link>
-            <Link href={appUrl("/katalog")} className="transition hover:text-[#f9c8b6]">
+            <Link href={katalogPortalUrl("/")} className="transition hover:text-[#f9c8b6]">
               Katalog Bisnis
             </Link>
             <Link href={appUrl("/panduan?section=belanja")} className="transition hover:text-[#f9c8b6]">

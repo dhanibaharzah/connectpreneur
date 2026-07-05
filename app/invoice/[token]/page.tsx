@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, Printer, ArrowLeft } from "lucide-react"
 import { TRANSACTION_STATUS_LABELS, type TransactionStatus } from "@/types/transaction"
+import { katalogPortalUrl } from "@/lib/shared/app-url"
 
 interface InvoiceData {
   transaction: {
@@ -85,7 +86,7 @@ export default function InvoicePage({ params }: { params: Promise<{ token: strin
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4">
         <p className="text-muted-foreground">{error || "Invoice tidak ditemukan"}</p>
-        <Link href="/katalog">
+        <Link href={katalogPortalUrl("/")}>
           <Button variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Kembali ke Katalog
