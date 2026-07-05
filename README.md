@@ -10,7 +10,7 @@
 
 ---
 
-> Platform katalog bisnis digital yang menghubungkan pelaku UMKM dengan berbagai peluang kemitraan bisnis.
+> Platform digital untuk katalog mitra bisnis, marketplace belanja UMKM, dan alur permintaan penawaran (RFQ) terintegrasi WhatsApp.
 
 <p align="center">
   <a href="#-tentang-project">Tentang</a> •
@@ -44,51 +44,48 @@
 **ConnectPreneur** adalah startup digital yang diinisiasi Perkumpulan Anak Muda Bandung, dengan keyakinan bahwa berwirausaha dapat memajukan ekonomi Indonesia. Platform ini bertujuan untuk:
 
 - Menampilkan katalog mitra bisnis dengan berbagai peluang kemitraan
-- Menghubungkan pelaku UMKM dengan calon mitra (reseller, agen, dropshipper, franchise, dll)
-- Memperluas jangkauan bisnis melalui program Business Matching
+- Menghubungkan pelaku UMKM dengan calon mitra dan pembeli
+- Memfasilitasi permintaan penawaran (RFQ) hingga invoice dan konfirmasi pembayaran
+- Memperluas jangkauan bisnis melalui program Business Matching dan marketplace belanja
 
 ## 🎯 Masalah yang Diselesaikan
 
-1. **Fragmentasi Informasi** - Menyatukan informasi peluang kemitraan dalam satu platform terpusat
-2. **Akses Terbatas** - Membuka akses informasi kemitraan ke lebih banyak pelaku usaha di Indonesia
-3. **Proses Manual** - Digitalisasi proses pendaftaran dan verifikasi mitra bisnis
-4. **Keterhubungan** - Memfasilitasi koneksi langsung antara pemilik bisnis dan calon mitra
+1. **Fragmentasi Informasi** — Menyatukan informasi peluang kemitraan dan produk UMKM dalam satu platform terpusat
+2. **Akses Terbatas** — Membuka akses informasi kemitraan ke lebih banyak pelaku usaha di Indonesia
+3. **Proses Manual** — Digitalisasi pendaftaran, verifikasi dokumen (OCR), dan alur transaksi RFQ
+4. **Keterhubungan** — Memfasilitasi koneksi langsung antara pemilik bisnis, calon mitra, dan pembeli via WhatsApp
 
 ## 🔄 Flow Sistem (Business Perspective)
 
 ### Overview
 
-ConnectPreneur menghubungkan tiga aktor utama: **Pemilik Bisnis** (UMKM), **Pengunjung** (calon mitra), dan **Admin** (pengelola platform). Berikut alur sistem dari sisi bisnis:
+ConnectPreneur menghubungkan empat aktor utama: **Pemilik Bisnis** (UMKM), **Pembeli/Pengunjung**, **Admin**, dan **Portal khusus** (Belanja & Mitra). Berikut alur sistem dari sisi bisnis:
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        CONNECTPRENEUR FLOW                         │
-│                                                                     │
-│  ┌──────────┐    Daftar     ┌──────────┐   Verifikasi  ┌────────┐  │
-│  │ Pemilik  │──────────────▶│ Platform │◀──────────────│ Admin  │  │
-│  │ Bisnis   │               │  (Web)   │               │ Panel  │  │
-│  └──────────┘               └────┬─────┘               └────────┘  │
-│                                  │                                  │
-│                            Tampil di                                │
-│                             Katalog                                 │
-│                                  │                                  │
-│                                  ▼                                  │
-│                           ┌──────────┐                              │
-│                           │Pengunjung│                              │
-│                           │(Calon    │                              │
-│                           │ Mitra)   │                              │
-│                           └────┬─────┘                              │
-│                                │                                    │
-│                         Hubungi via                                 │
-│                          WhatsApp                                   │
-│                                │                                    │
-│                                ▼                                    │
-│                        ┌──────────────┐                             │
-│                        │  Koneksi     │                             │
-│                        │  Langsung    │                             │
-│                        │  (Offline)   │                             │
-│                        └──────────────┘                             │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         CONNECTPRENEUR FLOW                              │
+│                                                                          │
+│  ┌──────────┐   Daftar    ┌──────────┐  Verifikasi  ┌────────┐         │
+│  │ Pemilik  │───────────▶│ Platform │◀─────────────│ Admin  │         │
+│  │ Bisnis   │            │  (Web)   │   (manual/   │ Panel  │         │
+│  └──────────┘            └────┬─────┘    OCR)      └────────┘         │
+│                                 │                                        │
+│                           Tampil di Katalog                              │
+│                           + Marketplace Belanja                          │
+│                                 │                                        │
+│         ┌───────────────────────┼───────────────────────┐               │
+│         ▼                       ▼                       ▼               │
+│  ┌─────────────┐         ┌─────────────┐         ┌─────────────┐        │
+│  │  Pengunjung │         │   Pembeli   │         │ Portal UMKM │        │
+│  │ (Calon Mitra│         │  (Belanja)  │         │  (mitra.)   │        │
+│  └──────┬──────┘         └──────┬──────┘         └──────┬──────┘        │
+│         │                       │                       │               │
+│    WA / RFQ              RFQ → Invoice            Kelola transaksi      │
+│         │                       │                       │               │
+│         └───────────────────────┴───────────────────────┘               │
+│                                 │                                        │
+│                          Kerjasama (offline)                             │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 1. Pendaftaran Bisnis (Self-Registration)
@@ -96,26 +93,34 @@ ConnectPreneur menghubungkan tiga aktor utama: **Pemilik Bisnis** (UMKM), **Peng
 ```
 Pemilik Bisnis → Buka /daftar-mitra → Isi Form Multi-Tab → Submit
                                           │
-                                          ├─ Info Dasar (nama, deskripsi, kategori)
-                                          ├─ Detail (alamat, lokasi, link kemitraan)
+                                          ├─ Info Dasar (nama, deskripsi, kategori, jenis peluang)
+                                          ├─ Detail (alamat, lokasi Jawa Barat)
                                           ├─ Kontak (PIC, WhatsApp, sosial media)
-                                          ├─ Legalitas (Akta Pendirian, Legalitas PDF)
+                                          ├─ Legalitas (KTP wajib, Akta Pendirian, Legalitas PDF)
                                           └─ Gambar (logo, foto produk max 5)
                                           │
                                           ▼
-                              Status: PENDING (is_active=false)
-                              Bisnis belum tampil di katalog
+                              OCR verifikasi KTP (+ Akta jika diupload)
+                                          │
+                                    ┌─────┴─────┐
+                                    │           │
+                              Lolos OCR    Perlu review
+                                    │           │
+                                    ▼           ▼
+                            AUTO-APPROVE    PENDING (admin review)
+                            (is_active=true)
 ```
 
 - Pemilik bisnis mendaftar mandiri tanpa perlu akun
-- Data yang disubmit mencakup profil bisnis lengkap termasuk dokumen legal
+- **KTP wajib** diupload; Akta Pendirian opsional tapi mempengaruhi ConnectScore
+- Verifikasi OCR otomatis (KTP & Akta) — jika lolos, bisnis langsung aktif
 - Gambar otomatis dikompresi (~100KB) untuk efisiensi storage
-- Setelah submit, bisnis masuk antrian verifikasi
+- Notifikasi WhatsApp via GoWA setelah pendaftaran
 
 ### 2. Verifikasi oleh Admin
 
 ```
-Admin Login → Dashboard → Lihat Daftar Pending → Review Data Bisnis
+Admin Login → Mitra Bisnis → Lihat Daftar Pending → Review Data Bisnis
                                                         │
                                                   ┌─────┴─────┐
                                                   │           │
@@ -127,37 +132,38 @@ Admin Login → Dashboard → Lihat Daftar Pending → Review Data Bisnis
                                           Katalog
 ```
 
-- Admin melakukan verifikasi kelengkapan & keabsahan data bisnis
+- Admin melakukan verifikasi kelengkapan & keabsahan data bisnis (khususnya jika OCR gagal)
 - Akses admin dibatasi berdasarkan wilayah (Location-Based Access Control):
 
 | Level Admin | Cakupan Akses |
 |-------------|---------------|
 | Superadmin | Seluruh bisnis tanpa batasan |
-| Admin Kab/Kota | Bisnis di kota tersebut + seluruh kecamatan di dalamnya |
-| Admin Kecamatan | Hanya bisnis di kecamatan tersebut |
+| Admin Kab/Kota (DPD) | Bisnis di kota tersebut + seluruh kecamatan di dalamnya |
+| Admin Kecamatan (DPC) | Hanya bisnis di kecamatan tersebut |
 
-- Setelah diverifikasi, bisnis langsung aktif dan tampil di katalog publik
+- Admin baru dapat mendaftar via `/admin/signup` dan menunggu persetujuan superadmin
 
 ### 3. Katalog & Pencarian (Public)
 
 ```
 Pengunjung → Homepage                → Lihat Featured Bisnis
-           → Katalog (/katalog)      → Cari & Filter (nama, kategori, lokasi)
-           → Detail Bisnis           → Lihat Profil, Galeri, ConnectScore
+           → Katalog (/katalog)      → Cari & Filter (nama, kategori, ConnectScore tier)
+           → Detail Bisnis           → Lihat Profil, Produk, Galeri, ConnectScore
                                            │
-                                           ▼
-                                     Hubungi via WhatsApp
+                                    ┌──────┴──────┐
+                                    ▼             ▼
+                              Hubungi WA      Submit RFQ
 ```
 
 - Pengunjung melihat katalog bisnis yang sudah terverifikasi
-- Tersedia fitur pencarian dan filter berdasarkan kategori
-- Setiap bisnis memiliki **ConnectScore** (0-100) yang menunjukkan kelengkapan profil
-- Kontak langsung melalui WhatsApp tanpa perantara platform
+- Pencarian dan filter kategori + **ConnectScore Tier** (Unggulan, Berkualitas, Dasar, Wajib Perbaikan)
+- Sort: default, nama A–Z, ConnectScore tertinggi
+- Kontak langsung via WhatsApp atau ajukan **permintaan penawaran (RFQ)**
 
 ### 4. ConnectScore — Indikator Kelengkapan Profil
 
 ```
-Profil Bisnis → Evaluasi 17 Aspek → Skor 0-100
+Profil Bisnis → Evaluasi 17 Aspek → Skor 0-100 → Tier Label
                     │
                     ├─ Deskripsi Bisnis (8 poin)
                     ├─ Logo (8 poin)
@@ -169,60 +175,64 @@ Profil Bisnis → Evaluasi 17 Aspek → Skor 0-100
                     └─ Total: 100 poin
 ```
 
-- Semakin lengkap profil, semakin tinggi skor → meningkatkan kredibilitas bisnis
+| Tier | Rentang | Label |
+|------|---------|-------|
+| Unggulan | 90–100 | UMKM Unggulan |
+| Berkualitas | 70–89 | UMKM Berkualitas |
+| Dasar | 60–69 (atau terverifikasi tanpa legalitas) | UMKM Dasar |
+| Wajib Perbaikan | <60 atau tanpa akta & legalitas | Wajib Perbaikan |
+
 - Skor di-cache di database untuk performa optimal
-- Mendorong pemilik bisnis untuk melengkapi profilnya
+- UMKM dapat melengkapi legalitas via Portal UMKM (`/umkm`)
 
-### 5. Alur Koneksi Bisnis (Business Matching)
-
-```
-┌───────────────┐         ┌───────────────┐         ┌──────────────┐
-│   Pemilik     │  Daftar │               │  Browse │  Pengunjung  │
-│   Bisnis      │────────▶│ ConnectPreneur │◀───────│  (Calon      │
-│ (Franchisor,  │         │   Platform    │         │   Mitra)     │
-│  Distributor) │         │               │         │              │
-└───────────────┘         └───────┬───────┘         └──────┬───────┘
-                                  │                        │
-                                  │   Profil + WhatsApp    │
-                                  └────────────────────────┘
-                                             │
-                                             ▼
-                                  ┌──────────────────┐
-                                  │  Negosiasi &     │
-                                  │  Kerjasama       │
-                                  │  (Di luar        │
-                                  │   platform)      │
-                                  └──────────────────┘
-```
-
-**Jenis peluang kemitraan yang tersedia:**
-- Reseller
-- Agen / Distributor
-- Dropshipper
-- Franchise / Kemitraan
-- Dan lainnya
-
-Platform berfungsi sebagai **katalog & jembatan awal** — proses negosiasi dan kerjasama berlangsung langsung antara kedua pihak melalui WhatsApp.
-
-### 6. Ringkasan Alur End-to-End
+### 5. Alur Transaksi RFQ
 
 ```
-                    PENDAFTARAN              VERIFIKASI            PUBLIKASI
-                    ───────────              ──────────            ─────────
-Pemilik Bisnis ──▶ Isi Form ──▶ Submit ──▶ Admin Review ──▶ Approve ──▶ Tampil di Katalog
-                    (5 tab)      (pending)   (by region)     (active)    │
-                                                                         │
-                    DISCOVERY               KONEKSI                      │
-                    ─────────               ───────                      │
-Calon Mitra ◀──── Browse/Search ◀─────── Katalog Publik ◀──────────────┘
+Pembeli submit RFQ → pending_review
+       │
+       ▼ (UMKM approve via Portal Mitra)
+   approved → UMKM kirim invoice → invoice_sent
+       │
+       ▼ (Pembeli upload bukti di /bayar/[token])
+ payment_proof_uploaded → UMKM konfirmasi → completed (+ poin gamification)
+```
+
+**Status transaksi:** `pending_review` → `approved` → `invoice_sent` → `payment_proof_uploaded` → `completed` (atau `rejected` / `cancelled`)
+
+- RFQ dapat diajukan dari halaman detail bisnis atau marketplace belanja
+- Invoice publik via `/invoice/[token]`; upload bukti bayar via `/bayar/[token]`
+- Notifikasi WhatsApp otomatis ke UMKM & pembeli (GoWA)
+- Reminder pembayaran otomatis 72 jam setelah invoice (cron job)
+- **Bukan payment gateway** — pembayaran dilakukan transfer bank offline; platform memfasilitasi invoice & bukti transfer
+
+### 6. Marketplace Belanja & Portal
+
+| Portal | URL | Fungsi |
+|--------|-----|--------|
+| Situs utama | [connectpreneur.id](https://connectpreneur.id) | Katalog mitra, detail bisnis, daftar mitra |
+| Belanja | `belanja.connectpreneur.id` | Marketplace produk/jasa UMKM, akun pembeli |
+| Mitra (UMKM) | `mitra.connectpreneur.id` | Dashboard transaksi, produk, pelanggan, QR toko |
+| Admin | `admin.connectpreneur.id` | Analytics, mitra, transaksi, banner, anggota |
+
+### 7. Ringkasan Alur End-to-End
+
+```
+PENDAFTARAN          VERIFIKASI           PUBLIKASI
+───────────          ──────────           ─────────
+Isi Form → Submit → OCR/Admin Review → Approve → Katalog + Belanja
+  (5 tab)   (pending)   (by region)    (active)        │
+                                                      │
+DISCOVERY & RFQ                                       │
+─────────────                                         │
+Browse/Search/Belanja ◀─────────────────────────────┘
       │
       ▼
- Hubungi via WA ──▶ Negosiasi ──▶ Kerjasama (offline)
+ Submit RFQ → Invoice → Bukti Bayar → Selesai (+ poin)
 ```
 
 **Tidak ada:**
-- Sistem pembayaran / transaksi di platform
-- Sistem pesan internal
+- Payment gateway online (Midtrans, dll.)
+- Sistem pesan internal/chat in-app
 - Matching otomatis / algoritma rekomendasi
 - Subscription / fitur premium
 
@@ -241,38 +251,93 @@ Platform ini sepenuhnya **gratis** sebagai layanan digital ConnectPreneur untuk 
 | Database | [Neon PostgreSQL](https://neon.tech/) (Serverless) |
 | File Storage | [Cloudflare R2](https://developers.cloudflare.com/r2/) (`pub-*.r2.dev` atau subdomain custom); legacy [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) read-only |
 | Image Processing | [Sharp](https://sharp.pixelplumbing.com/) (auto-compress) |
-| Authentication | JWT (jose) |
+| OCR | OCR service eksternal + [Tesseract.js](https://tesseract.projectnaptha.com/) fallback |
+| WhatsApp | GoWA (self-hosted WhatsApp gateway) |
+| Authentication | JWT (jose) — Admin JWT, UMKM OTP session, Pembeli OTP session |
+| Analytics | Custom event tracking + [Vercel Analytics](https://vercel.com/analytics) |
+| Charts / Maps | [Recharts](https://recharts.org/) + [react-simple-maps](https://www.react-simple-maps.io/) |
+| Testing | [Vitest](https://vitest.dev/) |
 | Deployment | [Vercel](https://vercel.com/) |
 
 ## 🌐 Production URL
 
-**Live:** [https://connectpreneur.id](https://connectpreneur.id)
+| Portal | URL |
+|--------|-----|
+| Main | [https://connectpreneur.id](https://connectpreneur.id) |
+| Belanja | [https://belanja.connectpreneur.id](https://belanja.connectpreneur.id) |
+| Mitra (UMKM) | [https://mitra.connectpreneur.id](https://mitra.connectpreneur.id) |
+| Admin | [https://admin.connectpreneur.id](https://admin.connectpreneur.id) |
 
 ## ✨ Fitur Utama
 
-### Public
-- 📋 Katalog bisnis dengan filter kategori
-- 🔍 Pencarian mitra bisnis
-- 📱 Detail bisnis dengan carousel gambar
-- 📝 Form pendaftaran mitra (self-registration)
+### Katalog & Kemitraan (Publik)
+
+- 📋 Katalog bisnis dengan filter kategori dan **ConnectScore tier**
+- 🔍 Pencarian mitra (nama, jenis usaha, lokasi) + sort ConnectScore
+- 📱 Detail bisnis multi-tab (produk, tentang, galeri, kontak, kemitraan)
+- 📝 Form pendaftaran mitra self-registration (5 tab, upload KTP wajib)
+- 🔎 Verifikasi OCR KTP & Akta + auto-approval jika lolos
 - 📞 Integrasi WhatsApp untuk kontak langsung
+- 📊 Analytics tracking (page view, klik WA/website/sosial, RFQ submit)
+- ⭐ ConnectScore (0–100) dengan tier badge
 
-### Admin Panel (`/admin`)
-- 🔐 Authentication dengan JWT
-- 📊 Dashboard manajemen mitra
-- ✅ Verifikasi pendaftaran mitra baru
-- ✏️ CRUD bisnis dengan upload gambar
+### Marketplace Belanja (`belanja.`)
+
+- 🛒 Katalog produk/jasa dari mitra UMKM aktif
+- 🎠 Banner carousel (dikelola superadmin)
+- 🔍 Filter: pencarian, tipe (produk/jasa), lokasi, sort harga/nama
+- 📦 Halaman detail produk dengan RFQ
+- ♾️ Infinite scroll / load more
+
+### Portal Pembeli (`/belanja/akun`)
+
+- 📱 Login OTP via nomor WhatsApp
+- 📋 Riwayat transaksi RFQ dengan status
+- 🧾 Link invoice & upload bukti bayar
+- 🏆 Gamification: poin, badge (Pembeli Baru / Terverifikasi / Top Pembeli)
+- 📈 Halaman riwayat poin (`/belanja/akun/poin`)
+
+### Portal UMKM (`mitra.` / `/umkm`)
+
+- 📱 Login OTP via nomor WhatsApp PIC bisnis
+- 📋 Kelola transaksi RFQ (approve, reject, kirim invoice, konfirmasi bayar)
+- 🔔 Reminder pembayaran manual ke pembeli
+- 📦 CRUD produk/jasa (nama, deskripsi, gambar, harga, tipe)
+- 👥 Daftar pelanggan dari transaksi selesai
+- 🏦 Pengaturan rekening bank
+- 📄 Upload & kelola dokumen legalitas (Akta, Legalitas)
+- 🏆 Trust tier gamification (100% Selesai / UMKM Terpercaya / Bintang ConnectPreneur)
+- 🖨️ Cetak QR toko (`/umkm/cetak-qr`) menuju katalog bisnis
+
+### Halaman Transaksi Publik
+
+- 🧾 `/invoice/[token]` — lihat & cetak invoice
+- 💳 `/bayar/[token]` — upload bukti transfer
+
+### Admin Panel (`admin.`)
+
+- 🔐 Authentication JWT + CSRF; Basic Auth di subdomain admin
+- 📊 Dashboard analytics (visitor, heatmap Jawa Barat, stat per mitra/kab-kota, klik WA)
+- 🏢 CRUD mitra bisnis + verifikasi pending + featured + filter ConnectScore tier
+- 📋 Monitoring transaksi (read-only) + export CSV
+- 🎠 Manajemen banner belanja (superadmin)
+- 👥 Manajemen anggota admin — approve/reject pendaftaran DPD/DPC (superadmin)
+- 📝 Self-signup admin dengan scope lokasi (`/admin/signup`)
+- 🏷️ Manajemen kategori bisnis
 - 🖼️ Auto-compress gambar (max 1MB → ~100KB)
-- ⭐ Featured business management
 
-<!-- ## 🚀 Local Development
+---
+
+## 🚀 Local Development
 
 ### Prerequisites
 
 - Node.js 18+
 - pnpm (recommended) atau npm
 - Akun [Neon](https://neon.tech/) untuk database
-- Akun [Vercel](https://vercel.com/) untuk Blob storage
+- Akun Cloudflare R2 untuk file storage
+- (Opsional) GoWA untuk notifikasi WhatsApp
+- (Opsional) OCR service eksternal untuk verifikasi dokumen
 
 ### 1. Clone Repository
 
@@ -295,12 +360,16 @@ Buat file `.env.local` di root project:
 # Database - Neon PostgreSQL
 DATABASE_URL="postgresql://username:password@host/database?sslmode=require"
 
-# Cloudflare R2 (upload baru)
-R2_ACCOUNT_ID="ca1b52f7509ff48a7e77adb47beb31c3"
+# App URLs
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_BELANJA_PORTAL_URL="http://localhost:3000/belanja"
+NEXT_PUBLIC_MITRA_PORTAL_URL="http://localhost:3000/umkm"
+
+# Cloudflare R2
+R2_ACCOUNT_ID="your-r2-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key-id"
 R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
 R2_BUCKET_NAME="connectpreneur-bucket-storage"
-# URL PUBLIK untuk tampil file di browser (BUKAN S3 API endpoint)
 R2_PUBLIC_BASE_URL="https://pub-xxxxxxxx.r2.dev"
 NEXT_PUBLIC_R2_PUBLIC_BASE_URL="https://pub-xxxxxxxx.r2.dev"
 
@@ -309,25 +378,33 @@ BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxxxx"
 
 # JWT Secret (generate: openssl rand -base64 32)
 JWT_SECRET="your-secret-key-here"
+
+# GoWA WhatsApp (opsional)
+GOWA_URL="https://your-gowa-instance"
+GOWA_BASIC_AUTH="username:password"
+GOWA_DEVICE_ID="your-device-id"
+
+# OCR service (opsional — fallback ke Tesseract lokal)
+OCR_SERVICE_URL="https://your-ocr-service"
+OCR_SERVICE_API_KEY="your-ocr-api-key"
+
+# Cron payment reminders (production)
+CRON_SECRET="your-cron-secret"
+
+# Admin subdomain Basic Auth (opsional, production)
+SIGNUP_BASIC_AUTH_USERNAME="admin"
+SIGNUP_BASIC_AUTH_PASSWORD="your-password"
 ```
 
 **Cloudflare R2 — dua URL berbeda:**
+
 | Variabel | Contoh | Fungsi |
 |----------|--------|--------|
-| S3 API (otomatis dari `R2_ACCOUNT_ID`) | `https://ca1b52f....r2.cloudflarestorage.com` | Upload/delete dari server — **jangan** dipakai di `<img>` |
+| S3 API (otomatis dari `R2_ACCOUNT_ID`) | `https://....r2.cloudflarestorage.com` | Upload/delete dari server — **jangan** dipakai di `<img>` |
 | `R2_PUBLIC_BASE_URL` | `https://pub-xxxxxxxx.r2.dev` | URL yang disimpan di DB & ditampilkan ke user |
 
-**Setup R2 (domain di Hostinger — tanpa Cloudflare DNS):**
-1. Buat bucket R2 (`connectpreneur-bucket-storage`)
-2. R2 → Manage R2 API Tokens → token Object Read & Write
-3. Bucket → Settings → **Public access** → Enable → salin URL `https://pub-xxxxxxxx.r2.dev`
-4. Set `R2_PUBLIC_BASE_URL` dan `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` ke URL `pub-*.r2.dev` tersebut
-5. File lama di Vercel Blob **tidak perlu dimigrasi**
-
-**Opsional — subdomain custom via Hostinger (mis. `files.connectpreneur.id`):**
-Di Cloudflare R2 bucket → Public access → Custom domain → Cloudflare beri target CNAME. Tambahkan record CNAME di **Hostinger DNS** (domain tidak harus pindah ke Cloudflare). Lalu set `R2_PUBLIC_BASE_URL=https://files.connectpreneur.id`.
-
 **Cara mendapatkan env dari Vercel:**
+
 ```bash
 vercel login
 vercel link
@@ -336,95 +413,49 @@ vercel env pull .env.local
 
 ### 4. Setup Database
 
-Jalankan migration scripts di Neon Console atau via script:
+Jalankan migration SQL di Neon Console secara berurutan dari folder `/migrations`:
 
-```bash
-# Jalankan SQL scripts di folder /scripts secara berurutan:
-# 001-create-tables.sql
-# 002-seed-categories.sql
-# 003-seed-businesses.sql (optional sample data)
-# 004-seed-product-images.sql (optional)
-# 005-add-jenis-peluang.sql
-# 006-create-locations.sql
-# 007-seed-locations.sql (data lokasi Jawa Barat)
-# 008-add-location-to-businesses.sql
-# 009-add-location-to-admin-users.sql
+```
+016-add-ktp-url.sql
+017-add-ocr-verified-flags.sql
+018-gamification.sql
+019-business-products.sql
+020-add-product-deskripsi.sql
+021-add-product-image-url.sql
+022-add-product-tipe-bisnis.sql
+024-shop-banners.sql
+025-add-product-slug.sql
 ```
 
-Atau gunakan migration script:
+> Migration dasar (001–015) diasumsikan sudah ada di database production. Untuk setup fresh, hubungi tim atau jalankan schema lengkap dari backup Neon.
+
+Cek koneksi database:
 
 ```bash
-pnpm tsx scripts/run-migration.ts
+pnpm db:check
+```
+
+Backfill data gamification (jika perlu):
+
+```bash
+pnpm db:backfill-gamification
 ```
 
 ### 5. Admin Management
 
-#### Tambah Admin Baru
+#### Self-Signup via UI
 
-```bash
-# Mode interaktif (input dari terminal)
-npx tsx scripts/add-admin.ts
-
-# Dengan argumen langsung
-npx tsx scripts/add-admin.ts --email admin@example.com --name "Nama Admin" --password "Password123" --role admin
-
-# Dengan location scope (akses terbatas per wilayah)
-npx tsx scripts/add-admin.ts --email dpd.bekasi@connectpreneur.id --password "Password123" --role admin --location "Kota Bekasi"
-npx tsx scripts/add-admin.ts --email dpd.kab.bekasi@connectpreneur.id --password "Password123" --role admin --location "Kab. Bekasi"
-npx tsx scripts/add-admin.ts --email bekasi.mustikajaya@connectpreneur.id --password "Password123" --role admin --location "Mustikajaya"
-```
-
-**Opsi:**
-- `--email` - Alamat email (wajib)
-- `--name` - Nama tampilan (opsional)
-- `--password` - Password minimal 8 karakter, harus ada huruf besar, kecil, dan angka
-- `--role` - `admin` atau `superadmin` (default: admin)
-- `--location` - Nama lokasi untuk scope akses (opsional, contoh: "Kota Bekasi", "Mustikajaya")
+1. Buka `/admin/signup` (atau `admin.connectpreneur.id/signup`)
+2. Isi email, password, pilih peran DPD (kab/kota) atau DPC (kecamatan)
+3. Superadmin approve via menu **Anggota** di admin panel
 
 #### Role & Location-Based Access Control
 
 | Role | Location | Akses |
 |------|----------|-------|
-| `superadmin` | NULL | Semua bisnis |
-| `admin` | Kabupaten/Kota (contoh: Kota Bekasi) | Bisnis di kota tersebut + semua kecamatan di bawahnya |
-| `admin` | Kecamatan (contoh: Mustikajaya) | Hanya bisnis di kecamatan tersebut |
-
-**Contoh:**
-- `superadmin@connectpreneur.id` → akses seluruh bisnis
-- `dpd.bekasi@connectpreneur.id` (Kota Bekasi) → bisnis di Kota Bekasi + semua kecamatan di Kota Bekasi
-- `dpd.kab.bekasi@connectpreneur.id` (Kab. Bekasi) → bisnis di Kab. Bekasi + semua kecamatan di Kab. Bekasi
-- `dpc.mustikajaya@connectpreneur.id` (Mustikajaya) → hanya bisnis di Kecamatan Mustikajaya
-
-#### Lihat Daftar Admin
-
-```bash
-npx tsx scripts/list-admins.ts
-```
-
-#### Kelola Admin
-
-```bash
-# Reset password
-npx tsx scripts/manage-admin.ts --email admin@example.com --reset-password "PasswordBaru123"
-
-# Ubah role
-npx tsx scripts/manage-admin.ts --email admin@example.com --role superadmin
-
-# Set location scope
-npx tsx scripts/manage-admin.ts --email dpd.bekasi@connectpreneur.id --set-location "Kota Bekasi"
-
-# Hapus location scope (grant full access)
-npx tsx scripts/manage-admin.ts --email admin@example.com --remove-location
-
-# Nonaktifkan akun
-npx tsx scripts/manage-admin.ts --email admin@example.com --deactivate
-
-# Aktifkan akun
-npx tsx scripts/manage-admin.ts --email admin@example.com --activate
-
-# Hapus akun
-npx tsx scripts/manage-admin.ts --email admin@example.com --delete
-```
+| `superadmin` | NULL | Semua bisnis, banner, anggota |
+| `admin` (DPD) | Kabupaten/Kota | Bisnis di kota tersebut + semua kecamatan di bawahnya |
+| `admin` (DPC) | Kecamatan | Hanya bisnis di kecamatan tersebut |
 
 ### 6. Run Development Server
 
@@ -434,19 +465,26 @@ pnpm dev
 
 Buka [http://localhost:3000](http://localhost:3000)
 
+Jalankan tests:
+
+```bash
+pnpm test
+```
+
+---
+
 ## 🚢 Deployment
 
 ### Deploy ke Vercel (Recommended)
 
 1. Push ke GitHub
 2. Import project di [Vercel Dashboard](https://vercel.com/new)
-3. Set environment variables di Vercel:
-   - `DATABASE_URL`
-   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`
-   - `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` (sama dengan `R2_PUBLIC_BASE_URL`)
-   - `BLOB_READ_WRITE_TOKEN` (legacy delete untuk file Vercel lama)
-   - `JWT_SECRET`
-4. Deploy!
+3. Set environment variables di Vercel (lihat daftar di atas)
+4. Konfigurasi cron job untuk reminder pembayaran:
+   - Path: `/api/cron/payment-reminders`
+   - Schedule: sesuai kebutuhan (mis. setiap 6 jam)
+   - Header: `Authorization: Bearer <CRON_SECRET>`
+5. Deploy!
 
 Setiap push ke `main` branch akan auto-deploy.
 
@@ -457,71 +495,164 @@ pnpm build
 pnpm start
 ```
 
+---
+
 ## 📁 Project Structure
 
 ```
 connectpreneur/
-├── app/                    # Next.js App Router
-│   ├── admin/             # Admin panel pages
-│   ├── api/               # API routes
-│   │   ├── admin/         # Protected admin APIs
-│   │   ├── auth/          # Authentication APIs
-│   │   ├── businesses/    # Public business APIs
-│   │   ├── categories/    # Category APIs
-│   │   ├── locations/     # Location APIs (kabupaten/kota, kecamatan)
-│   │   └── register-mitra/# Public registration API
-│   ├── bisnis/[slug]/     # Business detail page
-│   ├── daftar-mitra/      # Public registration page
-│   └── katalog/           # Business catalog page
-├── components/            # React components
-│   ├── admin/            # Admin-specific components
-│   └── ui/               # shadcn/ui components
-├── lib/                   # Utilities
-│   ├── auth.ts           # Authentication helpers
-│   ├── db.ts             # Database queries
-│   └── utils.ts          # General utilities
-├── scripts/              # Database & admin scripts
-│   ├── add-admin.ts     # Tambah admin baru
-│   ├── list-admins.ts   # Lihat daftar admin
-│   ├── manage-admin.ts  # Kelola admin (reset password, dll)
-│   └── *.sql            # Database migrations
-├── public/               # Static assets
-└── types/                # TypeScript types
+├── app/                         # Next.js App Router
+│   ├── admin/                  # Admin panel (dashboard, mitra, transaksi, banner, members)
+│   ├── api/                    # API routes
+│   │   ├── admin/              # Protected admin APIs
+│   │   ├── analytics/          # Event tracking
+│   │   ├── auth/               # Admin auth (login, logout, signup, me)
+│   │   ├── belanja/            # Marketplace APIs
+│   │   ├── businesses/         # Public business APIs
+│   │   ├── categories/         # Category APIs
+│   │   ├── cron/               # Scheduled jobs
+│   │   ├── invoice/            # Public invoice token
+│   │   ├── locations/          # Location APIs (Jawa Barat)
+│   │   ├── pembeli/            # Buyer OTP & transactions
+│   │   ├── register-mitra/     # Public registration + OCR verify
+│   │   ├── rfq/                # RFQ submission
+│   │   ├── transaksi/          # Payment proof upload
+│   │   └── umkm/               # UMKM portal APIs
+│   ├── belanja/                # Marketplace pages
+│   ├── bisnis/[slug]/          # Business detail page
+│   ├── bayar/[token]/          # Payment proof upload page
+│   ├── daftar-mitra/           # Public registration page
+│   ├── invoice/[token]/        # Public invoice page
+│   ├── katalog/                # Business catalog page
+│   ├── pembeli/                # Redirect to belanja/akun
+│   └── umkm/                   # UMKM portal + cetak QR
+├── components/                 # React components
+│   ├── admin/                  # Admin-specific components
+│   ├── analytics/              # Tracking components
+│   ├── belanja/                # Marketplace UI
+│   ├── business/               # Business detail UI
+│   ├── daftar-mitra/           # Registration form tabs
+│   ├── katalog/                # Catalog UI
+│   ├── pembeli/                # Buyer account UI
+│   ├── umkm/                   # UMKM portal UI
+│   └── ui/                     # shadcn/ui components
+├── lib/                        # Business logic & utilities
+│   ├── admin/                  # Admin helpers
+│   ├── analytics/              # Analytics queries & geo
+│   ├── auth/                   # Session, OTP, admin API guards
+│   ├── business/               # ConnectScore, form utils, catalog URL
+│   ├── integrations/           # GoWA, OCR, storage (R2), NIK matching
+│   ├── marketplace/            # Belanja products, banners, routing
+│   ├── transactions/           # RFQ flow, tokens, queries
+│   └── umkm/                   # UMKM customers, gamification, QR
+├── migrations/                 # SQL migration files
+├── types/                      # TypeScript types
+├── middleware.ts               # Subdomain routing & Basic Auth
+└── public/                     # Static assets
 ```
+
+---
 
 ## 🔌 API Endpoints
 
-### Public
+### Public — Katalog & Registrasi
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/businesses` | List all active businesses |
+| GET | `/api/businesses` | List active businesses |
 | GET | `/api/businesses/[slug]` | Get business detail |
-| GET | `/api/categories` | List all categories |
+| GET | `/api/categories` | List categories |
 | GET | `/api/locations` | List kabupaten/kota (Jawa Barat) |
 | GET | `/api/locations/[parentId]` | List kecamatan by kabupaten/kota |
 | GET | `/api/locations/detail/[id]` | Get location detail |
-| POST | `/api/register-mitra` | Submit new mitra registration |
+| POST | `/api/register-mitra` | Submit mitra registration |
 | POST | `/api/register-mitra/upload` | Upload image (public) |
+| DELETE | `/api/register-mitra/upload/delete` | Delete uploaded file |
+| POST | `/api/register-mitra/verify/ktp` | Verify KTP via OCR |
+| POST | `/api/register-mitra/verify/akta` | Verify Akta via OCR |
+| POST | `/api/rfq` | Submit permintaan penawaran |
+| POST | `/api/analytics/track` | Track analytics event |
+| GET | `/api/invoice/[token]` | Get invoice by token |
+| GET | `/api/transaksi/bukti/[token]` | Get payment page data |
+| POST | `/api/transaksi/bukti/[token]` | Upload bukti bayar |
 
-### Admin (requires auth)
+### Public — Marketplace Belanja
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/belanja/products` | List marketplace products |
+| GET | `/api/belanja/products/[slug]` | Product detail |
+| GET | `/api/belanja/banners` | Active shop banners |
+| GET | `/api/belanja/locations` | Filter locations |
+
+### Pembeli (OTP session)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/pembeli/otp/request` | Request OTP |
+| POST | `/api/pembeli/otp/verify` | Verify OTP & login |
+| POST | `/api/pembeli/logout` | Logout |
+| GET | `/api/pembeli/me` | Current buyer profile |
+| GET | `/api/pembeli/transactions` | Buyer transaction history |
+| GET | `/api/pembeli/points` | Point ledger |
+
+### UMKM Portal (OTP session)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/umkm/otp/request` | Request OTP |
+| POST | `/api/umkm/otp/verify` | Verify OTP & login |
+| GET | `/api/umkm/transactions` | List transactions |
+| PATCH | `/api/umkm/transactions/[id]` | Update transaction status |
+| GET | `/api/umkm/products` | List business products |
+| POST | `/api/umkm/products` | Create product |
+| PUT | `/api/umkm/products/[id]` | Update product |
+| DELETE | `/api/umkm/products/[id]` | Delete product |
+| GET | `/api/umkm/customers` | List customers |
+| GET/PATCH | `/api/umkm/bank` | Get/update bank account |
+| GET/PATCH | `/api/umkm/legalitas` | Get/update legalitas docs |
+| GET | `/api/umkm/gamification` | Gamification stats |
+| GET | `/api/umkm/qrcode` | Generate store QR data |
+
+### Admin (JWT + CSRF)
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/login` | Admin login |
 | POST | `/api/auth/logout` | Admin logout |
-| GET | `/api/auth/me` | Get current user (incl. location_id) |
-| GET | `/api/admin/businesses` | List businesses (filtered by admin location scope) |
+| POST | `/api/auth/signup` | Admin self-registration |
+| GET | `/api/auth/me` | Current admin user |
+| GET | `/api/admin/businesses` | List businesses (location-scoped) |
 | POST | `/api/admin/businesses` | Create business |
-| PUT | `/api/admin/businesses/[id]` | Update business (location access check) |
-| DELETE | `/api/admin/businesses/[id]` | Delete business (location access check) |
-| POST | `/api/admin/upload` | Upload image (admin) |
+| PUT | `/api/admin/businesses/[id]` | Update business |
+| DELETE | `/api/admin/businesses/[id]` | Delete business |
+| POST | `/api/admin/upload` | Upload image |
+| GET/POST | `/api/admin/categories` | List/create categories |
+| PUT/DELETE | `/api/admin/categories/[id]` | Update/delete category |
+| GET | `/api/admin/analytics` | Analytics dashboard data |
+| GET | `/api/admin/transaksi` | List transactions (+ CSV export) |
+| GET/POST | `/api/admin/banners` | List/create shop banners |
+| PUT/DELETE | `/api/admin/banners/[id]` | Update/delete banner |
+| GET/PATCH | `/api/admin/members` | List/approve admin members |
+
+### Cron
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/cron/payment-reminders` | Auto WhatsApp payment reminders (requires `CRON_SECRET`) |
+
+---
 
 ## 💾 Storage Limits
 
 Free tier considerations:
-- **Vercel Blob:** 1GB/month
+
+- **Cloudflare R2:** 10GB storage gratis
 - **Image compression:** Auto-compress to ~100KB
-- **Max upload:** 1MB per image
-- **Estimated capacity:** ~50 mitra/day × 6 images × 30 days
+- **Max upload gambar:** 1MB per file
+- **Max upload PDF (legalitas):** 10MB per file
+
+---
 
 ## 🤝 Contributing
 
@@ -531,10 +662,12 @@ Free tier considerations:
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
 
+---
+
 ## 📄 License
 
 Private project — ConnectPreneur.
 
---- -->
+---
 
 **ConnectPreneur** — *Startup Digital untuk Kemitraan Bisnis*

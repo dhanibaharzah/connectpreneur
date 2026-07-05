@@ -66,8 +66,8 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <Link href="/#tentang" className={navLinkClass}>
                   Tentang Kami
                 </Link>
-                <Link href="https://docs.connectpreneur.id" className={navLinkClass}>
-                  Docs
+                <Link href="/panduan" className={navLinkClass}>
+                  Panduan
                 </Link>
               </nav>
 
@@ -120,11 +120,11 @@ export function Header({ variant = "default" }: HeaderProps) {
                     Tentang Kami
                   </Link>
                   <Link
-                    href="https://docs.connectpreneur.id"
+                    href="/panduan"
                     className={cn("py-2 text-sm font-medium", isHero ? "text-[#531b07]" : "text-foreground")}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Docs
+                    Panduan
                   </Link>
                   <Link
                     href="/daftar-mitra"

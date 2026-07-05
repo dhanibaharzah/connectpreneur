@@ -9,6 +9,8 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "screenshots:panduan": "tsx scripts/capture-panduan-screenshots.ts",
+    "screenshots:panduan:auth": "tsx scripts/capture-panduan-auth-screenshots.ts",
     "db:check": "tsx scripts/check-db.ts",
     "db:backfill-gamification": "tsx scripts/backfill-gamification.ts"
   },
@@ -97,6 +99,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.3",
+    "playwright": "^1.61.1",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tsx": "^4.21.0",

@@ -44,8 +44,8 @@ export function BelanjaFooter({ homePath, onSubdomain }: BelanjaFooterProps) {
             <Link href={appUrl("/katalog")} className="transition hover:text-[#f9c8b6]">
               Katalog Bisnis
             </Link>
-            <Link href="https://docs.connectpreneur.id" className="transition hover:text-[#f9c8b6]">
-              Docs
+            <Link href={appUrl("/panduan?section=belanja")} className="transition hover:text-[#f9c8b6]">
+              Panduan
             </Link>
           </div>
 

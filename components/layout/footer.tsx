@@ -32,8 +32,8 @@ export function Footer() {
             <Link href="/#tentang" className="transition hover:text-[#f9c8b6]">
               Tentang Kami
             </Link>
-            <Link href="https://docs.connectpreneur.id" className="transition hover:text-[#f9c8b6]">
-              Docs
+            <Link href="/panduan" className="transition hover:text-[#f9c8b6]">
+              Panduan
             </Link>
           </div>
 
