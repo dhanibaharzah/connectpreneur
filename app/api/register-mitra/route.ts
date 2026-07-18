@@ -5,6 +5,8 @@ import { verifyAktaDocument } from "@/lib/integrations/akta-verification"
 import { fetchDocumentBuffer } from "@/lib/integrations/document-fetch"
 import { verifyKtpDocument } from "@/lib/integrations/ktp-verification"
 import { isAktaOcrEnabled, isKtpOcrEnabled } from "@/lib/integrations/ocr-config"
+import { requirePicPhoneProof } from "@/lib/auth/pic-phone-otp"
+import { normalizePhoneDigits } from "@/lib/shared/phone"
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
       nama_pic,
       jabatan_pic,
       kontak_pic,
+      kontak_pic_proof_token,
       logo_url,
       jumlah_cabang,
       product_images,
@@ -53,6 +56,16 @@ export async function POST(request: NextRequest) {
     if (!nama_pic || !kontak_pic) {
       return NextResponse.json({ error: "Nama PIC dan nomor WhatsApp harus diisi" }, { status: 400 })
     }
+
+    const phoneProof = await requirePicPhoneProof({
+      phone: kontak_pic,
+      proofToken: kontak_pic_proof_token,
+    })
+    if (!phoneProof.ok) {
+      return NextResponse.json({ error: phoneProof.error }, { status: 400 })
+    }
+
+    const normalizedKontakPic = normalizePhoneDigits(kontak_pic)
 
     if (!category_id) {
       return NextResponse.json({ error: "Kategori harus dipilih" }, { status: 400 })
@@ -119,7 +132,7 @@ export async function POST(request: NextRequest) {
         ${tiktok ?? null},
         ${nama_pic ?? null}, 
         ${jabatan_pic ?? null}, 
-        ${kontak_pic ?? null},
+        ${normalizedKontakPic},
         ${logo_url ?? null}, 
         ${jumlah_cabang ?? "0"}, 
         ${ktp_url ?? null},
@@ -150,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await sendRegistrationWhatsAppNotification({
-        phone: kontak_pic,
+        phone: normalizedKontakPic,
         namaPic: nama_pic,
         namaBisnis: nama,
         autoApproved,

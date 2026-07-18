@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { checkOtpRateLimit, createPembeliOtpChallenge } from "@/lib/auth/pembeli-auth"
+import { findPhoneRegistrationConflict } from "@/lib/auth/pic-phone-otp"
 import { sendPembeliOtp } from "@/lib/integrations/gowa"
 
 export async function POST(request: NextRequest) {
@@ -15,6 +16,11 @@ export async function POST(request: NextRequest) {
         { error: "Terlalu banyak permintaan OTP. Coba lagi dalam 15 menit." },
         { status: 429 },
       )
+    }
+
+    const conflict = await findPhoneRegistrationConflict(phone)
+    if (conflict?.kind === "mitra") {
+      return NextResponse.json({ error: "Nomor sudah terdaftar" }, { status: 409 })
     }
 
     const otp = await createPembeliOtpChallenge(phone)

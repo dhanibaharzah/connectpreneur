@@ -27,6 +27,9 @@ import {
   usernameToSocialUrl,
 } from "@/lib/business/form-utils"
 import { appUrl } from "@/lib/shared/app-url"
+import { isPicWhatsappVerified } from "@/components/forms/pic-whatsapp-otp-field"
+
+type FormTab = "basic" | "detail" | "contact" | "legalitas" | "images"
 
 interface DaftarMitraFormProps {
   useMainSiteLinks?: boolean
@@ -34,6 +37,8 @@ interface DaftarMitraFormProps {
 
 export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormProps) {
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<FormTab>("basic")
+  const [kontakPicProofToken, setKontakPicProofToken] = useState("")
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
   const [uploadingKtp, setUploadingKtp] = useState(false)
@@ -342,6 +347,16 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
       alert("Nomor WhatsApp harus diisi (tab Kontak)")
       return
     }
+    if (
+      !isPicWhatsappVerified({
+        phone: form.kontak_pic,
+        proofToken: kontakPicProofToken,
+      })
+    ) {
+      alert("Harap verifikasi nomor WhatsApp terlebih dahulu sebelum submit")
+      setActiveTab("contact")
+      return
+    }
     if (!form.ktp_url) {
       alert("Foto KTP harus diupload (tab Kontak)")
       return
@@ -364,6 +379,7 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
         tiktok: usernameToSocialUrl(form.tiktok, "tiktok"),
         ktp_ocr_verified: ktpOcrVerified,
         akta_ocr_verified: aktaOcrVerified,
+        kontak_pic_proof_token: kontakPicProofToken,
       }
 
       const res = await fetch("/api/register-mitra", {
@@ -402,6 +418,10 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
   }
 
   const homeHref = useMainSiteLinks ? appUrl("/") : "/"
+  const kontakPicVerified = isPicWhatsappVerified({
+    phone: form.kontak_pic,
+    proofToken: kontakPicProofToken,
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex flex-col">
@@ -437,7 +457,7 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} noValidate>
-                <Tabs defaultValue="basic" className="w-full">
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as FormTab)} className="w-full">
                   <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="basic">Dasar</TabsTrigger>
                     <TabsTrigger value="detail">Detail</TabsTrigger>
@@ -460,6 +480,8 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
                     form={form}
                     onFieldChange={handleFieldChange}
                     onNamaPicChange={handleNamaPicChange}
+                    kontakPicProofToken={kontakPicProofToken}
+                    onKontakPicProofChange={setKontakPicProofToken}
                     uploadingKtp={uploadingKtp}
                     ktpVerifyError={ktpVerifyError}
                     ktpOcrVerified={ktpOcrVerified}
@@ -506,7 +528,7 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
                   <Button
                     type="submit"
                     className="w-full bg-primary hover:bg-primary/90"
-                    disabled={loading || !form.ktp_url}
+                    disabled={loading || !form.ktp_url || !kontakPicVerified}
                   >
                     {loading ? (
                       <>

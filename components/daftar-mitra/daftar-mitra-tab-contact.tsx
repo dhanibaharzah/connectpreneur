@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TabsContent } from "@/components/ui/tabs"
 import { Upload, X, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
+import { PicWhatsappOtpField } from "@/components/forms/pic-whatsapp-otp-field"
 import type { DaftarMitraFormState } from "./daftar-mitra-types"
 
 interface DaftarMitraTabContactProps {
   form: DaftarMitraFormState
   onFieldChange: <K extends keyof DaftarMitraFormState>(field: K, value: DaftarMitraFormState[K]) => void
   onNamaPicChange: (value: string) => void
+  kontakPicProofToken: string
+  onKontakPicProofChange: (token: string) => void
   uploadingKtp: boolean
   ktpVerifyError: string
   ktpOcrVerified: boolean
@@ -24,6 +27,8 @@ export function DaftarMitraTabContact({
   form,
   onFieldChange,
   onNamaPicChange,
+  kontakPicProofToken,
+  onKontakPicProofChange,
   uploadingKtp,
   ktpVerifyError,
   ktpOcrVerified,
@@ -55,17 +60,15 @@ export function DaftarMitraTabContact({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="kontak_pic">Nomor WhatsApp *</Label>
-        <Input
-          id="kontak_pic"
-          value={form.kontak_pic}
-          onChange={(e) => onFieldChange("kontak_pic", e.target.value)}
-          required
-          placeholder="Contoh: 6281234567890"
-        />
-        <p className="text-xs text-muted-foreground">Gunakan format internasional (62xxx)</p>
-      </div>
+      <PicWhatsappOtpField
+        id="kontak_pic"
+        label="Nomor WhatsApp *"
+        value={form.kontak_pic}
+        onChange={(value) => onFieldChange("kontak_pic", value)}
+        proofToken={kontakPicProofToken}
+        onProofChange={onKontakPicProofChange}
+        hint="Gunakan format internasional (62xxx). Verifikasi OTP sebelum submit. Nomor tidak boleh sama dengan mitra/pembeli lain."
+      />
 
       <div className="space-y-2">
         <Label>Foto KTP (Depan) *</Label>

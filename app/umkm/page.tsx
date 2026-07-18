@@ -22,6 +22,7 @@ import { UmkmTransactionsPanel } from "@/components/umkm/umkm-transactions-panel
 import { UmkmProductsPanel } from "@/components/umkm/umkm-products-panel"
 import { UmkmCustomersPanel } from "@/components/umkm/umkm-customers-panel"
 import { UmkmLegalitasPanel } from "@/components/umkm/umkm-legalitas-panel"
+import { UmkmBusinessProfilePanel } from "@/components/umkm/umkm-business-profile-panel"
 import { UmkmStoreQrCard } from "@/components/umkm/umkm-store-qr-card"
 import type { PaginationMeta } from "@/lib/shared/pagination"
 import { DEFAULT_TRANSACTION_PAGE_SIZE } from "@/lib/shared/pagination"
@@ -415,6 +416,8 @@ export default function UmkmPortalPage() {
               <h1 className="text-2xl font-bold">Pengaturan</h1>
               <p className="text-muted-foreground text-sm">{businessName}</p>
             </div>
+
+            <UmkmBusinessProfilePanel onBusinessNameChange={setBusinessName} />
 
             <Card>
               <CardContent className="p-6 space-y-4">

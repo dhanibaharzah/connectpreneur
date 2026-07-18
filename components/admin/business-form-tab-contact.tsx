@@ -3,14 +3,26 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TabsContent } from "@/components/ui/tabs"
+import { PicWhatsappOtpField } from "@/components/forms/pic-whatsapp-otp-field"
 import type { AdminBusinessFormState } from "./business-form-types"
 
 interface BusinessFormTabContactProps {
   form: AdminBusinessFormState
   onFieldChange: <K extends keyof AdminBusinessFormState>(field: K, value: AdminBusinessFormState[K]) => void
+  kontakPicProofToken: string
+  onKontakPicProofChange: (token: string) => void
+  initialKontakPic?: string
+  excludeBusinessId?: number | null
 }
 
-export function BusinessFormTabContact({ form, onFieldChange }: BusinessFormTabContactProps) {
+export function BusinessFormTabContact({
+  form,
+  onFieldChange,
+  kontakPicProofToken,
+  onKontakPicProofChange,
+  initialKontakPic = "",
+  excludeBusinessId = null,
+}: BusinessFormTabContactProps) {
   return (
     <TabsContent value="contact" forceMount className="data-[state=inactive]:hidden space-y-4 mt-4">
       <div className="grid grid-cols-2 gap-4">
@@ -32,15 +44,18 @@ export function BusinessFormTabContact({ form, onFieldChange }: BusinessFormTabC
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="kontak_pic">Kontak PIC (WhatsApp)</Label>
-        <Input
-          id="kontak_pic"
-          value={form.kontak_pic}
-          onChange={(e) => onFieldChange("kontak_pic", e.target.value)}
-          placeholder="6281234567890"
-        />
-      </div>
+      <PicWhatsappOtpField
+        id="kontak_pic"
+        label="Kontak PIC (WhatsApp)"
+        value={form.kontak_pic}
+        onChange={(value) => onFieldChange("kontak_pic", value)}
+        proofToken={kontakPicProofToken}
+        onProofChange={onKontakPicProofChange}
+        initialPhone={initialKontakPic}
+        excludeBusinessId={excludeBusinessId}
+        required={false}
+        hint="Jika nomor diganti, verifikasi OTP wajib sebelum menyimpan. Nomor tidak boleh sama dengan mitra/pembeli lain."
+      />
 
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">

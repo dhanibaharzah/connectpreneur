@@ -24,6 +24,7 @@ import { BusinessFormTabDetail } from "./business-form-tab-detail"
 import { BusinessFormTabContact } from "./business-form-tab-contact"
 import { BusinessFormTabLegalitas } from "./business-form-tab-legalitas"
 import { BusinessFormTabImages } from "./business-form-tab-images"
+import { isPicWhatsappVerified } from "@/components/forms/pic-whatsapp-otp-field"
 
 interface BusinessFormModalProps {
   business?: any
@@ -34,6 +35,8 @@ interface BusinessFormModalProps {
 
 export default function BusinessFormModal({ business, onClose, onSuccess, adminLocationId }: BusinessFormModalProps) {
   const [loading, setLoading] = useState(false)
+  const [kontakPicProofToken, setKontakPicProofToken] = useState("")
+  const [initialKontakPic, setInitialKontakPic] = useState("")
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingProduct, setUploadingProduct] = useState(false)
   const [uploadingAkta, setUploadingAkta] = useState(false)
@@ -73,12 +76,17 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         is_featured: business.is_featured || false,
         is_active: business.is_active !== false,
       })
+      setInitialKontakPic(business.kontak_pic || "")
+      setKontakPicProofToken("")
       setProductImages(
         business.product_images?.map((img: any) => ({
           id: img.id,
           url: img.image_url || img.url,
         })) || [],
       )
+    } else {
+      setInitialKontakPic("")
+      setKontakPicProofToken("")
     }
   }, [business])
 
@@ -278,6 +286,18 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
       return
     }
 
+    if (
+      form.kontak_pic.trim() &&
+      !isPicWhatsappVerified({
+        phone: form.kontak_pic,
+        proofToken: kontakPicProofToken,
+        initialPhone: initialKontakPic,
+      })
+    ) {
+      alert("Verifikasi OTP nomor WhatsApp PIC terlebih dahulu (tab Kontak)")
+      return
+    }
+
     doSubmit()
   }
 
@@ -293,6 +313,7 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
         instagram: usernameToSocialUrl(form.instagram, "instagram"),
         facebook: usernameToSocialUrl(form.facebook, "facebook"),
         tiktok: usernameToSocialUrl(form.tiktok, "tiktok"),
+        kontak_pic_proof_token: kontakPicProofToken || undefined,
       }
 
       const url = business ? `/api/admin/businesses/${business.id}` : "/api/admin/businesses"
@@ -344,7 +365,14 @@ export default function BusinessFormModal({ business, onClose, onSuccess, adminL
               onFieldChange={handleFieldChange}
               onLocationChange={handleLocationChange}
             />
-            <BusinessFormTabContact form={form} onFieldChange={handleFieldChange} />
+            <BusinessFormTabContact
+              form={form}
+              onFieldChange={handleFieldChange}
+              kontakPicProofToken={kontakPicProofToken}
+              onKontakPicProofChange={setKontakPicProofToken}
+              initialKontakPic={initialKontakPic}
+              excludeBusinessId={business?.id ?? null}
+            />
             <BusinessFormTabLegalitas
               form={form}
               uploadingAkta={uploadingAkta}

@@ -4,6 +4,8 @@ import { sql } from "@/lib/sql"
 import { getOrUpdateScore } from "@/lib/business/connect-score"
 import { getConnectScoreTier, hasDocument } from "@/lib/business/connect-score-tier"
 import { deleteObject, isDeletableStorageUrl } from "@/lib/integrations/storage"
+import { requirePicPhoneProof } from "@/lib/auth/pic-phone-otp"
+import { normalizePhoneDigits } from "@/lib/shared/phone"
 
 export type AdminBusinessListParams = {
   page: number
@@ -291,6 +293,7 @@ export async function createAdminBusiness(body: Record<string, unknown>) {
     nama_pic,
     jabatan_pic,
     kontak_pic,
+    kontak_pic_proof_token,
     logo_url,
     jumlah_cabang,
     is_featured,
@@ -298,6 +301,18 @@ export async function createAdminBusiness(body: Record<string, unknown>) {
     akta_pendirian_url,
     legalitas_url,
   } = body
+
+  if (kontak_pic) {
+    const phoneProof = await requirePicPhoneProof({
+      phone: String(kontak_pic),
+      proofToken: typeof kontak_pic_proof_token === "string" ? kontak_pic_proof_token : null,
+    })
+    if (!phoneProof.ok) {
+      return { error: phoneProof.error, status: 400 as const }
+    }
+  }
+
+  const normalizedKontakPic = kontak_pic ? normalizePhoneDigits(String(kontak_pic)) : null
 
   if (!nama || !slug) {
     return { error: "Nama dan slug harus diisi", status: 400 as const }
@@ -338,7 +353,7 @@ export async function createAdminBusiness(body: Record<string, unknown>) {
       ${(tiktok as string) ?? null},
       ${(nama_pic as string) ?? null}, 
       ${(jabatan_pic as string) ?? null}, 
-      ${(kontak_pic as string) ?? null},
+      ${normalizedKontakPic},
       ${(logo_url as string) ?? null}, 
       ${(jumlah_cabang as string) ?? "0"}, 
       ${(akta_pendirian_url as string) ?? null},
@@ -451,6 +466,19 @@ export async function updateAdminBusiness(user: AdminUser, id: string, body: Rec
     legalitas_url,
   } = body
 
+  if (kontak_pic !== undefined && kontak_pic) {
+    const phoneProof = await requirePicPhoneProof({
+      phone: String(kontak_pic),
+      proofToken:
+        typeof body.kontak_pic_proof_token === "string" ? body.kontak_pic_proof_token : null,
+      currentPhone: existing[0].kontak_pic as string | null,
+      excludeBusinessId: Number(id),
+    })
+    if (!phoneProof.ok) {
+      return { error: phoneProof.error, status: 400 as const }
+    }
+  }
+
   if (slug && slug !== existing[0].slug) {
     const existingSlug = await sql`SELECT id FROM businesses WHERE slug = ${slug as string} AND id != ${id}`
     if (existingSlug.length > 0) {
@@ -480,7 +508,13 @@ export async function updateAdminBusiness(user: AdminUser, id: string, body: Rec
       tiktok = ${tiktok !== undefined ? tiktok : currentBusiness.tiktok},
       nama_pic = ${nama_pic !== undefined ? nama_pic : currentBusiness.nama_pic},
       jabatan_pic = ${jabatan_pic !== undefined ? jabatan_pic : currentBusiness.jabatan_pic},
-      kontak_pic = ${kontak_pic !== undefined ? kontak_pic : currentBusiness.kontak_pic},
+      kontak_pic = ${
+        kontak_pic !== undefined
+          ? kontak_pic
+            ? normalizePhoneDigits(String(kontak_pic))
+            : null
+          : currentBusiness.kontak_pic
+      },
       logo_url = ${logo_url !== undefined ? logo_url : currentBusiness.logo_url},
       jumlah_cabang = ${jumlah_cabang !== undefined ? jumlah_cabang : currentBusiness.jumlah_cabang},
       akta_pendirian_url = ${akta_pendirian_url !== undefined ? akta_pendirian_url : currentBusiness.akta_pendirian_url},

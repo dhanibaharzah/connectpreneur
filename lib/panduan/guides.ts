@@ -115,6 +115,17 @@ export const PANDUAN_GUIDES: PanduanGuide[] = [
         screenshotAlt: "Login OTP Portal Mitra",
       },
       {
+        title: "Perbarui profil bisnis",
+        description:
+          "Buka tab Pengaturan, lalu isi bagian Profil Bisnis. Anda bisa mengubah info dasar (nama, deskripsi, kategori), detail (alamat, lokasi, kemitraan, website), kontak PIC & sosial media, serta logo dan gambar carousel. Simpan setelah selesai.",
+        tips: [
+          "Status Featured dan Aktif hanya bisa diubah admin — slug URL juga tidak bisa diubah sendiri.",
+          "Nomor WhatsApp PIC dipakai untuk login portal; pastikan tetap aktif jika diganti.",
+        ],
+        screenshotPath: "/images/panduan/mitra/08-edit-profil.png",
+        screenshotAlt: "Form edit profil bisnis di Portal Mitra",
+      },
+      {
         title: "Kelola permintaan penawaran",
         description:
           "Di tab Transaksi, tinjau permintaan masuk. Anda dapat menyetujui, menolak (dengan alasan), mengirim invoice, mengirim reminder pembayaran, dan mengonfirmasi setelah pembeli upload bukti bayar.",
