@@ -5,6 +5,11 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { cn } from "@/lib/shared/utils"
+import {
+  locationChildPlaceholder,
+  locationSelectPlaceholder,
+  locationSelectSearchPlaceholder,
+} from "@/lib/shared/location-field-copy"
 
 interface Location {
   id: number
@@ -385,8 +390,8 @@ export function LocationDropdown({
           items={kabKotaList}
           value={selectedKabKota}
           onChange={handleKabKotaChange}
-          placeholder="Pilih Kabupaten/Kota"
-          searchPlaceholder="Cari kabupaten/kota..."
+          placeholder={locationSelectPlaceholder(kabKotaLabel)}
+          searchPlaceholder={locationSelectSearchPlaceholder(kabKotaLabel)}
           disabled={disabled || isKabKotaLocked}
           loading={loadingKabKota || !scopeResolved}
           error={kabKotaError}
@@ -407,12 +412,12 @@ export function LocationDropdown({
           items={kecamatanList}
           value={selectedKecamatan}
           onChange={handleKecamatanChange}
-          placeholder={
-            !selectedKabKota
-              ? "Pilih kabupaten/kota terlebih dahulu"
-              : "Pilih Kecamatan"
-          }
-          searchPlaceholder="Cari kecamatan..."
+          placeholder={locationChildPlaceholder(
+            !!selectedKabKota,
+            kabKotaLabel,
+            kecamatanLabel,
+          )}
+          searchPlaceholder={locationSelectSearchPlaceholder(kecamatanLabel)}
           disabled={disabled || !selectedKabKota || isKecamatanLocked}
           loading={loadingKecamatan}
           error={kecamatanError}

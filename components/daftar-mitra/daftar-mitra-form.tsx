@@ -336,7 +336,7 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
       return
     }
     if (!form.location_id) {
-      alert("Kabupaten/Kota dan Kecamatan harus dipilih (tab Detail)")
+      alert("Asal DPD dan Asal DPC harus dipilih (tab Detail)")
       return
     }
     if (!form.nama_pic.trim()) {
