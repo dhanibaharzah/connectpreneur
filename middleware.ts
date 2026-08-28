@@ -14,18 +14,6 @@ import {
   shouldPassthroughPath,
 } from "@/lib/marketplace/portal-routing"
 
-function basicAuth(request: NextRequest): boolean {
-  const authHeader = request.headers.get("authorization")
-  if (!authHeader || !authHeader.startsWith("Basic ")) return false
-
-  const username = process.env.SIGNUP_BASIC_AUTH_USERNAME
-  const password = process.env.SIGNUP_BASIC_AUTH_PASSWORD
-  if (!username || !password) return false
-
-  const encoded = btoa(`${username}:${password}`)
-  return authHeader === `Basic ${encoded}`
-}
-
 function getHostname(request: NextRequest): string {
   return (request.headers.get("host") || "").split(":")[0]
 }
@@ -176,16 +164,6 @@ export function middleware(request: NextRequest) {
       )
       target.search = url.search
       return NextResponse.redirect(target, 301)
-    }
-  }
-
-  // Protect admin subdomain pages with Basic Auth (exclude API routes)
-  if (isAdminSubdomain && !url.pathname.startsWith("/api") && !url.pathname.startsWith("/_next")) {
-    if (!basicAuth(request)) {
-      return new NextResponse("Authentication required", {
-        status: 401,
-        headers: { "WWW-Authenticate": 'Basic realm="Admin Access"', "Content-Type": "text/plain" },
-      })
     }
   }
 

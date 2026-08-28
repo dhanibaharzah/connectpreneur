@@ -320,7 +320,7 @@ Platform ini sepenuhnya **gratis** sebagai layanan digital ConnectPreneur untuk 
 
 ### Admin Panel (`admin.`)
 
-- 🔐 Authentication JWT + CSRF; Basic Auth di subdomain admin
+- 🔐 Authentication JWT + CSRF
 - 📊 Dashboard analytics (visitor, heatmap Jawa Barat, stat per mitra/kab-kota, klik WA)
 - 🏢 CRUD mitra bisnis + verifikasi pending + featured + filter ConnectScore tier
 - 📋 Monitoring transaksi (read-only) + export CSV
@@ -396,10 +396,6 @@ OCR_SERVICE_API_KEY="your-ocr-api-key"
 
 # Cron payment reminders (production)
 CRON_SECRET="your-cron-secret"
-
-# Admin subdomain Basic Auth (opsional, production)
-SIGNUP_BASIC_AUTH_USERNAME="admin"
-SIGNUP_BASIC_AUTH_PASSWORD="your-password"
 ```
 
 **Cloudflare R2 — dua URL berbeda:**
@@ -553,7 +549,7 @@ connectpreneur/
 │   └── umkm/                   # UMKM customers, gamification, QR
 ├── migrations/                 # SQL migration files
 ├── types/                      # TypeScript types
-├── middleware.ts               # Subdomain routing & Basic Auth
+├── middleware.ts               # Subdomain routing
 └── public/                     # Static assets
 ```
 
