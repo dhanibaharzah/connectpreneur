@@ -28,6 +28,7 @@ export default function AdminSignupPage() {
   const [kecamatanList, setKecamatanList] = useState<Location[]>([])
   const [selectedKabKota, setSelectedKabKota] = useState("")
   const [selectedKecamatan, setSelectedKecamatan] = useState("")
+  const [signupCode, setSignupCode] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [loadingLocations, setLoadingLocations] = useState(true)
@@ -86,6 +87,10 @@ export default function AdminSignupPage() {
       setError("Pilih Kecamatan")
       return
     }
+    if (!signupCode.trim()) {
+      setError("Masukkan kode unik DPD/DPC")
+      return
+    }
 
     setLoading(true)
 
@@ -99,6 +104,7 @@ export default function AdminSignupPage() {
           password,
           roleType,
           locationId: roleType === "DPD" ? selectedKabKota : selectedKecamatan,
+          signupCode: signupCode.trim(),
         }),
       })
 
@@ -208,6 +214,20 @@ export default function AdminSignupPage() {
                   <div className="text-xs font-normal mt-1">Kecamatan</div>
                 </button>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="signupCode">Kode unik DPD/DPC</Label>
+              <Input
+                id="signupCode"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={signupCode}
+                onChange={(e) => setSignupCode(e.target.value)}
+                placeholder="Masukkan kode unik dari DPD/DPC"
+                required
+              />
             </div>
 
             <div className="space-y-2">

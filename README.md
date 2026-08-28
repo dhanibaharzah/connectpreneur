@@ -448,7 +448,7 @@ pnpm db:backfill-gamification
 #### Self-Signup via UI
 
 1. Buka `/admin/signup` (atau `admin.connectpreneur.id/signup`)
-2. Isi email, password, pilih peran DPD (kab/kota) atau DPC (kecamatan)
+2. Isi kode unik DPD/DPC, email, password, lalu pilih peran DPD (kab/kota) atau DPC (kecamatan)
 3. Superadmin approve via menu **Anggota** di admin panel
 
 #### Role & Location-Based Access Control

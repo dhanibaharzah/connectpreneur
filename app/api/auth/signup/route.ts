@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/sql"
-import { hashPassword } from "@/lib/auth"
+import { hashPassword, isValidAdminSignupCode } from "@/lib/auth"
 
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -25,10 +25,14 @@ function isStrongPassword(password: string): { valid: boolean; message: string }
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, password, roleType, locationId } = await request.json()
+    const { email, name, password, roleType, locationId, signupCode } = await request.json()
 
     if (!email || !password || !roleType || !locationId) {
       return NextResponse.json({ error: "Semua field harus diisi" }, { status: 400 })
+    }
+
+    if (!isValidAdminSignupCode(signupCode)) {
+      return NextResponse.json({ error: "Kode unik DPD/DPC tidak valid" }, { status: 400 })
     }
 
     if (!["DPD", "DPC"].includes(roleType)) {
