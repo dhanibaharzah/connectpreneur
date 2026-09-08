@@ -26,7 +26,7 @@ import {
   isRichTextEmpty,
   usernameToSocialUrl,
 } from "@/lib/business/form-utils"
-import { appUrl } from "@/lib/shared/app-url"
+import { appUrl, mitraPortalUrl } from "@/lib/shared/app-url"
 import { isPicWhatsappVerified } from "@/components/forms/pic-whatsapp-otp-field"
 
 type FormTab = "basic" | "detail" | "contact" | "legalitas" | "images"
@@ -539,6 +539,12 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
                       "Daftar Sekarang"
                     )}
                   </Button>
+                  <p className="mt-4 text-center text-sm text-muted-foreground">
+                    Sudah punya akun?{" "}
+                    <Link href={mitraPortalUrl("/")} className="font-medium text-primary hover:underline">
+                      Masuk
+                    </Link>
+                  </p>
                 </div>
               </form>
             </CardContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
+import Link from "next/link"
 import { Building2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { OtpInput } from "@/components/ui/otp-input"
 import { OTP_LENGTH } from "@/lib/auth/otp-session"
 import { Card, CardContent } from "@/components/ui/card"
+import { daftarPortalUrl } from "@/lib/shared/app-url"
 
 export type UmkmAuthStep = "phone" | "otp"
 
@@ -62,6 +64,12 @@ export function UmkmAuthSteps({
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Kirim OTP"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Belum punya akun?{" "}
+              <Link href={daftarPortalUrl("/")} className="font-medium text-primary hover:underline">
+                Daftar
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
