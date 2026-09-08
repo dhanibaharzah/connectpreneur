@@ -136,8 +136,8 @@ export function BannerFormModal({ open, onOpenChange, banner, onSaved }: BannerF
           <div className="space-y-2">
             <Label>Gambar Banner *</Label>
             {hasValidImage && (
-              <div className="relative mb-2 aspect-[21/7] overflow-hidden rounded-lg border bg-muted">
-                <Image src={imageUrl} alt="Preview banner" fill className="object-cover" />
+              <div className="relative mb-2 aspect-[1988/791] overflow-hidden rounded-lg border bg-muted">
+                <Image src={imageUrl} alt="Preview banner" fill className="object-cover object-center" />
               </div>
             )}
             <div>
@@ -163,7 +163,7 @@ export function BannerFormModal({ open, onOpenChange, banner, onSaved }: BannerF
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Ukuran placeholder desktop (xl): {BELANJA_BANNER_UPLOAD_RECOMMENDED.width}×
+              Ukuran placement: {BELANJA_BANNER_UPLOAD_RECOMMENDED.width}×
               {BELANJA_BANNER_UPLOAD_RECOMMENDED.height}px (rasio {BELANJA_BANNER_UPLOAD_RECOMMENDED.aspectLabel}
               ), maks. 10MB — disimpan tanpa kompresi
             </p>

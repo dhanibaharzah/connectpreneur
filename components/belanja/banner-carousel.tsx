@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/shared/utils"
 import { isDisplayableImageUrl } from "@/lib/integrations/storage-urls"
+import { BELANJA_BANNER_ASPECT_CLASS } from "@/lib/marketplace/belanja-banner-spec"
 import type { ShopBanner } from "@/types/shop-banner"
 
 interface BannerCarouselProps {
@@ -52,13 +53,18 @@ export function BannerCarousel({ banners, className }: BannerCarouselProps) {
         <div className="flex">
           {banners.map((banner) => {
             const content = (
-              <div className="relative aspect-[16/9] min-w-0 flex-[0_0_100%] overflow-hidden rounded-xl bg-muted sm:aspect-[21/6]">
+              <div
+                className={cn(
+                  "relative min-w-0 flex-[0_0_100%] overflow-hidden rounded-xl bg-muted",
+                  BELANJA_BANNER_ASPECT_CLASS,
+                )}
+              >
                 {isDisplayableImageUrl(banner.imageUrl) ? (
                   <Image
                     src={banner.imageUrl}
                     alt={banner.title || "Banner promosi"}
                     fill
-                    className="object-cover object-left"
+                    className="object-cover object-center"
                     sizes="100vw"
                     priority={banner.id === banners[0]?.id}
                   />
