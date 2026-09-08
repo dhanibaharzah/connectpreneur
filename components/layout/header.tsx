@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/shared/utils"
-import { appUrl, daftarPortalUrl, katalogPortalUrl } from "@/lib/shared/app-url"
+import { appUrl, belanjaPortalUrl, daftarPortalUrl, katalogPortalUrl } from "@/lib/shared/app-url"
 
 type HeaderVariant = "default" | "hero"
 
@@ -70,6 +70,9 @@ export function Header({ variant = "default", useMainSiteLinks = false }: Header
                 <Link href={katalogPortalUrl("/")} className={navLinkClass}>
                   Katalog
                 </Link>
+                <Link href={belanjaPortalUrl("/")} className={navLinkClass}>
+                  Belanja
+                </Link>
                 <Link href={tentangHref} className={navLinkClass}>
                   Tentang Kami
                 </Link>
@@ -118,6 +121,13 @@ export function Header({ variant = "default", useMainSiteLinks = false }: Header
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Katalog
+                  </Link>
+                  <Link
+                    href={belanjaPortalUrl("/")}
+                    className={cn("py-2 text-sm font-medium", isHero ? "text-[#531b07]" : "text-foreground")}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Belanja
                   </Link>
                   <Link
                     href={tentangHref}
