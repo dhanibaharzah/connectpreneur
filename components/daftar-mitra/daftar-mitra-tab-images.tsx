@@ -35,7 +35,8 @@ export function DaftarMitraTabImages({
   return (
     <TabsContent value="images" forceMount className="data-[state=inactive]:hidden space-y-6 mt-6">
       <div className="space-y-2">
-        <Label>Logo Bisnis</Label>
+        <Label>Logo Bisnis *</Label>
+        <p className="text-xs text-muted-foreground">Wajib diupload. Format: JPG, PNG, WebP.</p>
         <div className="flex items-start gap-4">
           {logoUrl ? (
             <div className="relative">

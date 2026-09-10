@@ -60,6 +60,11 @@ function marketplaceProductJoinSql() {
   `
 }
 
+/** List-only: skip products without a photo. Cheap column check, no extra join. */
+function marketplaceHasImageSql() {
+  return sql`AND bp.image_url IS NOT NULL AND BTRIM(bp.image_url) <> ''`
+}
+
 function transformMarketplaceRow(row: DbMarketplaceRow): MarketplaceProduct {
   const product = transformDbProduct(row)
   return {
@@ -99,6 +104,7 @@ export async function listMarketplaceProducts(
     FROM business_products bp
     JOIN businesses b ON b.id = bp.business_id
     WHERE bp.is_active = true AND b.is_active = true
+    ${marketplaceHasImageSql()}
     ${tipeFilter}
     ${searchFilter}
     ${locationFilter}
@@ -109,6 +115,7 @@ export async function listMarketplaceProducts(
     SELECT ${marketplaceProductSelectSql()}
     ${marketplaceProductJoinSql()}
     WHERE bp.is_active = true AND b.is_active = true
+    ${marketplaceHasImageSql()}
     ${tipeFilter}
     ${searchFilter}
     ${locationFilter}
@@ -148,6 +155,7 @@ export async function getMarketplaceLocations(): Promise<string[]> {
     FROM business_products bp
     JOIN businesses b ON b.id = bp.business_id
     WHERE bp.is_active = true AND b.is_active = true
+    ${marketplaceHasImageSql()}
       AND b.kota_provinsi IS NOT NULL AND TRIM(b.kota_provinsi) <> ''
     ORDER BY b.kota_provinsi ASC
   `

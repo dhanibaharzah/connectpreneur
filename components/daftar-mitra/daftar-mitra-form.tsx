@@ -361,6 +361,11 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
       alert("Foto KTP harus diupload (tab Kontak)")
       return
     }
+    if (!form.logo_url.trim()) {
+      alert("Logo bisnis harus diupload (tab Gambar)")
+      setActiveTab("images")
+      return
+    }
 
     setShowConfirmDialog(true)
   }
@@ -519,7 +524,7 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
                 <div className="mt-8 pt-6 border-t">
                   <div className="bg-muted/50 rounded-lg p-4 mb-6">
                     <p className="text-sm text-muted-foreground">
-                      <strong>Catatan:</strong> KTP wajib diupload. Akta dan legalitas perusahaan bersifat opsional saat pendaftaran awal.
+                      <strong>Catatan:</strong> Logo bisnis dan KTP wajib diupload. Akta dan legalitas perusahaan bersifat opsional saat pendaftaran awal.
                       {ktpOcrVerified && (!form.akta_pendirian_url || aktaOcrVerified)
                         ? " Jika verifikasi otomatis berhasil, bisnis langsung aktif setelah daftar."
                         : " Jika verifikasi otomatis gagal, status bisnis under review hingga admin menyetujui."}
@@ -528,7 +533,7 @@ export function DaftarMitraForm({ useMainSiteLinks = false }: DaftarMitraFormPro
                   <Button
                     type="submit"
                     className="w-full bg-primary hover:bg-primary/90"
-                    disabled={loading || !form.ktp_url || !kontakPicVerified}
+                    disabled={loading || !form.ktp_url || !form.logo_url.trim() || !kontakPicVerified}
                   >
                     {loading ? (
                       <>
