@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 import {
   isValidProductImageUrl,
+  missingUmkmProductRequirements,
   parseHargaMulai,
   parseProductDeskripsi,
   parseProductImageUrl,
@@ -50,6 +51,18 @@ describe("parseProductImageUrl", () => {
       isValidProductImageUrl("https://pub-abc123.r2.dev/products/test.jpg"),
     ).toBe(true)
     expect(parseProductImageUrl("https://evil.example.com/x.jpg")).toBeNull()
+  })
+})
+
+describe("missingUmkmProductRequirements", () => {
+  it("requires both image and description", () => {
+    expect(missingUmkmProductRequirements({ deskripsi: "Kopi", imageUrl: "https://x" })).toBeNull()
+    expect(missingUmkmProductRequirements({ deskripsi: "", imageUrl: "https://x" })).toBe(
+      "Deskripsi produk wajib diisi",
+    )
+    expect(missingUmkmProductRequirements({ deskripsi: "Kopi", imageUrl: "  " })).toBe(
+      "Foto produk wajib diupload",
+    )
   })
 })
 

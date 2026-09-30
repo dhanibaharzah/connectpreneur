@@ -13,18 +13,20 @@ export function UmkmProductImageField({
   onUpload,
   onRemove,
   inputId,
+  required = false,
 }: {
   imageUrl: string
   uploading: boolean
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
   onRemove: () => void
   inputId: string
+  required?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={inputId}>Foto Produk (opsional)</Label>
+      <Label htmlFor={inputId}>{required ? "Foto Produk *" : "Foto Produk (opsional)"}</Label>
       {imageUrl ? (
         <div className="flex items-start gap-3">
           <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-muted shrink-0">

@@ -13,6 +13,7 @@ import { PRODUCT_TIPE_LABELS } from "@/types/business-product"
 import { ProductListPagination } from "@/components/shared/product-list-pagination"
 import { paginateArray, PRODUCT_PAGE_SIZE } from "@/lib/shared/pagination"
 import { isDeletableStorageUrl } from "@/lib/integrations/storage-urls"
+import { missingUmkmProductRequirements } from "@/lib/marketplace/business-products"
 import { UmkmProductImageField } from "@/components/umkm/umkm-product-image-field"
 
 interface UmkmProductsPanelProps {
@@ -152,6 +153,14 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
       setError("Tipe bisnis wajib dipilih (Produk atau Jasa)")
       return
     }
+    const missing = missingUmkmProductRequirements({
+      deskripsi: form.deskripsi,
+      imageUrl: form.image_url,
+    })
+    if (missing) {
+      setError(missing)
+      return
+    }
     setSaving(true)
     setError("")
     setMessage("")
@@ -197,6 +206,14 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
   const saveEdit = async (productId: string) => {
     if (!editForm.tipe_bisnis) {
       setError("Tipe bisnis wajib dipilih (Produk atau Jasa)")
+      return
+    }
+    const missing = missingUmkmProductRequirements({
+      deskripsi: editForm.deskripsi,
+      imageUrl: editForm.image_url,
+    })
+    if (missing) {
+      setError(missing)
       return
     }
     setSaving(true)
@@ -279,10 +296,11 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
               onUpload={handleFormImageUpload}
               onRemove={removeFormImage}
               inputId="product-image-add"
+              required
             />
             <div className="space-y-2">
               <Label htmlFor="product-nama">
-                Nama {form.tipe_bisnis === "jasa" ? "Jasa" : form.tipe_bisnis === "produk" ? "Produk" : "Produk/Jasa"}
+                Nama {form.tipe_bisnis === "jasa" ? "Jasa" : form.tipe_bisnis === "produk" ? "Produk" : "Produk/Jasa"} *
               </Label>
               <Input
                 id="product-nama"
@@ -294,7 +312,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="product-deskripsi">Deskripsi (opsional)</Label>
+              <Label htmlFor="product-deskripsi">Deskripsi *</Label>
               <Textarea
                 id="product-deskripsi"
                 placeholder="Contoh: Biji kopi pilihan, roasted medium, cocok untuk espresso"
@@ -302,6 +320,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                 onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
                 rows={3}
                 maxLength={1000}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -317,7 +336,10 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                 required
               />
             </div>
-            <Button type="submit" disabled={saving || uploadingImage}>
+            <Button
+              type="submit"
+              disabled={saving || uploadingImage || Boolean(missingUmkmProductRequirements({ deskripsi: form.deskripsi, imageUrl: form.image_url }))}
+            >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tambah"}
             </Button>
           </form>
@@ -356,6 +378,7 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                         onUpload={handleEditImageUpload}
                         onRemove={removeEditImage}
                         inputId={`product-image-edit-${product.id}`}
+                        required
                       />
                       <select
                         value={editForm.tipe_bisnis}
@@ -369,15 +392,17 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                       <Input
                         value={editForm.nama}
                         onChange={(e) => setEditForm({ ...editForm, nama: e.target.value })}
-                        placeholder="Nama produk/jasa"
+                        placeholder="Nama produk/jasa *"
+                        required
                         maxLength={255}
                       />
                       <Textarea
                         value={editForm.deskripsi}
                         onChange={(e) => setEditForm({ ...editForm, deskripsi: e.target.value })}
-                        placeholder="Deskripsi produk/jasa"
+                        placeholder="Deskripsi produk/jasa *"
                         rows={3}
                         maxLength={1000}
+                        required
                       />
                       <Input
                         type="number"
@@ -388,7 +413,20 @@ export function UmkmProductsPanel({ businessName }: UmkmProductsPanelProps) {
                         placeholder="Harga mulai"
                       />
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => saveEdit(product.id)} disabled={saving || uploadingImage}>
+                        <Button
+                          size="sm"
+                          onClick={() => saveEdit(product.id)}
+                          disabled={
+                            saving ||
+                            uploadingImage ||
+                            Boolean(
+                              missingUmkmProductRequirements({
+                                deskripsi: editForm.deskripsi,
+                                imageUrl: editForm.image_url,
+                              }),
+                            )
+                          }
+                        >
                           <Check className="h-4 w-4 mr-1" /> Simpan
                         </Button>
                         <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={saving}>

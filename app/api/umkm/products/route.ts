@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import {
   generateUniqueProductSlug,
   getProductsForUmkm,
+  missingUmkmProductRequirements,
   parseHargaMulai,
   parseProductDeskripsi,
   parseProductImageUrl,
@@ -48,6 +49,14 @@ export async function POST(request: NextRequest) {
 
   if (imageUrl === null) {
     return NextResponse.json({ error: "URL foto produk tidak valid" }, { status: 400 })
+  }
+
+  const missing = missingUmkmProductRequirements({
+    deskripsi: deskripsi ?? "",
+    imageUrl,
+  })
+  if (missing) {
+    return NextResponse.json({ error: missing }, { status: 400 })
   }
 
   if (hargaMulai === null) {

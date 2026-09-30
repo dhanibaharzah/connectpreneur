@@ -30,7 +30,12 @@ export function DaftarMitraTabDetail({ form, onFieldChange, onLocationChange }: 
       </div>
 
       <div className="space-y-2">
-        <LocationDropdown onLocationChange={onLocationChange} required />
+        <LocationDropdown
+          onLocationChange={onLocationChange}
+          kabKotaLabel="Asal DPD"
+          kecamatanLabel="Asal DPC"
+          required
+        />
       </div>
 
       <div className="space-y-2">

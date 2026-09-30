@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { deleteObject, isDeletableStorageUrl } from "@/lib/integrations/storage"
 import {
   generateUniqueProductSlug,
+  missingUmkmProductRequirements,
   parseHargaMulai,
   parseProductDeskripsi,
   parseProductImageUrl,
@@ -54,6 +55,14 @@ export async function PUT(
 
   if (imageUrl === null) {
     return NextResponse.json({ error: "URL foto produk tidak valid" }, { status: 400 })
+  }
+
+  const missing = missingUmkmProductRequirements({
+    deskripsi: deskripsi ?? "",
+    imageUrl,
+  })
+  if (missing) {
+    return NextResponse.json({ error: missing }, { status: 400 })
   }
 
   if (hargaMulai === null) {

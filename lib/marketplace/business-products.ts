@@ -117,6 +117,16 @@ export function parseProductTipeBisnis(value: unknown): ProductTipeBisnis | null
   return null
 }
 
+/** Mitra portal create/update: foto dan deskripsi wajib. */
+export function missingUmkmProductRequirements(input: {
+  deskripsi: string
+  imageUrl: string
+}): string | null {
+  if (!input.imageUrl.trim()) return "Foto produk wajib diupload"
+  if (!input.deskripsi.trim()) return "Deskripsi produk wajib diisi"
+  return null
+}
+
 /** @deprecated Use isDeletableStorageUrl from @/lib/integrations/storage-urls */
 export function isDeletableBlobUrl(url: string): boolean {
   return isDeletableStorageUrl(url)
