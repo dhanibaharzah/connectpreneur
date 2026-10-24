@@ -427,6 +427,8 @@ Jalankan migration SQL di Neon Console secara berurutan dari folder `/migrations
 022-add-product-tipe-bisnis.sql
 024-shop-banners.sql
 025-add-product-slug.sql
+026-pic-phone-otp.sql
+027-add-category-lain-lain.sql
 ```
 
 > Migration dasar (001–015) diasumsikan sudah ada di database production. Untuk setup fresh, hubungi tim atau jalankan schema lengkap dari backup Neon.
